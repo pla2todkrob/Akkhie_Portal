@@ -1,0 +1,27 @@
+﻿@model IEnumerable<Portal.Shared.Models.ViewModel.SectionViewModel>
+
+@{
+    ViewData["Title"] = "รายการแผนก";
+    Layout = null;
+}
+
+<div class="modal-body">
+    <table class="table table-borderless table-secondary table-striped">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(m => m.Name)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var val in Model)
+            {
+                <tr>
+                    <td>@val.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+</div>

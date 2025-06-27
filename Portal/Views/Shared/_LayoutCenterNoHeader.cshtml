@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="th" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Akkhie prakarn Login" />
+    <meta name="theme-color" content="#0d6efd" />
+    <title>@ViewData["Title"] - อัคคีปราการ</title>
+    <partial name="_PartialCss" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <main class="d-flex flex-grow-1 align-items-center justify-content-center py-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-10 col-xl-8">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-3">
+        <div class="container text-center text-muted">
+            <small>&copy; @DateTime.Now.Year - บริษัทอัคคีปราการ จำกัด (มหาชน)</small>
+        </div>
+    </footer>
+
+    <partial name="_PartialJs" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

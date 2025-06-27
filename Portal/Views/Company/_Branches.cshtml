@@ -1,0 +1,29 @@
+﻿@model IEnumerable<Portal.Shared.Models.ViewModel.CompanyBranchViewModel>
+
+@{
+    ViewData["Title"] = "รายการสาขา";
+    Layout = null;
+}
+
+<div class="modal-body">
+    <table class="table table-borderless table-secondary table-striped">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(m => m.Name)</th>
+                <th>@Html.DisplayNameFor(m => m.BranchCode)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var val in Model)
+            {
+                <tr>
+                    <td>@val.Name</td>
+                    <td>@val.BranchCode</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+</div>

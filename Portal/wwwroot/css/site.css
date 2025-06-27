@@ -1,0 +1,13 @@
+html {
+    position: relative;
+}
+
+body {
+    font-family: 'Prompt', sans-serif;
+}
+
+th.fit-content,
+td.fit-content {
+    white-space: nowrap;
+    width: 1%;
+}

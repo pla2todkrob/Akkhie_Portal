@@ -1,0 +1,281 @@
+﻿<div class="modal fade" id="globalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="globalModalDialog">
+        <div class="modal-content" id="globalModalContent">
+            @* Content will be loaded via AJAX *@
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="supportModalLabel"><i class="bi bi-person-raised-hand"></i> ศูนย์ช่วยเหลือ (Help Center)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Navigation Tabs (Updated to 4 tabs) -->
+                <ul class="nav nav-tabs" id="supportTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="problem-tab" data-bs-toggle="tab" data-bs-target="#problem-tab-pane" type="button" role="tab" aria-controls="problem-tab-pane" aria-selected="true">
+                            <i class="bi bi-exclamation-triangle-fill"></i> แจ้งปัญหา
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="advice-tab" data-bs-toggle="tab" data-bs-target="#advice-tab-pane" type="button" role="tab" aria-controls="advice-tab-pane" aria-selected="false">
+                            <i class="bi bi-lightbulb-fill"></i> ขอคำแนะนำ
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="stock-request-tab" data-bs-toggle="tab" data-bs-target="#stock-request-tab-pane" type="button" role="tab" aria-controls="stock-request-tab-pane" aria-selected="false">
+                            <i class="bi bi-box-seam"></i> เบิกอุปกรณ์
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pc-request-tab" data-bs-toggle="tab" data-bs-target="#pc-request-tab-pane" type="button" role="tab" aria-controls="pc-request-tab-pane" aria-selected="false">
+                            <i class="bi bi-laptop"></i> ขอคอมพิวเตอร์
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content pt-3" id="supportTabContent">
+                    <!-- 1. Tab แจ้งปัญหา -->
+                    <div class="tab-pane fade show active" id="problem-tab-pane" role="tabpanel" aria-labelledby="problem-tab" tabindex="0">
+                        <h4><i class="bi bi-exclamation-triangle"></i> แจ้งปัญหาการใช้งาน</h4>
+                        <p class="text-muted">กรุณาให้ข้อมูลปัญหาที่พบให้ครบถ้วนและชัดเจนที่สุด</p>
+                        <form>
+                            <div class="mb-3">
+                                <label for="problem-topic" class="form-label">หัวข้อปัญหา</label>
+                                <input type="text" class="form-control" id="problem-topic" placeholder="เช่น ไม่สามารถเข้าระบบได้, ปุ่มบันทึกไม่ทำงาน">
+                            </div>
+                            <div class="mb-3">
+                                <label for="problem-description" class="form-label">รายละเอียดปัญหา</label>
+                                <textarea class="form-control" id="problem-description" rows="4" placeholder="อธิบายขั้นตอนที่ทำให้เกิดปัญหา และผลลัพธ์ที่พบ"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="problem-attachment" class="form-label">แนบไฟล์ภาพ/วิดีโอ (ถ้ามี)</label>
+                                <div class="input-group">
+                                    <input class="form-control" type="file" id="problem-attachment">
+                                    <button class="btn btn-outline-secondary" type="button" id="captureScreenBtn">
+                                        <i class="bi bi-camera"></i> ถ่ายภาพหน้าจอ
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="capturePreview" class="mt-2 text-center"></div>
+                        </form>
+                    </div>
+
+                    <!-- 2. Tab ขอคำแนะนำ -->
+                    <div class="tab-pane fade" id="advice-tab-pane" role="tabpanel" aria-labelledby="advice-tab" tabindex="0">
+                        <h4><i class="bi bi-lightbulb"></i> ขอคำแนะนำการใช้งาน</h4>
+                        <p class="text-muted">สอบถามเกี่ยวกับการใช้งานส่วนต่างๆ ของระบบ</p>
+                        <form>
+                            <div class="mb-3">
+                                <label for="advice-topic" class="form-label">เรื่องที่ต้องการคำแนะนำ</label>
+                                <input type="text" class="form-control" id="advice-topic" placeholder="เช่น วิธีการสร้างรายงานประจำปี, การตั้งค่าผู้ใช้งานใหม่">
+                            </div>
+                            <div class="mb-3">
+                                <label for="advice-details" class="form-label">รายละเอียดคำถาม</label>
+                                <textarea class="form-control" id="advice-details" rows="5" placeholder="อธิบายสิ่งที่ต้องการทราบ หรือสิ่งที่กำลังพยายามจะทำให้ละเอียด"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 3. Tab เบิกอุปกรณ์ (New) -->
+                    <div class="tab-pane fade" id="stock-request-tab-pane" role="tabpanel" aria-labelledby="stock-request-tab" tabindex="0">
+                        <h5><i class="bi bi-box-seam"></i> เบิกอุปกรณ์สิ้นเปลือง (จากสต็อก)</h5>
+                        <p class="text-muted small">สำหรับอุปกรณ์ที่เสียหายหรือต้องการใช้งานเพิ่มเติม สามารถเบิกจากสต็อกได้ทันที</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">รายการอุปกรณ์</th>
+                                        <th scope="col">จำนวน</th>
+                                        <th scope="col">เหตุผลการเบิก</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><label for="req-mouse" class="form-label mb-0">เมาส์ (Mouse)</label></td>
+                                        <td><input type="number" class="form-control" id="req-mouse" min="0" placeholder="0"></td>
+                                        <td><input type="text" class="form-control" placeholder="เช่น ของเดิมเสีย"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="req-keyboard" class="form-label mb-0">คีย์บอร์ด (Keyboard)</label></td>
+                                        <td><input type="number" class="form-control" id="req-keyboard" min="0" placeholder="0"></td>
+                                        <td><input type="text" class="form-control" placeholder="เช่น ของเดิมเสีย"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="req-headset" class="form-label mb-0">หูฟัง (Headset)</label></td>
+                                        <td><input type="number" class="form-control" id="req-headset" min="0" placeholder="0"></td>
+                                        <td><input type="text" class="form-control" placeholder="เช่น สำหรับประชุม"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 4. Tab ขอคอมพิวเตอร์ (New) -->
+                    <div class="tab-pane fade" id="pc-request-tab-pane" role="tabpanel" aria-labelledby="pc-request-tab" tabindex="0">
+                        <h5 class="mt-4"><i class="bi bi-laptop"></i> ขอจัดหาคอมพิวเตอร์ (เครื่องใหม่/ทดแทน)</h5>
+                        <p class="text-muted small">สำหรับขอคอมพิวเตอร์เครื่องใหม่ หรือทดแทนเครื่องเดิมที่หมดสภาพการใช้งาน (ต้องผ่านการอนุมัติ)</p>
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">ประเภทอุปกรณ์</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="deviceType" id="req-desktop">
+                                        <label class="form-check-label" for="req-desktop">Desktop PC</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="deviceType" id="req-notebook">
+                                        <label class="form-check-label" for="req-notebook">Notebook</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">ประเภทการขอ</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="requestType" id="req-new">
+                                        <label class="form-check-label" for="req-new">ขอเครื่องใหม่</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="requestType" id="req-replace">
+                                        <label class="form-check-label" for="req-replace">ทดแทนเครื่องเดิม</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="replace-asset-id" class="form-label">เลขครุภัณฑ์เครื่องเก่า (กรณีทดแทน)</label>
+                                <input type="text" class="form-control" id="replace-asset-id" placeholder="กรอกเลขครุภัณฑ์ (ถ้ามี)">
+                            </div>
+                            <div class="mb-3">
+                                <label for="pc-reason" class="form-label">เหตุผลความจำเป็น</label>
+                                <textarea class="form-control" id="pc-reason" rows="3" placeholder="ระบุเหตุผลประกอบการขอ เช่น เครื่องเดิมชำรุด, สำหรับพนักงานใหม่, ต้องการประสิทธิภาพสูงขึ้นสำหรับงาน..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">อุปกรณ์เสริมที่ต้องการเพิ่มเติม</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="accessory-mouse">
+                                    <label class="form-check-label" for="accessory-mouse">เมาส์ (Mouse)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="accessory-keyboard">
+                                    <label class="form-check-label" for="accessory-keyboard">คีย์บอร์ด (Keyboard)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="accessory-monitor">
+                                    <label class="form-check-label" for="accessory-monitor">หน้าจอ (Monitor)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="accessory-other-check">
+                                    <label class="form-check-label" for="accessory-other-check">
+                                        อื่นๆ: <input type="text" class="form-control-sm" id="accessory-other-text" placeholder="โปรดระบุ">
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-primary"><i class="bi bi-send-fill"></i> ส่งคำขอ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showGlobalModal(options) {
+        const { url, title, size = 'lg' } = options;
+        const modal = $('#globalModal');
+        const dialog = $('#globalModalDialog');
+        const content = $('#globalModalContent');
+        content.empty();
+        dialog.removeClass('modal-sm modal-md modal-lg modal-xl modal-fullscreen');
+        dialog.addClass(`modal-${size}`);
+
+        let modalHeader = $('<div class="modal-header">');
+        let modalTitle = $('<h5 class="modal-title">').text(title || '@ViewData["Title"]');
+        modalHeader.append(modalTitle);
+        modalHeader.append('<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>');
+        
+        
+
+        // Load content via AJAX
+        content.load(url, function() {
+            if(!content.find('.modal-header').length){
+            content.prepend(modalHeader);
+            }
+            modal.modal('show');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const captureBtn = document.getElementById('captureScreenBtn');
+        if (!captureBtn) return; // Exit if button not found
+
+        const previewContainer = document.getElementById('capturePreview');
+        const supportModalElement = document.getElementById('supportModal');
+
+        // Ensure modal instance is ready before attaching events
+        supportModalElement.addEventListener('shown.bs.modal', () => {
+             const supportModal = bootstrap.Modal.getInstance(supportModalElement);
+
+            if (captureBtn.dataset.listenerAttached) return; // Prevent attaching multiple listeners
+
+            captureBtn.addEventListener('click', async () => {
+                // Hide Modal before capture
+                supportModal.hide();
+                previewContainer.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
+
+                // Delay to allow modal to finish hiding
+                setTimeout(async () => {
+                    try {
+                        // Start screen capture
+                        const stream = await navigator.mediaDevices.getDisplayMedia({
+                            video: { cursor: "always" },
+                            audio: false,
+                        });
+
+                        const track = stream.getVideoTracks()[0];
+
+                        // A brief delay to ensure the frame is ready
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        const imageCapture = new ImageCapture(track);
+                        const bitmap = await imageCapture.grabFrame();
+
+                        // Stop sharing
+                        track.stop();
+
+                        // Draw image on canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = bitmap.width;
+                        canvas.height = bitmap.height;
+                        const context = canvas.getContext('2d');
+                        context.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height);
+
+                        // Display preview
+                        const imageUrl = canvas.toDataURL('image/png');
+                        previewContainer.innerHTML = `
+                            <p class="text-muted small mb-1">ภาพตัวอย่าง:</p>
+                            <img src="${imageUrl}" class="img-fluid rounded border" style="max-height: 200px;" alt="Screen Capture"/>
+                            <input type="hidden" name="capturedImageData" value="${imageUrl}" />
+                        `;
+
+                    } catch (err) {
+                        console.error("Capture Error: " + err);
+                        previewContainer.innerHTML = `<p class="text-danger small">เกิดข้อผิดพลาด หรือผู้ใช้ยกเลิกการถ่ายภาพหน้าจอ</p>`;
+                    } finally {
+                        // Show modal again
+                        supportModal.show();
+                    }
+                }, 500);
+            });
+
+            captureBtn.dataset.listenerAttached = 'true';
+        });
+    });
+</script>

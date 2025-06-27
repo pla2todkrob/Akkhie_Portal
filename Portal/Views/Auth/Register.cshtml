@@ -1,0 +1,260 @@
+﻿@using Portal.Shared.Models.Entities
+@model Portal.Shared.Models.DTOs.Auth.RegisterRequest
+@{
+    ViewData["Title"] = Model.IsAdUser ? $"ลงทะเบียนด้วยบัญชี: {Model.Username}" : "สมัครสมาชิก";
+    Layout = "_LayoutCenterNoHeader";
+}
+
+<div class="card shadow-sm border-0 my-5">
+    <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+            <img src="~/images/logo.png" alt="อัคคีปราการ" height="50" class="mb-3">
+            <h4 class="fw-bold text-primary">@ViewData["Title"]</h4>
+            <p class="text-muted mb-0">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+            @if (Model.IsAdUser)
+            {
+                <div class="alert alert-info small mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i> คุณกำลังลงทะเบียนด้วยบัญชี Active Directory
+                </div>
+            }
+        </div>
+
+        <form asp-action="Register" asp-controller="Auth" method="post" class="needs-validation" novalidate>
+            <input type="hidden" asp-for="IsAdUser" />
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-4"></div>
+
+            <!-- ข้อมูลบัญชีผู้ใช้ -->
+            <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>ข้อมูลบัญชีผู้ใช้</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Username" class="form-control" readonly="@Model.IsAdUser" placeholder=" " required>
+                        <label asp-for="Username"></label>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="EmployeeCode" class="form-control" placeholder=" " required>
+                        <label asp-for="EmployeeCode"></label>
+                        <span asp-validation-for="EmployeeCode" class="text-danger small"></span>
+                    </div>
+                </div>
+                @if (!Model.IsAdUser)
+                {
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="Password" type="password" class="form-control" placeholder=" " required>
+                            <label asp-for="Password"></label>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder=" " required>
+                            <label asp-for="ConfirmPassword"></label>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- ข้อมูลส่วนตัว -->
+            <h5 class="mb-3"><i class="bi bi-person me-2"></i>ข้อมูลส่วนตัว</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="FirstName" class="form-control" placeholder=" " required>
+                        <label asp-for="FirstName"></label>
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="LastName" class="form-control" placeholder=" " required>
+                        <label asp-for="LastName"></label>
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="LocalFirstName" class="form-control" placeholder=" " required>
+                        <label asp-for="LocalFirstName"></label>
+                        <span asp-validation-for="LocalFirstName" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="LocalLastName" class="form-control" placeholder=" " required>
+                        <label asp-for="LocalLastName"></label>
+                        <span asp-validation-for="LocalLastName" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลการติดต่อ -->
+            <h5 class="mb-3"><i class="bi bi-envelope me-2"></i>ข้อมูลการติดต่อ</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Email" type="email" class="form-control" placeholder=" " required>
+                        <label asp-for="Email"></label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="PhoneNumber" class="form-control" placeholder=" " required>
+                        <label asp-for="PhoneNumber"></label>
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลบริษัท -->
+            <h5 class="mb-3"><i class="bi bi-building me-2"></i>ข้อมูลบริษัท</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <div class="form-floating">
+                        <select asp-for="CompanyId" class="form-select" required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="CompanyId"></label>
+                        <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <select asp-for="CompanyBranchId" class="form-select" disabled required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="CompanyBranchId"></label>
+                        <span asp-validation-for="CompanyBranchId" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลหน่วยงาน -->
+            <h5 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>ข้อมูลหน่วยงาน</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="DivisionId" class="form-select" required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="DivisionId"></label>
+                        <span asp-validation-for="DivisionId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="DepartmentId" class="form-select" disabled required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="DepartmentId"></label>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="SectionId" class="form-select" disabled required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="SectionId"></label>
+                        <span asp-validation-for="SectionId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="RoleId" class="form-select" required>
+                            <option value="">กรุณาเลือก</option>
+                        </select>
+                        <label asp-for="RoleId"></label>
+                        <span asp-validation-for="RoleId" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    <i class="bi bi-check-circle me-2"></i>ลงทะเบียน
+                </button>
+
+
+                <a asp-action="Login" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>กลับไปหน้าเข้าสู่ระบบ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Cascade Dropdowns - Division -> Department -> Section
+            $('#DivisionId').change(function() {
+                const divisionId = $(this).val();
+                $('#DepartmentId').empty().append('<option value="">กรุณาเลือก</option>').prop('disabled', !divisionId);
+                $('#SectionId').empty().append('<option value="">กรุณาเลือก</option>').prop('disabled', true);
+
+                if (divisionId) {
+                    $.getJSON('@Url.Action("GetDepartmentsByDivision", "Lookup")', { id: divisionId }, function(data) {
+                        $.each(data, function(index, item) {
+                            $('#DepartmentId').append($('<option></option>').val(item.value).text(item.text));
+                        });
+                    });
+                }
+            });
+
+            $('#DepartmentId').change(function() {
+                const departmentId = $(this).val();
+                $('#SectionId').empty().append('<option value="">กรุณาเลือก</option>').prop('disabled', !departmentId);
+
+                if (departmentId) {
+                    $.getJSON('@Url.Action("GetSectionsByDepartment", "Lookup")', { id: departmentId }, function(data) {
+                        $.each(data, function(index, item) {
+                            $('#SectionId').append($('<option></option>').val(item.value).text(item.text));
+                        });
+                    });
+                }
+            });
+
+            // Cascade Dropdowns - Company -> Branch
+            $('#CompanyId').change(function() {
+                const companyId = $(this).val();
+                $('#CompanyBranchId').empty().append('<option value="">กรุณาเลือก</option>').prop('disabled', !companyId);
+
+                if (companyId) {
+                    $.getJSON('@Url.Action("GetBranchesByCompany", "Lookup")', { id: companyId }, function(data) {
+                        $.each(data, function(index, item) {
+                            $('#CompanyBranchId').append($('<option></option>').val(item.value).text(item.text));
+                        });
+                    });
+                }
+            });
+
+            // โหลดข้อมูลเริ่มต้นสำหรับ Dropdowns
+            $.getJSON('@Url.Action("GetDivisions", "Lookup")', function(data) {
+                $.each(data, function(index, item) {
+                    $('#DivisionId').append($('<option></option>').val(item.value).text(item.text));
+                });
+            });
+
+            $.getJSON('@Url.Action("GetCompanies", "Lookup")', function(data) {
+                $.each(data, function(index, item) {
+                    $('#CompanyId').append($('<option></option>').val(item.value).text(item.text));
+                });
+            });
+
+            $.getJSON('@Url.Action("GetRoles", "Lookup")', function(data) {
+                $.each(data, function(index, item) {
+                    $('#RoleId').append($('<option></option>').val(item.value).text(item.text));
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,17 @@
+﻿@model List<Tuple<string, string>>
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        @foreach (var item in Model)
+        {
+            if (string.IsNullOrEmpty(item.Item2))
+            {
+                <li class="breadcrumb-item active" aria-current="page">@item.Item1</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item"><a href="@item.Item2">@item.Item1</a></li>
+            }
+        }
+    </ol>
+</nav>

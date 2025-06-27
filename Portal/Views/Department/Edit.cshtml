@@ -1,0 +1,56 @@
+﻿@model Portal.Shared.Models.ViewModel.DepartmentViewModel
+
+@{
+    ViewData["Title"] = "แก้ไขข้อมูลฝ่าย";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex align-items-center mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h2 class="mb-0 text-primary">@ViewData["Title"]</h2>
+            </div>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                        กรุณาตรวจสอบและแก้ไขข้อมูลให้ถูกต้อง
+                    </p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <partial name="_DepartmentForm" model="Model" />
+                </div>
+                <div class="card-footer setStickyBottom py-3">
+                    <div class="d-flex justify-content-between">
+                        <div class="btn-group">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>ยกเลิก
+                            </a>
+                            <button type="button" class="btn btn-danger" id="DeleteButton" data-id="@Model.Id">
+                                <i class="bi bi-trash me-2"></i>ลบรายการ
+                            </button>
+                        </div>
+                        <button type="submit" form="SaveForm" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                            <i class="bi bi-check-circle me-2"></i>บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/Department/handleChild.js" asp-append-version="true"></script>
+    <script src="~/js/Department/formEvent.js" asp-append-version="true"></script>
+
+}

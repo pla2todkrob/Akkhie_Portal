@@ -1,4 +1,4 @@
-﻿// handleChild.js
+﻿// wwwroot/js/Department/handleChild.js
 (function ($) {
     'use strict';
 

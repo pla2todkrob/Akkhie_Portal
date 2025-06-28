@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿// File: Portal.Shared/Models/Entities/AuditLog.cs
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Shared.Models.Entities
 {
@@ -8,6 +9,13 @@ namespace Portal.Shared.Models.Entities
     public class AuditLog
     {
         public int Id { get; set; }
+
+        // --- NEW ---
+        /// <summary>
+        /// ID สำหรับจัดกลุ่มการเปลี่ยนแปลงทั้งหมดที่เกิดขึ้นใน Transaction เดียวกัน
+        /// </summary>
+        public Guid TransactionId { get; set; }
+        // --- END NEW ---
 
         /// <summary>
         /// ID ของผู้ใช้งานที่ทำให้เกิดการเปลี่ยนแปลง (ถ้ามี)
@@ -22,12 +30,12 @@ namespace Portal.Shared.Models.Entities
         /// <summary>
         /// ประเภทของการเปลี่ยนแปลง (เช่น Added, Modified, Deleted)
         /// </summary>
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
         /// <summary>
         /// ชื่อตาราง (Entity) ที่เกิดการเปลี่ยนแปลง
         /// </summary>
-        public string TableName { get; set; }
+        public string TableName { get; set; } = string.Empty;
 
         /// <summary>
         /// วันที่และเวลาที่เกิดการเปลี่ยนแปลง (UTC)
@@ -59,7 +67,7 @@ namespace Portal.Shared.Models.Entities
         /// รองรับ Composite Keys
         /// </summary>
         [Column(TypeName = "nvarchar(max)")]
-        public string PrimaryKey { get; set; }
+        public string PrimaryKey { get; set; } = string.Empty;
 
         // ----- คอลัมน์ที่เพิ่มใหม่เพื่อประสิทธิภาพสูงสุด -----
 
@@ -74,7 +82,7 @@ namespace Portal.Shared.Models.Entities
         public string? UserAgent { get; set; }
 
         /// <summary>
-        ///  ID สำหรับติดตาม Request ตลอดทั้งกระบวนการ (Request Correlation)
+        /// ID เฉพาะของ HTTP Request นั้นๆ เพื่อใช้ในการตรวจสอบและติดตามปัญหา
         /// </summary>
         public string? TraceId { get; set; }
     }

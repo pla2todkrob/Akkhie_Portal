@@ -1,4 +1,4 @@
-﻿// handleChild.js
+﻿// wwwroot/js/Division/handleChild.js
 (function ($) {
     'use strict';
 

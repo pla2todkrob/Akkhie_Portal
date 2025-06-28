@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿// File: Portal.Services/Models/AuditEntry.cs
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 using Portal.Shared.Enums;
 using Portal.Shared.Models.Entities;
@@ -6,11 +7,14 @@ using Portal.Shared.Models.Entities;
 namespace Portal.Services.Models
 {
     /// <summary>
-    /// คลาสตัวกลางสำหรับเก็บข้อมูลการเปลี่ยนแปลงของ Entity หนึ่งๆ ก่อนแปลงเป็น AuditLog Entity
+    /// คลาสตัวกลางสำหรับเก็บข้อมูลการเปลี่ยนแปลงของ Entity หนึ่งๆ ก่อนแปลงเป็น AuditLog Entity (ปรับปรุงใหม่)
     /// </summary>
     public class AuditEntry(EntityEntry entry, string tableName)
     {
         public EntityEntry Entry { get; } = entry;
+        public List<PropertyEntry> TemporaryProperties { get; } = new List<PropertyEntry>();
+        public Guid TransactionId { get; set; }
+
         public string? UserId { get; set; }
         public string? Username { get; set; }
         public string TableName { get; set; } = tableName;
@@ -24,6 +28,8 @@ namespace Portal.Services.Models
         public string? UserAgent { get; set; }
         public string? TraceId { get; set; }
 
+        public bool HasTemporaryProperties => TemporaryProperties.Any();
+
         /// <summary>
         /// แปลงจาก AuditEntry ไปเป็น AuditLog Entity เพื่อพร้อมบันทึกลง DB
         /// </summary>
@@ -31,6 +37,7 @@ namespace Portal.Services.Models
         {
             var audit = new AuditLog
             {
+                TransactionId = TransactionId,
                 UserId = UserId,
                 Username = Username,
                 Type = AuditType.ToString(),

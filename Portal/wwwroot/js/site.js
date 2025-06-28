@@ -1,4 +1,4 @@
-﻿// site.js - Global JavaScript for the application
+﻿// wwwroot/js/site.js - Global JavaScript for the application
 (function () {
     'use strict';
 

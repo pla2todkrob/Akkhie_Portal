@@ -6,6 +6,8 @@ using Portal.Services.Interfaces;
 using Portal.Shared.Constants;
 using Portal.Shared.Enums;
 using Portal.Shared.Models.Entities;
+using Portal.Shared.Models.Entities.IT_Inventory;
+using Portal.Shared.Models.Entities.Support;
 
 namespace Portal.Services.Models
 {
@@ -27,8 +29,18 @@ namespace Portal.Services.Models
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<SupportTicketCategory> SupportTicketCategories { get; set; }
+        public DbSet<SupportTicketHistory> SupportTicketHistories { get; set; }
+
+        public DbSet<IT_Item> IT_Items { get; set; }
+        public DbSet<IT_Asset> IT_Assets { get; set; }
+        public DbSet<IT_Stock> IT_Stocks { get; set; }
+        public DbSet<IT_StandardSet> IT_StandardSets { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Company>(entity =>
             {
@@ -162,6 +174,85 @@ namespace Portal.Services.Models
                 .HasForeignKey(uf => uf.UploadedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // --- SupportTicket Configuration ---
+            modelBuilder.Entity<SupportTicket>(entity =>
+            {
+                entity.HasIndex(e => e.TicketNumber).IsUnique();
+
+                entity.Property(e => e.RequestType).HasConversion<string>();
+                entity.Property(e => e.Priority).HasConversion<string>();
+                entity.Property(e => e.Status).HasConversion<string>();
+
+                // Relationship with Employee (ReportedBy)
+                entity.HasOne(st => st.ReportedByEmployee)
+                    .WithMany() // Employee can have many tickets
+                    .HasForeignKey(st => st.ReportedByEmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting employee if they have tickets
+
+                // Relationship with Employee (AssignedTo)
+                entity.HasOne(st => st.AssignedToEmployee)
+                    .WithMany()
+                    .HasForeignKey(st => st.AssignedToEmployeeId)
+                    .IsRequired(false) // Can be nullable
+                    .OnDelete(DeleteBehavior.SetNull); // If IT staff is deleted, set AssignedTo to null
+
+                // Relationship with IT_Asset
+                entity.HasOne(st => st.RelatedAsset)
+                      .WithMany()
+                      .HasForeignKey(st => st.AssetId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- SupportTicketHistory Configuration ---
+            modelBuilder.Entity<SupportTicketHistory>(entity =>
+            {
+                // Relationship with Employee
+                entity.HasOne(sth => sth.Employee)
+                    .WithMany()
+                    .HasForeignKey(sth => sth.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Relationship with UploadedFile
+                entity.HasOne(sth => sth.FileAttachment)
+                      .WithMany()
+                      .HasForeignKey(sth => sth.FileAttachmentId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- SupportTicketCategory Configuration ---
+            modelBuilder.Entity<SupportTicketCategory>(entity =>
+            {
+                entity.Property(e => e.CategoryType).HasConversion<string>();
+            });
+
+            // --- IT_Asset Configuration ---
+            modelBuilder.Entity<IT_Asset>(entity =>
+            {
+                entity.HasIndex(e => e.AssetTag).IsUnique();
+                entity.Property(e => e.Status).HasConversion<string>();
+
+                entity.HasOne(a => a.AssignedToEmployee)
+                      .WithMany()
+                      .HasForeignKey(a => a.AssignedToEmployeeId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- IT_Item Configuration ---
+            modelBuilder.Entity<IT_Item>(entity =>
+            {
+                entity.Property(e => e.ItemType).HasConversion<string>();
+            });
+
+            // --- IT_StandardSet Configuration ---
+            modelBuilder.Entity<IT_StandardSet>(entity =>
+            {
+                // Ensures one role can only be assigned to one standard set
+                entity.HasIndex(e => e.AssignedToRoleId).IsUnique();
+            });
+
             modelBuilder.Entity<Role>().HasData(
                  new Role() { Id = (int)RoleType.Chairman, Name = RoleType.Chairman.GetDisplayName() },
                  new Role() { Id = (int)RoleType.ManagingDirector, Name = RoleType.ManagingDirector.GetDisplayName() },
@@ -226,113 +317,137 @@ namespace Portal.Services.Models
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var auditEntries = HandleAuditEntries();
+            // OnBeforeSaveChanges is now responsible for creating AuditEntry objects.
+            var auditEntries = OnBeforeSaveChanges();
 
-            HandleAuditableAndSoftDeletableEntities();
+            // Save the actual data changes to the database. This is where temporary keys get their real values.
+            var result = await base.SaveChangesAsync(cancellationToken);
 
-            if (auditEntries.Count != 0)
-            {
-                await AuditLogs.AddRangeAsync(auditEntries.Select(e => e.ToAudit()), cancellationToken);
-            }
+            // OnAfterSaveChanges is now responsible for handling the generated keys and saving the logs.
+            await OnAfterSaveChanges(auditEntries);
 
-            return await base.SaveChangesAsync(cancellationToken);
+            return result;
         }
 
-        private List<AuditEntry> HandleAuditEntries()
+        /// <summary>
+        /// This method is called by SaveChangesAsync before the changes are committed to the database.
+        /// Its main purpose is to detect all changes and create a list of AuditEntry objects.
+        /// </summary>
+        /// <returns>A list of AuditEntry objects representing the changes.</returns>
+        private List<AuditEntry> OnBeforeSaveChanges()
         {
             ChangeTracker.DetectChanges();
             var entries = new List<AuditEntry>();
-            var httpContext = _httpContextAccessor.HttpContext;
 
-            foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity is not AuditLog && e.State != EntityState.Detached && e.State != EntityState.Unchanged))
+            // Create a single, unique TransactionId for this entire batch of changes.
+            // This allows grouping all modifications that occur in a single SaveChanges call.
+            var transactionId = Guid.NewGuid();
+
+            foreach (var entry in ChangeTracker.Entries())
             {
-                // 1. ดึง tableName ออกมาก่อน
-                var tableName = entry.Metadata.GetTableName() ?? entry.Entity.GetType().Name;
+                // Skip entities that are not changed or not tracked.
+                if (entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
 
-                // 2. ส่ง tableName เข้าไปใน Constructor ตามที่คุณได้ออกแบบไว้
-                var auditEntry = new AuditEntry(entry, tableName)
+                // Do not audit the AuditLog table itself to prevent an infinite loop.
+                if (entry.Entity is AuditLog)
+                    continue;
+
+                // Create a new AuditEntry for each changed entity.
+                var auditEntry = new AuditEntry(entry, entry.Metadata.GetTableName() ?? "Unknown")
                 {
-                    // 3. ไม่ต้องกำหนดค่า TableName ที่นี่อีกต่อไป
+                    // Assign the same TransactionId to all entries in this batch.
+                    TransactionId = transactionId,
                     UserId = _currentUserService.UserId?.ToString(),
                     Username = _currentUserService.Username,
-                    IpAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
-                    UserAgent = httpContext?.Request?.Headers.UserAgent,
-                    TraceId = httpContext?.TraceIdentifier
+                    IpAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
+                    UserAgent = _httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString(),
+                    TraceId = _httpContextAccessor.HttpContext?.TraceIdentifier
                 };
 
                 foreach (var property in entry.Properties)
                 {
-                    if (property.IsTemporary) continue;
+                    // If the property has a temporary value (e.g., a new auto-generated ID),
+                    // store it separately to be processed after the main save operation.
+                    if (property.IsTemporary)
+                    {
+                        auditEntry.TemporaryProperties.Add(property);
+                        continue;
+                    }
 
                     string propertyName = property.Metadata.Name;
+
+                    // Store the primary key value(s).
                     if (property.Metadata.IsPrimaryKey())
                     {
-                        auditEntry.KeyValues[propertyName] = property.CurrentValue ?? DBNull.Value;
+                        auditEntry.KeyValues[propertyName] = property.CurrentValue!;
                         continue;
                     }
 
                     switch (entry.State)
                     {
+                        // For newly added entities, record the new values.
                         case EntityState.Added:
                             auditEntry.AuditType = AuditType.Added;
-                            auditEntry.NewValues[propertyName] = property.CurrentValue ?? DBNull.Value;
+                            auditEntry.NewValues[propertyName] = property.CurrentValue!;
                             break;
 
+                        // For deleted entities, record the old values.
                         case EntityState.Deleted:
                             auditEntry.AuditType = AuditType.Deleted;
-                            auditEntry.OldValues[propertyName] = property.OriginalValue ?? System.DBNull.Value;
+                            auditEntry.OldValues[propertyName] = property.OriginalValue!;
                             break;
 
+                        // For modified entities, record old and new values for changed properties.
                         case EntityState.Modified:
-                            if (property.IsModified && ((property.OriginalValue != null && !property.OriginalValue.Equals(property.CurrentValue)) || (property.OriginalValue == null && property.CurrentValue != null)))
+                            if (property.IsModified)
                             {
                                 auditEntry.ChangedColumns.Add(propertyName);
                                 auditEntry.AuditType = AuditType.Modified;
-                                auditEntry.OldValues[propertyName] = property.OriginalValue ?? System.DBNull.Value;
-                                auditEntry.NewValues[propertyName] = property.CurrentValue ?? DBNull.Value;
+                                auditEntry.OldValues[propertyName] = property.OriginalValue!;
+                                auditEntry.NewValues[propertyName] = property.CurrentValue!;
                             }
                             break;
                     }
                 }
-
-                if (auditEntry.AuditType != AuditType.None)
-                {
-                    entries.Add(auditEntry);
-                }
+                entries.Add(auditEntry);
             }
             return entries;
         }
 
-
-        private void HandleAuditableAndSoftDeletableEntities()
+        /// <summary>
+        /// This method is called by SaveChangesAsync after the main data changes have been committed.
+        /// It updates temporary properties with their final database-generated values and saves the audit logs.
+        /// </summary>
+        /// <param name="auditEntries">The list of AuditEntry objects created by OnBeforeSaveChanges.</param>
+        private async Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
-            var now = DateTime.UtcNow;
-            var currentUserId = _currentUserService.UserId;
-            var currentUserName = _currentUserService.Username;
+            if (auditEntries == null || auditEntries.Count == 0)
+                return;
 
-            foreach (var entry in ChangeTracker.Entries<IAuditable>().Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+            foreach (var auditEntry in auditEntries)
             {
-                if (entry.State == EntityState.Added)
+                // Now that the main save is complete, retrieve the final values of temporary properties.
+                foreach (var prop in auditEntry.TemporaryProperties)
                 {
-                    entry.Entity.CreatedAt = now;
-                    entry.Entity.CreatedBy = currentUserId;
-                    entry.Entity.CreatedByName = currentUserId.HasValue ? (currentUserName ?? "Unknown User") : "System/Process";
+                    if (prop.Metadata.IsPrimaryKey())
+                    {
+                        auditEntry.KeyValues[prop.Metadata.Name] = prop.CurrentValue!;
+                    }
+                    else
+                    {
+                        auditEntry.NewValues[prop.Metadata.Name] = prop.CurrentValue!;
+                    }
                 }
-                else
-                {
-                    entry.Entity.UpdatedAt = now;
-                    entry.Entity.UpdatedBy = currentUserId;
-                    entry.Entity.UpdatedByName = currentUserId.HasValue ? (currentUserName ?? "Unknown User") : "System/Process";
-                }
+
+                // Convert the completed AuditEntry to an AuditLog entity and add it to the context.
+                AuditLogs.Add(auditEntry.ToAudit());
             }
 
-            foreach (var entry in ChangeTracker.Entries<ISoftDeletable>().Where(e => e.State == EntityState.Deleted))
-            {
-                entry.State = EntityState.Modified;
-                entry.Entity.IsDeleted = true;
-                entry.Entity.DeletedAt = now;
-                entry.Entity.DeletedBy = currentUserId;
-            }
+            // Save the audit logs to the database in a separate transaction.
+            // This ensures that even if logging fails, the main data operation is not rolled back.
+            await SaveChangesAsync(CancellationToken.None);
         }
+
     }
 }

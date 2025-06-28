@@ -1,4 +1,4 @@
-﻿// formEvent.js
+﻿// wwwroot/js/Division/formEvent.js
 (function ($) {
     'use strict';
 

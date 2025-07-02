@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
+using Portal.Shared.Enums.Support;
 using Portal.Shared.Models.DTOs.Support;
 using Portal.Shared.Models.Entities.Support;
 using Portal.Shared.Models.ViewModel.Support;
@@ -85,6 +86,14 @@ namespace Portal.Services.Models
                     Status = t.Status,
                     CreatedAt = t.CreatedAt
                 })
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(TicketCategoryType categoryType)
+        {
+            return await _context.SupportTicketCategories
+                .Where(c => c.CategoryType == categoryType)
                 .AsNoTracking()
                 .ToListAsync();
         }

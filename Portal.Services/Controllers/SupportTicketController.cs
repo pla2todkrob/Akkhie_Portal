@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portal.Services.Interfaces;
+using Portal.Shared.Enums.Support;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.DTOs.Support;
 
@@ -86,6 +87,21 @@ namespace Portal.Services.Controllers
             {
                 _logger.LogError(ex, "Error retrieving current user's tickets.");
                 return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ของคุณ"));
+            }
+        }
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories([FromQuery] TicketCategoryType categoryType)
+        {
+            try
+            {
+                var categories = await _supportTicketService.GetCategoriesAsync(categoryType);
+                return Ok(ApiResponse<object>.SuccessResponse(categories));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving support categories for type {CategoryType}", categoryType);
+                return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่"));
             }
         }
     }

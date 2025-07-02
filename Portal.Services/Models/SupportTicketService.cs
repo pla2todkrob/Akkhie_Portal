@@ -2,6 +2,7 @@
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Support;
 using Portal.Shared.Models.Entities.Support;
+using Portal.Shared.Models.ViewModel.Support;
 
 namespace Portal.Services.Models
 {
@@ -62,6 +63,30 @@ namespace Portal.Services.Models
                         .ThenInclude(e => e.EmployeeDetail)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
+        }
+
+        public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync()
+        {
+            if (_currentUserService.UserId == null)
+            {
+                return [];
+            }
+
+            var userId = _currentUserService.UserId.Value;
+
+            return await _context.SupportTickets
+                .Where(t => t.ReportedByEmployeeId == userId)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new TicketListViewModel
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber,
+                    Title = t.Title,
+                    Status = t.Status,
+                    CreatedAt = t.CreatedAt
+                })
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         /// <summary>

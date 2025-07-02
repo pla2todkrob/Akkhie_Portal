@@ -1,10 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Portal.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Portal.Interfaces;
+using Portal.Models;
+using Portal.Shared.Enums.Support;
 
 namespace Portal.Controllers
 {
-    public class LookupController(ILogger<LookupController> logger, IRoleRequest roleRequest, ICompanyRequest companyRequest, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest, ISectionRequest sectionRequest) : Controller
+    [Authorize]
+    public class LookupController(
+        ILogger<LookupController> logger, 
+        IRoleRequest roleRequest, 
+        ICompanyRequest companyRequest, 
+        IDivisionRequest divisionRequest, 
+        IDepartmentRequest departmentRequest, 
+        ISectionRequest sectionRequest, 
+        ISupportTicketRequest supportTicketRequest) : Controller
     {
         public IActionResult Index()
         {
@@ -130,6 +141,30 @@ namespace Portal.Controllers
                 value = s.Id.ToString(),
                 text = s.Name
             }));
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetSupportCategories()
+        {
+            // For now, we fetch only "Issue" type categories for the form.
+            var response = await supportTicketRequest.GetCategoriesAsync(TicketCategoryType.Issue.ToString());
+
+            if (!response.Success || response.Data == null)
+            {
+                return Json(new { success = false, message = response.Message ?? "Could not load categories." });
+            }
+
+            var categories = response.Data.Select(s => new {
+                id = s.Id,
+                name = s.Name
+            });
+
+            return Json(new { success = true, data = categories });
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetMySupportTickets()
+        {
+            var response = await supportTicketRequest.GetMyTicketsAsync();
+            return Json(response);
         }
     }
 }

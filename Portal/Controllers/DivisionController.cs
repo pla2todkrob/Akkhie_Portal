@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Interfaces;
 using Portal.Models;
 using Portal.Shared.Models.DTOs.Shared;
@@ -7,6 +8,7 @@ using System.DirectoryServices.Protocols;
 
 namespace Portal.Controllers
 {
+    [Authorize]
     public class DivisionController(ILogger<AuthController> logger, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest) : Controller
     {
         public async Task<IActionResult> Index()

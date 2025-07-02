@@ -30,5 +30,8 @@
         public string SectionsByDepartment { get; set; } = string.Empty;
         public string SectionSave { get; set; } = string.Empty;
         public string SectionDelete { get; set; } = string.Empty;
+        public string SupportTicketCreate { get; set; } = string.Empty;
+        public string SupportTicketGetCategories { get; set; } = string.Empty;
+        public string SupportTicketGetMyTickets { get; set; } = string.Empty;
     }
 }

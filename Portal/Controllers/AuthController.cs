@@ -73,7 +73,7 @@ namespace Portal.Controllers
                     return View(model);
                 }
 
-                await SignInUser(employee, loginResponse.Username ?? model.Username, model.RememberMe);
+                await SignInUser(employee, loginResponse.Username ?? model.Username, model.RememberMe, loginResponse.Token!);
                 return RedirectToLocal(model.ReturnUrl);
             }
             catch (Exception ex)
@@ -132,7 +132,7 @@ namespace Portal.Controllers
                     return View(model);
                 }
 
-                await SignInUser(employee, employee.Username, true);
+                await SignInUser(employee, employee.Username, true, registerData.Token ?? throw new Exception("Token not found"));
                 return RedirectToLocal(model.ReturnUrl);
             }
             catch (Exception ex)
@@ -170,7 +170,7 @@ namespace Portal.Controllers
             }
         }
 
-        private async Task SignInUser(EmployeeViewModel employee, string username, bool isPersistent)
+        private async Task SignInUser(EmployeeViewModel employee, string username, bool isPersistent, string accessToken)
         {
             var claims = new List<Claim>
             {
@@ -179,7 +179,8 @@ namespace Portal.Controllers
                 new(ClaimTypes.Email, employee.Email ?? string.Empty),
                 new(ClaimTypes.Role, employee.RoleName ?? string.Empty),
                 new("EmployeeCode", employee.EmployeeCode ?? string.Empty),
-                new("IsSystemRole", employee.IsSystemRole.ToString())
+                new("IsSystemRole", employee.IsSystemRole.ToString()),
+                new("access_token", accessToken)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

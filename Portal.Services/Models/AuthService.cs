@@ -217,12 +217,13 @@ namespace Portal.Services.Models
             try
             {
                 await _context.SaveChangesAsync();
-
+                var token = GenerateJwtToken(newEmployee);
                 return new RegisterResponse
                 {
                     Success = true,
                     EmployeeId = newEmployee.Id,
-                    EmployeeStatus = newEmployee.EmployeeStatus
+                    EmployeeStatus = newEmployee.EmployeeStatus,
+                    Token = token
                 };
             }
             catch (DbUpdateException ex)

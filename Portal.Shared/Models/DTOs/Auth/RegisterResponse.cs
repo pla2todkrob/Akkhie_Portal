@@ -8,5 +8,6 @@ namespace Portal.Shared.Models.DTOs.Auth
         public Guid? EmployeeId { get; set; }
         public EmployeeStatus EmployeeStatus { get; set; }
         public List<string>? Errors { get; set; }
+        public string? Token { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Portal.Shared.Models.DTOs.Support;
 using Portal.Shared.Models.Entities.Support;
+using Portal.Shared.Models.ViewModel.Support;
 
 namespace Portal.Services.Interfaces
 {
@@ -19,6 +20,10 @@ namespace Portal.Services.Interfaces
         /// <returns>The SupportTicket entity or null if not found or not authorized.</returns>
         Task<SupportTicket?> GetTicketByIdAsync(int ticketId);
 
-        // เราจะเพิ่มเมธอดอื่นๆ เช่น การอัปเดต, การดึงรายการทั้งหมด, ในภายหลัง
+        /// <summary>
+        /// Gets a list of tickets reported by the current user.
+        /// </summary>
+        /// <returns>A list of tickets for the current user.</returns>
+        Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync();
     }
 }

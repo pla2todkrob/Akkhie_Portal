@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
@@ -7,6 +8,7 @@ using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Controllers
 {
+    [Authorize]
     public class DepartmentController(ILogger<AuthController> logger, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest, ISectionRequest sectionRequest) : Controller
     {
         public async Task<IActionResult> Index()

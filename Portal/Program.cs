@@ -22,13 +22,23 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection(ApiSettings.SectionName));
-builder.Services.AddScoped<ICompanyRequest, CompanyRequest>();
-builder.Services.AddScoped<IDepartmentRequest, DepartmentRequest>();
-builder.Services.AddScoped<IDivisionRequest, DivisionRequest>();
-builder.Services.AddScoped<IEmployeeRequest, EmployeeRequest>();
-builder.Services.AddScoped<IRoleRequest, RoleRequest>();
-builder.Services.AddScoped<ISectionRequest, SectionRequest>();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<AuthenticationHeaderHandler>();
+
+builder.Services.AddHttpClient<ICompanyRequest, CompanyRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<IDepartmentRequest, DepartmentRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<IDivisionRequest, DivisionRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<IEmployeeRequest, EmployeeRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<IRoleRequest, RoleRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<ISectionRequest, SectionRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<ISupportTicketRequest, SupportTicketRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

@@ -33,5 +33,9 @@
         public string SupportTicketCreate { get; set; } = string.Empty;
         public string SupportTicketGetCategories { get; set; } = string.Empty;
         public string SupportTicketGetMyTickets { get; set; } = string.Empty;
+        public string ITStockItemsGetAvailable { get; set; } = string.Empty;
+        public string SupportTicketCreateWithdrawal { get; set; } = string.Empty;
+        public string SupportTicketCreatePurchase { get; set; } = string.Empty;
+        public string SupportTicketGetAll { get; set; } = string.Empty;
     }
 }

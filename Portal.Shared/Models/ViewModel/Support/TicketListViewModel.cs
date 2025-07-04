@@ -16,7 +16,15 @@ namespace Portal.Shared.Models.ViewModel.Support
         [Display(Name = "สถานะ")]
         public TicketStatus Status { get; set; }
 
+        [Display(Name = "สถานะ")]
+        public string StatusName { get; set; } = string.Empty;
+
         [Display(Name = "วันที่แจ้ง")]
         public DateTime CreatedAt { get; set; }
+        [Display(Name = "ผู้แจ้ง")]
+        public string? ReportedBy { get; set; }
+
+        [Display(Name = "ฝ่าย")]
+        public string? DepartmentName { get; set; }
     }
 }

@@ -15,7 +15,8 @@ namespace Portal.Controllers
         IDivisionRequest divisionRequest, 
         IDepartmentRequest departmentRequest, 
         ISectionRequest sectionRequest, 
-        ISupportTicketRequest supportTicketRequest) : Controller
+        ISupportTicketRequest supportTicketRequest,
+        IITInventoryRequest itInventoryRequest) : Controller
     {
         public IActionResult Index()
         {
@@ -164,6 +165,13 @@ namespace Portal.Controllers
         public async Task<IActionResult> GetMySupportTickets()
         {
             var response = await supportTicketRequest.GetMyTicketsAsync();
+            return Json(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetITStockItems()
+        {
+            var response = await itInventoryRequest.GetAvailableStockItemsAsync();
             return Json(response);
         }
     }

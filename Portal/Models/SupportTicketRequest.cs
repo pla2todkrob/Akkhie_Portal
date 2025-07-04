@@ -51,5 +51,46 @@ namespace Portal.Models
                 return ApiResponse<IEnumerable<TicketListViewModel>>.ErrorResponse($"Error fetching my tickets: {ex.Message}");
             }
         }
+
+        public async Task<ApiResponse<SupportTicket>> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketCreateWithdrawal, request);
+                return await HandleResponse<SupportTicket>(response);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<SupportTicket>.ErrorResponse($"Error creating withdrawal ticket: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<SupportTicket>> CreatePurchaseRequestTicketAsync(CreatePurchaseRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketCreatePurchase, request);
+                return await HandleResponse<SupportTicket>(response);
+            }
+            catch (Exception ex)
+            {
+                // In a real app, you would use a proper logger.
+                Console.WriteLine($"Error in CreatePurchaseRequestTicketAsync: {ex.Message}");
+                return ApiResponse<SupportTicket>.ErrorResponse($"เกิดข้อผิดพลาดในการสร้างคำขอจัดซื้อ: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<TicketListViewModel>>> GetAllTicketsAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(_apiSettings.SupportTicketGetAll);
+                return await HandleResponse<IEnumerable<TicketListViewModel>>(response);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<IEnumerable<TicketListViewModel>>.ErrorResponse($"Error fetching all tickets: {ex.Message}");
+            }
+        }
     }
 }

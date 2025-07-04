@@ -15,11 +15,7 @@ namespace Portal.Services.Controllers
         private readonly ISupportTicketService _supportTicketService = supportTicketService;
         private readonly ILogger<SupportTicketController> _logger = logger;
 
-        /// <summary>
-        /// Creates a new support ticket.
-        /// </summary>
-        /// <param name="request">The data for the new ticket.</param>
-        /// <returns>The created ticket.</returns>
+
         [HttpPost]
         public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
         {
@@ -34,7 +30,7 @@ namespace Portal.Services.Controllers
                 var createdTicket = await _supportTicketService.CreateTicketAsync(request);
 
                 // Return a 201 Created status with the location of the new resource and the resource itself.
-                return CreatedAtAction(nameof(GetTicket), new { id = createdTicket.Id }, ApiResponse<object>.SuccessResponse(createdTicket, "สร้าง Ticket สำเร็จ"));
+                return CreatedAtAction(nameof(GetTicketById), new { id = createdTicket.Id }, ApiResponse<object>.SuccessResponse(createdTicket, "สร้าง Ticket สำเร็จ"));
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -48,13 +44,8 @@ namespace Portal.Services.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets a specific support ticket by its ID.
-        /// </summary>
-        /// <param name="id">The ID of the ticket.</param>
-        /// <returns>The support ticket data.</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetTicket(int id)
+        public async Task<IActionResult> GetTicketById(int id)
         {
             try
             {
@@ -72,9 +63,6 @@ namespace Portal.Services.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets all tickets for the currently authenticated user.
-        /// </summary>
         [HttpGet("mytickets")]
         public async Task<IActionResult> GetMyTickets()
         {
@@ -102,6 +90,71 @@ namespace Portal.Services.Controllers
             {
                 _logger.LogError(ex, "Error retrieving support categories for type {CategoryType}", categoryType);
                 return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่"));
+            }
+        }
+        [HttpPost("withdrawal")]
+        public async Task<IActionResult> CreateWithdrawalTicket([FromBody] CreateWithdrawalRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลที่ส่งมาไม่ถูกต้อง",
+                    [.. ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)]));
+            }
+
+            try
+            {
+                var createdTicket = await _supportTicketService.CreateWithdrawalTicketAsync(request);
+                return CreatedAtAction(nameof(GetTicketById), new { id = createdTicket.Id }, ApiResponse.SuccessResponse(createdTicket, "คำขอเบิกอุปกรณ์ถูกสร้างเรียบร้อยแล้ว"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Failed to create withdrawal ticket due to business rule violation.");
+                return BadRequest(ApiResponse.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating withdrawal ticket.");
+                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาดที่ไม่คาดคิด: {ex.Message}"));
+            }
+        }
+
+        [HttpPost("purchase")]
+        public async Task<IActionResult> CreatePurchaseRequestTicket([FromBody] CreatePurchaseRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลที่ส่งมาไม่ถูกต้อง",
+                    [.. ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)]));
+            }
+
+            try
+            {
+                var createdTicket = await _supportTicketService.CreatePurchaseRequestTicketAsync(request);
+                return CreatedAtAction(nameof(GetTicketById), new { id = createdTicket.Id }, ApiResponse.SuccessResponse(createdTicket, "คำขอจัดซื้อถูกสร้างเรียบร้อยแล้ว"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Failed to create purchase request ticket.");
+                return BadRequest(ApiResponse.ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating purchase request ticket.");
+                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาดที่ไม่คาดคิด: {ex.Message}"));
+            }
+        }
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllTickets()
+        {
+            try
+            {
+                var tickets = await _supportTicketService.GetAllTicketsAsync();
+                return Ok(ApiResponse<object>.SuccessResponse(tickets));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all support tickets.");
+                return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ทั้งหมด"));
             }
         }
     }

@@ -7,15 +7,10 @@ namespace Portal.Interfaces
     public interface IEmployeeRequest
     {
         Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request);
-
         Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request);
-
         Task<ApiResponse<EmployeeViewModel>> SearchAsync(Guid employeeId);
-
         Task<ApiResponse<EmployeeViewModel>> SearchByUsernameAsync(string username);
-
         Task<ApiResponse<EmployeeViewModel>> SearchByEmailAsync(string email);
-
-        Task<ApiResponse<IEnumerable<EmployeeViewModel>>> AllAsync();
+        Task<ApiResponse<IEnumerable<EmployeeViewModel>>> GetAsync(int? companyId = null, int? divisionId = null, int? departmentId = null, int? sectionId = null);
     }
 }

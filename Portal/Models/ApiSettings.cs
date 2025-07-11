@@ -37,5 +37,13 @@
         public string SupportTicketCreateWithdrawal { get; set; } = string.Empty;
         public string SupportTicketCreatePurchase { get; set; } = string.Empty;
         public string SupportTicketGetAll { get; set; } = string.Empty;
+        public string SupportTicketGetDetails { get; set; } = string.Empty;
+        public string SupportCategoryGetAll { get; set; } = string.Empty;
+        public string SupportCategoryGetById { get; set; } = string.Empty;
+        public string SupportCategoryCreate { get; set; } = string.Empty;
+        public string SupportCategoryUpdate { get; set; } = string.Empty;
+        public string SupportCategoryDelete { get; set; } = string.Empty;
+        public string SupportTicketAccept { get; set; } = string.Empty;
+        public string SupportTicketResolve { get; set; } = string.Empty;
     }
 }

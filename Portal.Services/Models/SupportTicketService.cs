@@ -24,7 +24,7 @@ namespace Portal.Services.Models
             // Find a default "General" or "Uncategorized" category for issues.
             // This should be seeded in the database.
             var defaultCategory = await _context.SupportTicketCategories
-                                      .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue && c.Name == "General IT Support")
+                                      .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue && c.Name == "None")
                                   ?? await _context.SupportTicketCategories.FirstAsync(c => c.CategoryType == TicketCategoryType.Issue);
 
             if (defaultCategory == null)
@@ -51,23 +51,110 @@ namespace Portal.Services.Models
             return ticket;
         }
 
-        public async Task<SupportTicket?> GetTicketByIdAsync(int ticketId)
+        public async Task<TicketDetailViewModel?> GetTicketByIdAsync(int ticketId)
         {
             // For now, allow any authenticated user to see any ticket for testing.
             // In a real scenario, we would add logic to check if the current user is the reporter or an IT admin.
-            return await _context.SupportTickets
+            var ticket = await _context.SupportTickets
+                .Where(t => t.Id == ticketId)
                 .Include(t => t.Category)
-                .Include(t => t.ReportedByEmployee)
-                    .ThenInclude(e => e.EmployeeDetail)
-                .Include(t => t.AssignedToEmployee)
-                    .ThenInclude(e => e!.EmployeeDetail)
-                .Include(t => t.RelatedAsset)
+                .Include(t => t.ReportedByEmployee.EmployeeDetail)
+                .Include(t => t.AssignedToEmployee!.EmployeeDetail)
                 .Include(t => t.History)
-                    .ThenInclude(h => h.Employee)
-                        .ThenInclude(e => e.EmployeeDetail)
+                    .ThenInclude(h => h.Employee.EmployeeDetail)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Id == ticketId);
+                .FirstOrDefaultAsync();
+
+            if (ticket == null)
+            {
+                return null;
+            }
+
+            return new TicketDetailViewModel
+            {
+                Id = ticket.Id,
+                TicketNumber = ticket.TicketNumber,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                Status = ticket.Status.GetDisplayName(),
+                Priority = ticket.Priority.GetDisplayName(),
+                Category = ticket.Category.Name,
+                RequestType = ticket.RequestType.GetDisplayName(),
+                ReportedBy = ticket.ReportedByEmployee.EmployeeDetail?.FullName ?? ticket.ReportedByEmployee.Username,
+                AssignedTo = ticket.AssignedToEmployee?.EmployeeDetail?.FullName ?? ticket.AssignedToEmployee?.Username,
+                CreatedAt = ticket.CreatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                History = ticket.History.OrderByDescending(h => h.CreatedAt).Select(h => new TicketDetailViewModel.HistoryItem
+                {
+                    ActionDescription = h.ActionDescription,
+                    Comment = h.Comment,
+                    ActionBy = h.Employee.EmployeeDetail?.FullName ?? h.Employee.Username,
+                    ActionDate = h.CreatedAt
+                }).ToList()
+            };
         }
+        public async Task<bool> AcceptTicketAsync(TicketActionRequest request)
+        {
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
+                         ?? throw new KeyNotFoundException("Ticket not found.");
+
+            if (ticket.Status != TicketStatus.Open)
+            {
+                throw new InvalidOperationException("Ticket has already been accepted or is closed.");
+            }
+
+            var currentUser = _currentUserService.UserId ?? throw new UnauthorizedAccessException();
+
+            ticket.Status = TicketStatus.InProgress;
+            ticket.Priority = request.Priority ?? ticket.Priority;
+            ticket.AssignedToEmployeeId = request.AssignedToEmployeeId ?? currentUser;
+            ticket.UpdatedAt = DateTime.UtcNow;
+
+            var history = new SupportTicketHistory
+            {
+                TicketId = ticket.Id,
+                EmployeeId = currentUser,
+                ActionDescription = "รับงานและกำหนดความสำคัญ",
+                Comment = $"กำหนดความสำคัญเป็น: {ticket.Priority.GetDisplayName()}. มอบหมายให้: {(await _context.Employees.Include(e => e.EmployeeDetail).FirstOrDefaultAsync(e => e.Id == ticket.AssignedToEmployeeId))?.EmployeeDetail?.FullName}",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.SupportTicketHistories.Add(history);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> ResolveTicketAsync(TicketActionRequest request)
+        {
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
+                         ?? throw new KeyNotFoundException("Ticket not found.");
+
+            if (ticket.Status == TicketStatus.Resolved || ticket.Status == TicketStatus.Closed)
+            {
+                throw new InvalidOperationException("Ticket has already been resolved or closed.");
+            }
+
+            var currentUser = _currentUserService.UserId ?? throw new UnauthorizedAccessException();
+            var category = await _context.SupportTicketCategories.FindAsync(request.CategoryId)
+                           ?? throw new KeyNotFoundException("Category not found.");
+
+            ticket.Status = TicketStatus.Resolved;
+            ticket.CategoryId = category.Id;
+            ticket.ResolvedAt = DateTime.UtcNow;
+            ticket.UpdatedAt = DateTime.UtcNow;
+
+            var history = new SupportTicketHistory
+            {
+                TicketId = ticket.Id,
+                EmployeeId = currentUser,
+                ActionDescription = "ดำเนินการแก้ไขเสร็จสิ้น",
+                Comment = $"เปลี่ยนหมวดหมู่เป็น: '{category.Name}'. บันทึกการแก้ไข: {request.Comment}",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.SupportTicketHistories.Add(history);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
 
         public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync()
         {

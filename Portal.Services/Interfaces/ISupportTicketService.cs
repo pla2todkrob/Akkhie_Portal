@@ -8,7 +8,9 @@ namespace Portal.Services.Interfaces
     public interface ISupportTicketService
     {
         Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request);
-        Task<SupportTicket?> GetTicketByIdAsync(int ticketId);
+        Task<TicketDetailViewModel?> GetTicketByIdAsync(int ticketId);
+        Task<bool> AcceptTicketAsync(TicketActionRequest request);
+        Task<bool> ResolveTicketAsync(TicketActionRequest request);
         Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync();
         Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(TicketCategoryType categoryType);
         Task<SupportTicket> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request);

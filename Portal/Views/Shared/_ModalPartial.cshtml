@@ -1,4 +1,4 @@
-﻿@* --- Existing Global Modal --- *@
+﻿@* --- Global Modal (for simple dynamic content) --- *@
 <div class="modal fade" id="globalModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="globalModalDialog">
         <div class="modal-content" id="globalModalContent">
@@ -7,164 +7,135 @@
     </div>
 </div>
 
-@* --- Support Modal (Complete and Corrected HTML Structure) --- *@
+
+@* --- Redesigned Support Modal --- *@
 <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="supportModalLabel"><i class="bi bi-person-raised-hand me-2"></i>ศูนย์ช่วยเหลือ (Help Center)</h5>
+                <h5 class="modal-title" id="supportModalLabel">
+                    <i class="bi bi-headset me-2 text-primary"></i>ศูนย์ช่วยเหลือ (Help Center)
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <!-- Navigation Tabs -->
-                <ul class="nav nav-tabs" id="supportTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="problem-tab" data-bs-toggle="tab" data-bs-target="#problem-tab-pane" type="button" role="tab" aria-controls="problem-tab-pane" aria-selected="true">
-                            <i class="bi bi-exclamation-octagon me-2"></i>แจ้งปัญหา
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="request-tab" data-bs-toggle="tab" data-bs-target="#request-tab-pane" type="button" role="tab" aria-controls="request-tab-pane" aria-selected="false">
-                            <i class="bi bi-box-seam me-2"></i>เบิก/ขออุปกรณ์
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
-                            <i class="bi bi-clock-history me-2"></i>ประวัติของฉัน
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Panes -->
-                <div class="tab-content pt-3" id="supportTabContent">
-                    <!-- แจ้งปัญหา Tab Pane (Simplified) -->
-                    <div class="tab-pane fade show active" id="problem-tab-pane" role="tabpanel" aria-labelledby="problem-tab" tabindex="0">
-                        <h6 class="mb-3">แจ้งปัญหาการใช้งาน</h6>
-                        <form asp-controller="Support" asp-action="Create" method="post" id="createTicketForm">
-                            @Html.AntiForgeryToken()
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <div class="form-floating">
-                                        <input type="text" class="form-control" id="ticketTitle" name="Title" placeholder="หัวข้อปัญหา เช่น 'เปิดโปรแกรมบัญชีไม่ได้'" required>
-                                        <label for="ticketTitle">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-floating">
-                                        <textarea class="form-control" placeholder="รายละเอียด" id="ticketDescription" name="Description" style="height: 150px" required></textarea>
-                                        <label for="ticketDescription">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- เบิก/ขออุปกรณ์ Tab Pane (Complete Structure) -->
-                    <div class="tab-pane fade" id="request-tab-pane" role="tabpanel" aria-labelledby="request-tab" tabindex="0">
-                        <!-- Stock Withdrawal Section -->
-                        <div id="stock-withdrawal-section">
-                            <div class="row g-3">
-                                <!-- Item List Column -->
-                                <div class="col-md-8">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0">รายการเบิกจากสต็อก</h6>
-                                        <div class="input-group" style="max-width: 250px;">
-                                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                                            <input type="text" class="form-control bg-light border-start-0" id="stock-item-search" placeholder="ค้นหาอุปกรณ์...">
-                                        </div>
-                                    </div>
-                                    <div id="stock-items-container" class="overflow-auto" style="max-height: 50vh; min-height: 40vh;">
-                                        @* Stock items will be loaded here by JavaScript *@
-                                    </div>
-                                </div>
-                                <!-- Cart Column -->
-                                <div class="col-md-4">
-                                    <div class="card bg-light h-100">
-                                        <div class="card-body d-flex flex-column">
-                                            <h6 class="card-title d-flex justify-content-between align-items-center">
-                                                <span><i class="bi bi-cart3 me-2"></i>ตะกร้าของฉัน</span>
-                                                <span class="badge bg-primary rounded-pill" id="cart-item-count">0</span>
-                                            </h6>
-                                            <hr class="my-2">
-                                            <div id="cart-items-container" class="flex-grow-1 overflow-auto">
-                                                <div class="text-center text-muted pt-5">
-                                                    <p><i class="bi bi-cart-x fs-2"></i></p>
-                                                    <p>ตะกร้าของคุณว่างอยู่</p>
-                                                </div>
-                                            </div>
-                                            <hr class="my-2">
-                                            <button id="submit-request-btn" class="btn btn-success w-100" disabled>
-                                                <i class="bi bi-check-circle me-2"></i>ส่งคำขอเบิก
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Divider and Purchase Request Section -->
-                        <hr class="my-4">
-                        <div class="text-center">
-                            <button class="btn btn-link text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#purchase-request-form-collapse" aria-expanded="false" aria-controls="purchase-request-form-collapse">
-                                <i class="bi bi-cart-plus me-2"></i>ไม่พบอุปกรณ์ที่ต้องการ? คลิกที่นี่เพื่อขอจัดซื้อใหม่
+            <div class="modal-body p-4">
+                <div class="row">
+                    <!-- Vertical Navigation -->
+                    <div class="col-md-3">
+                        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <button class="nav-link active text-start" id="v-pills-problem-tab" data-bs-toggle="pill" data-bs-target="#v-pills-problem" type="button" role="tab">
+                                <i class="bi bi-exclamation-octagon-fill me-2"></i>แจ้งปัญหา
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-request-tab" data-bs-toggle="pill" data-bs-target="#v-pills-request" type="button" role="tab">
+                                <i class="bi bi-box-seam-fill me-2"></i>เบิก/ขออุปกรณ์
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-history-tab" data-bs-toggle="pill" data-bs-target="#v-pills-history" type="button" role="tab">
+                                <i class="bi bi-clock-history me-2"></i>ประวัติของฉัน
                             </button>
                         </div>
-
-                        <div class="collapse mt-3" id="purchase-request-form-collapse">
-                            <div class="card card-body bg-light border-dashed">
-                                <h6 class="mb-3">ฟอร์มขอจัดซื้ออุปกรณ์ใหม่</h6>
-                                <form id="purchaseRequestForm">
-                                    <div class="row g-3">
-                                        <div class="col-md-8">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="purchaseItemName" name="ItemName" placeholder="ชื่ออุปกรณ์" required>
-                                                <label for="purchaseItemName">ชื่ออุปกรณ์ที่ต้องการ</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-floating">
-                                                <input type="number" class="form-control" id="purchaseQuantity" name="Quantity" value="1" min="1" max="100" placeholder="จำนวน" required>
-                                                <label for="purchaseQuantity">จำนวน</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="purchaseSpecification" name="Specification" placeholder="สเปค / รายละเอียด">
-                                                <label for="purchaseSpecification">สเปค / รายละเอียด (ถ้ามี)</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-floating">
-                                                <textarea class="form-control" placeholder="เหตุผลในการขอ" id="purchaseReason" name="Reason" style="height: 100px" required></textarea>
-                                                <label for="purchaseReason">เหตุผลในการขอ</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 text-end">
-                                            <button type="submit" class="btn btn-info text-white" id="submit-purchase-request-btn">
-                                                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                                                <i class="bi bi-send me-2"></i>ส่งคำขอจัดซื้อ
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- ประวัติของฉัน Tab Pane -->
-                    <div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
-                        <div id="my-tickets-history-container">
-                            @* Ticket history will be loaded here by JavaScript *@
+                    <!-- Tab Content -->
+                    <div class="col-md-9">
+                        <div class="tab-content" id="v-pills-tabContent">
+
+                            <!-- 1. Problem Tab -->
+                            <div class="tab-pane fade show active" id="v-pills-problem" role="tabpanel">
+                                <div class="card border-0">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">แจ้งปัญหาการใช้งาน</h5>
+                                        <form id="createTicketForm" novalidate>
+                                            @Html.AntiForgeryToken()
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="ticketTitle" name="Title" placeholder="หัวข้อปัญหา" required>
+                                                <label for="ticketTitle">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
+                                            </div>
+                                            <div class="form-floating">
+                                                <textarea class="form-control" placeholder="รายละเอียด" id="ticketDescription" name="Description" style="height: 250px" required></textarea>
+                                                <label for="ticketDescription">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="card-footer bg-transparent text-end border-0 pt-3">
+                                        <button type="submit" form="createTicketForm" class="btn btn-primary" id="submit-problem-btn">
+                                            <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+                                            <i class="bi bi-send-fill me-2"></i>ส่งเรื่อง
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Request Tab -->
+                            <div class="tab-pane fade" id="v-pills-request" role="tabpanel">
+                                <div id="stock-withdrawal-section">
+                                    <div class="row g-3">
+                                        <div class="col-lg-7">
+                                            <h5 class="mb-3">รายการเบิกจากสต็อก</h5>
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                                <input type="text" class="form-control" id="stock-item-search" placeholder="ค้นหาอุปกรณ์...">
+                                            </div>
+                                            <div id="stock-items-container" class="overflow-auto" style="max-height: 50vh; min-height: 40vh;"></div>
+                                        </div>
+                                        <div class="col-lg-5">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body d-flex flex-column">
+                                                    <h5 class="card-title d-flex justify-content-between">
+                                                        <span><i class="bi bi-cart3 me-2"></i>ตะกร้า</span>
+                                                        <span id="cart-item-count" class="badge bg-primary rounded-pill">0</span>
+                                                    </h5>
+                                                    <hr>
+                                                    <div id="cart-items-container" class="flex-grow-1 overflow-auto"></div>
+                                                    <div class="mt-auto pt-3">
+                                                        <button id="submit-request-btn" class="btn btn-success w-100" disabled>
+                                                            <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+                                                            <i class="bi bi-check-circle-fill me-2"></i>ส่งคำขอเบิก
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr class="my-4">
+                                <div class="text-center">
+                                    <a class="btn btn-link text-decoration-none" data-bs-toggle="collapse" href="#purchase-request-form-collapse">
+                                        <i class="bi bi-cart-plus me-2"></i>ไม่พบอุปกรณ์ที่ต้องการ? คลิกเพื่อขอจัดซื้อ
+                                    </a>
+                                </div>
+                                <div class="collapse mt-3" id="purchase-request-form-collapse">
+                                    <div class="card card-body bg-light border-dashed">
+                                        <h5 class="mb-3">ฟอร์มขอจัดซื้ออุปกรณ์ใหม่</h5>
+                                        <form id="purchaseRequestForm" novalidate>
+                                            <div class="row g-3">
+                                                <div class="col-md-8"><div class="form-floating"><input type="text" class="form-control" name="ItemName" placeholder=" " required><label>ชื่ออุปกรณ์</label></div></div>
+                                                <div class="col-md-4"><div class="form-floating"><input type="number" class="form-control" name="Quantity" value="1" min="1" placeholder=" " required><label>จำนวน</label></div></div>
+                                                <div class="col-12"><div class="form-floating"><input type="text" class="form-control" name="Specification" placeholder=" "><label>สเปค/รายละเอียด (ถ้ามี)</label></div></div>
+                                                <div class="col-12"><div class="form-floating"><textarea class="form-control" placeholder=" " name="Reason" style="height: 100px" required></textarea><label>เหตุผลในการขอ</label></div></div>
+                                                <div class="col-12 text-end">
+                                                    <button type="submit" class="btn btn-info text-white" id="submit-purchase-request-btn">
+                                                        <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+                                                        <i class="bi bi-send-fill me-2"></i>ส่งคำขอจัดซื้อ
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. History Tab -->
+                            <div class="tab-pane fade" id="v-pills-history" role="tabpanel">
+                                <div id="history-list-view">
+                                    <h5 class="mb-3">ประวัติการแจ้งปัญหาและคำขอ</h5>
+                                    <div id="my-tickets-history-container"></div>
+                                </div>
+                                <div id="history-detail-view" style="display: none;"></div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="submit" form="createTicketForm" class="btn btn-primary" id="main-submit-button">
-                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                    <i class="bi bi-send me-2"></i>ส่งเรื่อง
-                </button>
             </div>
         </div>
     </div>

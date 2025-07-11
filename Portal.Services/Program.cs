@@ -48,6 +48,7 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ISectionService, SectionService>();
 builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
 builder.Services.AddScoped<IITInventoryService, ITInventoryService>();
+builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

@@ -92,5 +92,31 @@ namespace Portal.Models
                 return ApiResponse<IEnumerable<TicketListViewModel>>.ErrorResponse($"Error fetching all tickets: {ex.Message}");
             }
         }
+
+        public async Task<ApiResponse<TicketDetailViewModel>> GetTicketDetailsAsync(int ticketId)
+        {
+            try
+            {
+                var endpoint = string.Format(_apiSettings.SupportTicketGetDetails, ticketId);
+                var response = await _httpClient.GetAsync(endpoint);
+                return await HandleResponse<TicketDetailViewModel>(response);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<TicketDetailViewModel>.ErrorResponse($"Error fetching ticket details: {ex.Message}");
+            }
+        }
+        public async Task<ApiResponse<bool>> AcceptTicketAsync(TicketActionRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketAccept, request);
+            return await HandleResponse<bool>(response);
+        }
+
+        public async Task<ApiResponse<bool>> ResolveTicketAsync(TicketActionRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketResolve, request);
+            return await HandleResponse<bool>(response);
+        }
+
     }
 }

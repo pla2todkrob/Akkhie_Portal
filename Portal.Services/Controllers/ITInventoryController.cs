@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
@@ -7,6 +8,7 @@ namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ITInventoryController(IITInventoryService inventoryService, ILogger<ITInventoryController> logger) : ControllerBase
     {
         /// <summary>

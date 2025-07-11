@@ -76,7 +76,7 @@ namespace Portal.Shared.Models.DTOs.Auth
         public string? ReturnUrl { get; set; }
 
         [Display(Name = "บริษัท")]
-        public int? CompanyId { get; set; }
+        public int CompanyId { get; set; }
 
         [Display(Name = "สาขา")]
         public int? CompanyBranchId { get; set; }

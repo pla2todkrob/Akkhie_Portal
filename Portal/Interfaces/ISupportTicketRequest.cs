@@ -14,5 +14,8 @@ namespace Portal.Interfaces
         Task<ApiResponse<SupportTicket>> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request);
         Task<ApiResponse<SupportTicket>> CreatePurchaseRequestTicketAsync(CreatePurchaseRequest request);
         Task<ApiResponse<IEnumerable<TicketListViewModel>>> GetAllTicketsAsync();
+        Task<ApiResponse<TicketDetailViewModel>> GetTicketDetailsAsync(int ticketId);
+        Task<ApiResponse<bool>> AcceptTicketAsync(TicketActionRequest request);
+        Task<ApiResponse<bool>> ResolveTicketAsync(TicketActionRequest request);
     }
 }

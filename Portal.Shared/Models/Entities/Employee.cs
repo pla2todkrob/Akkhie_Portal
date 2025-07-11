@@ -20,6 +20,10 @@ namespace Portal.Shared.Models.Entities
         [Display(Name = "ผู้ใช้ AD")]
         public bool IsAdUser { get; set; } = false;
 
+        public int CompanyId { get; set; }
+        [ForeignKey("CompanyId")]
+        public Company Company { get; set; } = null!;
+
         public int? DivisionId { get; set; }
 
         [ForeignKey("DivisionId")]

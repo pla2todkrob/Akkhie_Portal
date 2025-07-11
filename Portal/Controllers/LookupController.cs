@@ -7,7 +7,6 @@ using Portal.Shared.Enums.Support;
 
 namespace Portal.Controllers
 {
-    [Authorize]
     public class LookupController(
         ILogger<LookupController> logger, 
         IRoleRequest roleRequest, 
@@ -165,6 +164,17 @@ namespace Portal.Controllers
         public async Task<IActionResult> GetMySupportTickets()
         {
             var response = await supportTicketRequest.GetMyTicketsAsync();
+            return Json(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTicketDetails(int id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new { success = false, message = "Invalid Ticket ID." });
+            }
+            var response = await supportTicketRequest.GetTicketDetailsAsync(id);
             return Json(response);
         }
 

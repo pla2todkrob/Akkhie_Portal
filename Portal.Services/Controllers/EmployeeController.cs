@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Auth;
@@ -10,9 +11,11 @@ namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EmployeeController(IAuthService authService, IEmployeeService employeeService, ILogger<EmployeeController> logger) : ControllerBase
     {
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
@@ -49,6 +52,7 @@ namespace Portal.Services.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
@@ -152,23 +156,24 @@ namespace Portal.Services.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEmployees()
+        public async Task<IActionResult> GetEmployees([FromQuery] int? companyId, [FromQuery] int? divisionId, [FromQuery] int? departmentId, [FromQuery] int? sectionId)
         {
             try
             {
-                var employees = await employeeService.AllAsync();
+                var employees = await employeeService.GetAsync(companyId, divisionId, departmentId, sectionId);
                 if (employees == null || employees.Count == 0)
                 {
-                    return NotFound(ApiResponse.ErrorResponse("No employees found."));
+                    return NotFound(ApiResponse.ErrorResponse("No employees found matching the criteria."));
                 }
 
                 return Ok(ApiResponse.SuccessResponse(employees));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error during getting all employees");
+                logger.LogError(ex, "Error during getting employees");
                 return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.GetBaseException().Message}"));
             }
         }
+
     }
 }

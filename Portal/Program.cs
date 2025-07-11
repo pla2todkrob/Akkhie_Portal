@@ -41,6 +41,8 @@ builder.Services.AddHttpClient<ISupportTicketRequest, SupportTicketRequest>()
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 builder.Services.AddHttpClient<IITInventoryRequest, ITInventoryRequest>()
     .AddHttpMessageHandler<AuthenticationHeaderHandler>();
+builder.Services.AddHttpClient<ISupportCategoryRequest, SupportCategoryRequest>()
+    .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

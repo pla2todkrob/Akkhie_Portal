@@ -22,6 +22,8 @@ namespace Portal.Shared.Models.ViewModel
 
         [Display(Name = "เบอร์โทรศัพท์")]
         public string? PhoneNumber { get; set; }
+        [Display(Name = "บริษัท")]
+        public string CompanyName { get; set; }
 
         [Display(Name = "สายงาน")]
         public string? DivisionName { get; set; }

@@ -83,17 +83,30 @@ namespace Portal.Models
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<EmployeeViewModel>>> AllAsync()
+        public async Task<ApiResponse<IEnumerable<EmployeeViewModel>>> GetAsync(int? companyId = null, int? divisionId = null, int? departmentId = null, int? sectionId = null)
         {
             try
             {
-                var response = await _httpClient.GetAsync(_apiSettings.EmployeeAll);
+                var queryParams = new List<string>();
+                if (companyId.HasValue) queryParams.Add($"companyId={companyId.Value}");
+                if (divisionId.HasValue) queryParams.Add($"divisionId={divisionId.Value}");
+                if (departmentId.HasValue) queryParams.Add($"departmentId={departmentId.Value}");
+                if (sectionId.HasValue) queryParams.Add($"sectionId={sectionId.Value}");
+
+                var endpoint = _apiSettings.EmployeeAll;
+                if (queryParams.Count != 0)
+                {
+                    endpoint += "?" + string.Join("&", queryParams);
+                }
+
+                var response = await _httpClient.GetAsync(endpoint);
                 return await HandleResponse<IEnumerable<EmployeeViewModel>>(response);
             }
             catch (Exception ex)
             {
-                return ApiResponse<IEnumerable<EmployeeViewModel>>.ErrorResponse($"Error fetching all employees: {ex.Message}");
+                return ApiResponse<IEnumerable<EmployeeViewModel>>.ErrorResponse($"Error fetching employees: {ex.Message}");
             }
         }
+
     }
 }

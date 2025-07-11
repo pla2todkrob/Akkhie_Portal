@@ -1,0 +1,37 @@
+﻿@using Portal.Shared.Enums.Support
+@model Portal.Shared.Models.ViewModel.Support.SupportCategoryViewModel
+
+<form id="categoryForm" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="modal-header">
+        <h5 class="modal-title">@(Model.Id == 0 ? "เพิ่มหมวดหมู่ใหม่" : "แก้ไขหมวดหมู่")</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" required>
+            <div class="invalid-feedback">กรุณากรอกชื่อหมวดหมู่</div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="CategoryType" class="form-label"></label>
+            <select asp-for="CategoryType" asp-items="Html.GetEnumSelectList<TicketCategoryType>()" class="form-select" required>
+                <option value="">-- กรุณาเลือก --</option>
+            </select>
+            <div class="invalid-feedback">กรุณาเลือกประเภท</div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="submit" class="btn btn-primary">
+            <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+            บันทึก
+        </button>
+    </div>
+</form>

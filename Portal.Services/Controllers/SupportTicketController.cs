@@ -63,6 +63,39 @@ namespace Portal.Services.Controllers
             }
         }
 
+        [HttpPost("accept")]
+        public async Task<IActionResult> AcceptTicket([FromBody] TicketActionRequest request)
+        {
+            try
+            {
+                var result = await _supportTicketService.AcceptTicketAsync(request);
+                return result ? Ok(ApiResponse.SuccessResponse(true, "รับงานสำเร็จ"))
+                              : BadRequest(ApiResponse.ErrorResponse("ไม่สามารถรับงานได้"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error accepting ticket {TicketId}", request.TicketId);
+                return StatusCode(500, ApiResponse.ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpPost("resolve")]
+        public async Task<IActionResult> ResolveTicket([FromBody] TicketActionRequest request)
+        {
+            try
+            {
+                var result = await _supportTicketService.ResolveTicketAsync(request);
+                return result ? Ok(ApiResponse.SuccessResponse(true, "บันทึกการแก้ไขสำเร็จ"))
+                              : BadRequest(ApiResponse.ErrorResponse("ไม่สามารถบันทึกการแก้ไขได้"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolving ticket {TicketId}", request.TicketId);
+                return StatusCode(500, ApiResponse.ErrorResponse(ex.Message));
+            }
+        }
+
+
         [HttpGet("mytickets")]
         public async Task<IActionResult> GetMyTickets()
         {

@@ -1,36 +1,30 @@
-﻿@model IEnumerable<Portal.Shared.Models.ViewModel.Support.TicketListViewModel>
+﻿@using Portal.Shared.Constants
+@model IEnumerable<Portal.Shared.Models.ViewModel.Support.TicketListViewModel>
 
 @{
     ViewData["Title"] = "จัดการ Support Ticket";
-    Layout = "_Layout";
     var breadcrumbs = new List<Tuple<string, string>>
     {
         new("หน้าแรก", Url.Action("Index", "Home") ?? ""),
-        new("จัดการ Support Ticket", "")
+        new("ระบบ Support", "#"),
+        new((string)ViewData["Title"], "")
     };
 }
 
-<div class="container-fluid py-4">
+<div class="container py-4">
     <partial name="_Breadcrumb" model="breadcrumbs" />
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
-            <p class="text-muted mb-0"><i class="bi bi-ticket-detailed me-2"></i>รายการแจ้งปัญหาและคำขอทั้งหมดในระบบ</p>
+            <p class="text-muted mb-0"><i class="bi bi-card-list me-2"></i>รายการ Ticket ทั้งหมดในระบบ</p>
         </div>
     </div>
-    
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-    }
 
-    <!-- DataTable Card -->
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
-                <table id="ticketsTable" class="table table-hover table-striped" style="width:100%">
+                <table id="ticketTable" class="table table-hover table-striped" style="width:100%">
                     <thead class="table-light">
                         <tr>
                             <th>@Html.DisplayNameFor(model => model.TicketNumber)</th>
@@ -45,24 +39,21 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr>
+                            <tr data-id="@item.Id">
                                 <td>@item.TicketNumber</td>
                                 <td>@item.Title</td>
                                 <td>@item.ReportedBy</td>
                                 <td>@item.DepartmentName</td>
                                 <td>
-                                    <span class="badge 
-                                        @_ = (item.Status == Portal.Shared.Enums.Support.TicketStatus.Open ? "bg-primary" :
-                                              item.Status == Portal.Shared.Enums.Support.TicketStatus.InProgress ? "bg-warning text-dark" :
-                                              item.Status == Portal.Shared.Enums.Support.TicketStatus.Resolved ? "bg-success" : "bg-secondary")">
-                                        @item.StatusName
+                                    <span class="badge @GetStatusClass(item.Status) rounded-pill">
+                                        @item.Status.GetDisplayName()
                                     </span>
                                 </td>
-                                <td data-order="@item.CreatedAt.ToString("o")">@item.CreatedAt.ToLocalTime().ToString("g")</td>
+                                <td data-sort="@item.CreatedAt.ToString("o")">@item.CreatedAt.ToString("g")</td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary" title="ดูรายละเอียด">
-                                        <i class="bi bi-search"></i>
-                                    </button>
+                                    <a href="@Url.Action("Details", "Support", new { id = item.Id })" class="btn btn-sm btn-outline-primary" title="ดูรายละเอียดและจัดการ">
+                                        <i class="bi bi-search"></i> จัดการ
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -73,16 +64,20 @@
     </div>
 </div>
 
+@functions {
+    string GetStatusClass(Portal.Shared.Enums.Support.TicketStatus status)
+    {
+        return status switch
+        {
+            Portal.Shared.Enums.Support.TicketStatus.Open => "bg-primary-subtle text-primary-emphasis",
+            Portal.Shared.Enums.Support.TicketStatus.InProgress => "bg-warning-subtle text-warning-emphasis",
+            Portal.Shared.Enums.Support.TicketStatus.Resolved => "bg-success-subtle text-success-emphasis",
+            Portal.Shared.Enums.Support.TicketStatus.Closed => "bg-secondary-subtle text-secondary-emphasis",
+            _ => "bg-light text-dark",
+        };
+    }
+}
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script>
-        $(document).ready(function() {
-            app.setupDataTable('#ticketsTable', {
-                order: [[5, 'desc']], // Sort by CreatedAt date descending by default
-                columnDefs: [
-                    { orderable: false, targets: 6 } // Disable sorting on 'Manage' column
-                ]
-            });
-        });
-    </script>
+    <script src="~/js/support-ticket-index.js" asp-append-version="true"></script>
 }

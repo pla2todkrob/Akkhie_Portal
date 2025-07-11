@@ -150,6 +150,7 @@ namespace Portal.Services.Models
                 Username = request.Username,
                 PasswordHash = passwordHash,
                 IsAdUser = request.IsAdUser,
+                CompanyId = request.CompanyId,
                 DivisionId = request.DivisionId,
                 DepartmentId = request.DepartmentId,
                 SectionId = request.SectionId,
@@ -175,42 +176,40 @@ namespace Portal.Services.Models
 
             newEmployee.EmployeeDetail = newEmployeeDetail;
 
-            if (request.CompanyId.HasValue)
+            var companyExists = await _context.Companies.AnyAsync(c => c.Id == request.CompanyId);
+            if (!companyExists)
             {
-                var companyExists = await _context.Companies.AnyAsync(c => c.Id == request.CompanyId.Value);
-                if (!companyExists)
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Errors = [$"ไม่พบ Company Id: {request.CompanyId}"]
+                };
+            }
+
+            var employeeCompanyAccess = new EmployeeCompanyAccess
+            {
+                EmployeeId = newEmployee.Id,
+                CompanyId = request.CompanyId,
+                AccessLevel = newEmployee.IsSystemRole ? AccessLevel.Admin : AccessLevel.Read,
+                GrantedDate = DateTime.UtcNow
+            };
+
+            if (request.CompanyBranchId.HasValue)
+            {
+                var branchExists = await _context.CompanyBranches
+                    .AnyAsync(cb => cb.Id == request.CompanyBranchId.Value && cb.CompanyId == request.CompanyId);
+                if (!branchExists)
                 {
                     return new RegisterResponse
                     {
                         Success = false,
-                        Errors = [$"ไม่พบ Company Id: {request.CompanyId.Value}"]
+                        Errors = [$"ไม่พบ CompanyBranch Id: {request.CompanyBranchId.Value} สำหรับ Company Id: {request.CompanyId}"]
                     };
                 }
-
-                var employeeCompanyAccess = new EmployeeCompanyAccess
-                {
-                    EmployeeId = newEmployee.Id,
-                    CompanyId = request.CompanyId.Value,
-                    AccessLevel = AccessLevel.Read,
-                    GrantedDate = DateTime.UtcNow
-                };
-
-                if (request.CompanyBranchId.HasValue)
-                {
-                    var branchExists = await _context.CompanyBranches
-                        .AnyAsync(cb => cb.Id == request.CompanyBranchId.Value && cb.CompanyId == request.CompanyId.Value);
-                    if (!branchExists)
-                    {
-                        return new RegisterResponse
-                        {
-                            Success = false,
-                            Errors = [$"ไม่พบ CompanyBranch Id: {request.CompanyBranchId.Value} สำหรับ Company Id: {request.CompanyId.Value}"]
-                        };
-                    }
-                    employeeCompanyAccess.CompanyBranchId = request.CompanyBranchId.Value;
-                }
-                _context.EmployeeCompanyAccesses.Add(employeeCompanyAccess);
+                employeeCompanyAccess.CompanyBranchId = request.CompanyBranchId.Value;
             }
+
+            _context.EmployeeCompanyAccesses.Add(employeeCompanyAccess);
 
             _context.Employees.Add(newEmployee);
 

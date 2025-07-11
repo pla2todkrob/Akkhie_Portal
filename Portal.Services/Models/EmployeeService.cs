@@ -7,51 +7,47 @@ namespace Portal.Services.Models
 {
     public class EmployeeService(PortalDbContext context, IHttpContextAccessor httpContextAccessor) : IEmployeeService
     {
-        public async Task<EmployeeViewModel> SearchAsync(Guid employeeId)
+        public async Task<EmployeeViewModel?> SearchAsync(Guid employeeId)
         {
-            var employee = await _employees
-                .Where(e => e.Id == employeeId)
-                .FirstOrDefaultAsync();
-            if (employee == null)
-            {
-                return new EmployeeViewModel();
-            }
-            return SetViewModel(employee);
+            var employee = await _employees.FirstOrDefaultAsync(e => e.Id == employeeId);
+            return employee == null ? null : SetViewModel(employee);
         }
 
-        public async Task<EmployeeViewModel> SearchByUsernameAsync(string username)
+        public async Task<EmployeeViewModel?> SearchByUsernameAsync(string username)
         {
-            var employee = await _employees
-                .Where(e => e.Username == username)
-                .FirstOrDefaultAsync();
-            if (employee == null)
-            {
-                return new EmployeeViewModel();
-            }
-
-            return SetViewModel(employee);
+            var employee = await _employees.FirstOrDefaultAsync(e => e.Username == username);
+            return employee == null ? null : SetViewModel(employee);
         }
 
-        public async Task<EmployeeViewModel> SearchByEmailAsync(string email)
+        public async Task<EmployeeViewModel?> SearchByEmailAsync(string email)
         {
-            var employee = await _employees
-                .Where(e => e.EmployeeDetail!.Email == email)
-                .FirstOrDefaultAsync();
-            if (employee == null)
-            {
-                return new EmployeeViewModel();
-            }
-            return SetViewModel(employee);
+            var employee = await _employees.FirstOrDefaultAsync(e => e.EmployeeDetail!.Email == email);
+            return employee == null ? null : SetViewModel(employee);
         }
 
-        public async Task<List<EmployeeViewModel>> AllAsync()
+        public async Task<List<EmployeeViewModel>> GetAsync(int? companyId = null, int? divisionId = null, int? departmentId = null, int? sectionId = null)
         {
-            var employees = await _employees.ToListAsync();
-            if (employees == null || employees.Count == 0)
+            var query = _employees;
+
+            if (companyId.HasValue)
             {
-                return [];
+                query = query.Where(e => e.EmployeeCompanyAccesses.Any(eca => eca.CompanyId == companyId.Value));
             }
-            return [.. employees.Select(e => SetViewModel(e))];
+            if (divisionId.HasValue)
+            {
+                query = query.Where(e => e.DivisionId == divisionId.Value);
+            }
+            if (departmentId.HasValue)
+            {
+                query = query.Where(e => e.DepartmentId == departmentId.Value);
+            }
+            if (sectionId.HasValue)
+            {
+                query = query.Where(e => e.SectionId == sectionId.Value);
+            }
+
+            var employees = await query.ToListAsync();
+            return [.. employees.Select(SetViewModel)];
         }
 
         private EmployeeViewModel SetViewModel(Employee employee)
@@ -63,11 +59,12 @@ namespace Portal.Services.Models
                 IsAdUser = employee.IsAdUser,
                 IsSystemRole = employee.IsSystemRole,
                 PhoneNumber = employee.EmployeeDetail!.PhoneNumber,
-                DivisionName = employee.Division!.Name,
-                DepartmentName = employee.Department!.Name,
-                SectionName = employee.Section!.Name,
+                CompanyName = employee.Company?.Name ?? string.Empty,
+                DivisionName = employee.Division?.Name,
+                DepartmentName = employee.Department?.Name,
+                SectionName = employee.Section?.Name,
                 RoleName = employee.Role.Name,
-                CreatedAt = employee.CreatedAtLocalTime,
+                CreatedAt = employee.CreatedAt,
                 EmployeeStatus = employee.EmployeeStatus,
                 EmployeeCode = employee.EmployeeDetail.EmployeeCode,
                 FirstName = employee.EmployeeDetail.FirstName,
@@ -87,8 +84,7 @@ namespace Portal.Services.Models
                 return string.Empty;
 
             var request = httpContextAccessor.HttpContext?.Request;
-            if (request == null)
-                return string.Empty;
+            if (request == null) return string.Empty;
 
             var baseUrl = $"{request.Scheme}://{request.Host}";
             var uploadPath = employee.ProfilePicture.UploadPath.StartsWith('/')
@@ -100,10 +96,12 @@ namespace Portal.Services.Models
 
         private readonly IQueryable<Employee> _employees = context.Employees
             .Include(i => i.ProfilePicture)
+            .Include(i => i.Company)
             .Include(i => i.Division)
             .Include(i => i.Department)
             .Include(i => i.Section)
             .Include(i => i.Role)
-            .Include(i => i.EmployeeDetail);
+            .Include(i => i.EmployeeDetail)
+            .Include(i => i.EmployeeCompanyAccesses);
     }
 }

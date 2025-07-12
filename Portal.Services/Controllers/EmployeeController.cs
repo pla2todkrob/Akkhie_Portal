@@ -28,21 +28,7 @@ namespace Portal.Services.Controllers
                     return BadRequest(ApiResponse<LoginResponse>.ErrorResponse(result.ErrorMessage ?? "การเข้าสู่ระบบล้มเหลว"));
                 }
 
-                if (result.IsNewUser)
-                {
-                    return Ok(ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
-                    {
-                        Username = result.Username,
-                        IsNewUser = true,
-                        ActiveDirectoryProperties = result.ActiveDirectoryProperties,
-                    }, "ตรวจพบผู้ใช้ในระบบ Active Directory กรุณาลงทะเบียน"));
-                }
-
-                return Ok(ApiResponse<LoginResponse>.SuccessResponse(new LoginResponse
-                {
-                    Token = result.Token,
-                    EmployeeId = result.EmployeeId,
-                }, "เข้าสู่ระบบสำเร็จ"));
+                return Ok(ApiResponse<LoginResponse>.SuccessResponse(result, "เข้าสู่ระบบสำเร็จ"));
             }
             catch (Exception ex)
             {
@@ -67,11 +53,7 @@ namespace Portal.Services.Controllers
                         result.Errors));
                 }
 
-                return Ok(ApiResponse<RegisterResponse>.SuccessResponse(new RegisterResponse
-                {
-                    EmployeeId = result.EmployeeId,
-                    EmployeeStatus = result.EmployeeStatus
-                }, "ลงทะเบียนสำเร็จ"));
+                return Ok(ApiResponse<RegisterResponse>.SuccessResponse(result, "ลงทะเบียนสำเร็จ"));
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Portal.Shared.Models.Entities.Support;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Shared.Models.Entities
@@ -33,6 +34,9 @@ namespace Portal.Shared.Models.Entities
         public Guid UploadedByUserId { get; set; }
 
         public Employee UploadedByUser { get; set; } = null!;
+
+        public int? SupportTicketId { get; set; }
+        public virtual SupportTicket? SupportTicket { get; set; }
 
         [NotMapped]
         public string FileSizeDisplay => FileSizeInKb > 1024

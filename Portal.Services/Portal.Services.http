@@ -1,6 +1,0 @@
-@Portal.Services_HostAddress = http://localhost:5089
-
-GET {{Portal.Services_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

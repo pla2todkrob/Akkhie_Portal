@@ -46,13 +46,35 @@
                                         <h5 class="card-title mb-3">แจ้งปัญหาการใช้งาน</h5>
                                         <form id="createTicketForm" novalidate>
                                             @Html.AntiForgeryToken()
+
+                                            <!-- อ้างอิง Ticket เก่า -->
+                                            <div class="form-floating mb-3">
+                                                <select id="relatedTicketId" name="RelatedTicketId" class="form-select" data-live-search="true" title="ค้นหา Ticket เก่า..."></select>
+                                                <label for="relatedTicketId">อ้างอิง Ticket เก่า (ถ้ามี)</label>
+                                            </div>
+
+                                            <!-- หัวข้อปัญหา -->
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" id="ticketTitle" name="Title" placeholder="หัวข้อปัญหา" required>
                                                 <label for="ticketTitle">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
                                             </div>
-                                            <div class="form-floating">
-                                                <textarea class="form-control" placeholder="รายละเอียด" id="ticketDescription" name="Description" style="height: 250px" required></textarea>
+
+                                            <!-- รายละเอียด -->
+                                            <div class="form-floating mb-3">
+                                                <textarea class="form-control" placeholder="รายละเอียด" id="ticketDescription" name="Description" style="height: 150px" required></textarea>
                                                 <label for="ticketDescription">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
+                                            </div>
+
+                                            <!-- ส่วนแนบไฟล์ -->
+                                            <div>
+                                                <label for="ticketFiles" class="form-label">แนบไฟล์ (รูปภาพ, เอกสาร)</label>
+                                                <input class="form-control" type="file" id="ticketFiles" multiple>
+                                                <div class="progress mt-2" id="upload-progress-bar" style="height: 5px; display: none;">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <div id="file-upload-list" class="mt-2 small">
+                                                    <!-- รายการไฟล์ที่อัปโหลดจะแสดงที่นี่ -->
+                                                </div>
                                             </div>
                                         </form>
                                     </div>

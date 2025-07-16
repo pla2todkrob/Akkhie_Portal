@@ -63,6 +63,7 @@ namespace Portal.Services.Controllers
         }
 
         [HttpGet("{employeeId:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetEmployeeById(Guid employeeId)
         {
             try

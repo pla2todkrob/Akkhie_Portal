@@ -49,6 +49,7 @@ builder.Services.AddScoped<ISectionService, SectionService>();
 builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
 builder.Services.AddScoped<IITInventoryService, ITInventoryService>();
 builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
+builder.Services.AddScoped<ILineMessagingService, LineMessagingService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

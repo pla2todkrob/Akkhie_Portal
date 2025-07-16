@@ -72,5 +72,9 @@ namespace Portal.Shared.Models.Entities.Support
         public DateTime? ResolvedAt { get; set; }
 
         public ICollection<SupportTicketHistory> History { get; set; } = [];
+        public int? RelatedTicketId { get; set; }
+        public virtual SupportTicket? RelatedTicket { get; set; }
+
+        public virtual ICollection<UploadedFile> UploadedFiles { get; set; } = new List<UploadedFile>();
     }
 }

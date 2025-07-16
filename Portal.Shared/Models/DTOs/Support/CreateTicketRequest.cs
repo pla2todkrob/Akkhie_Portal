@@ -9,13 +9,18 @@ namespace Portal.Shared.Models.DTOs.Support
 {
     public class CreateTicketRequest
     {
-        [Required(ErrorMessage = "กรุณาระบุหัวข้อ")]
-        [MaxLength(255)]
-        [Display(Name = "หัวข้อ")]
-        public string Title { get; set; } = string.Empty;
+        [Required(ErrorMessage = "กรุณากรอกหัวข้อปัญหา")]
+        [StringLength(200, ErrorMessage = "หัวข้อต้องไม่เกิน 200 ตัวอักษร")]
+        [Display(Name = "หัวข้อปัญหา")]
+        public string Title { get; set; }
 
-        [Required(ErrorMessage = "กรุณาระบุรายละเอียด")]
-        [Display(Name = "รายละเอียดปัญหา")]
-        public string Description { get; set; } = string.Empty;
+        [Required(ErrorMessage = "กรุณากรอกรายละเอียดของปัญหา")]
+        [Display(Name = "รายละเอียด")]
+        public string Description { get; set; }
+
+        [Display(Name = "อ้างอิง Ticket เก่า")]
+        public int? RelatedTicketId { get; set; }
+
+        public List<Guid> FileGuids { get; set; } = new List<Guid>();
     }
 }

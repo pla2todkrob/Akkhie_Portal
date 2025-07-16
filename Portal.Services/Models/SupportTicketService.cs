@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Portal.Services.Models
 {
-    public class SupportTicketService(PortalDbContext context, ICurrentUserService currentUserService) : ISupportTicketService
+    public class SupportTicketService(PortalDbContext context, ICurrentUserService currentUserService, ILineMessagingService lineMessagingService) : ISupportTicketService
     {
         private readonly PortalDbContext _context = context;
         private readonly ICurrentUserService _currentUserService = currentUserService;
@@ -48,6 +48,22 @@ namespace Portal.Services.Models
 
             _context.SupportTickets.Add(ticket);
             await _context.SaveChangesAsync();
+
+            _context.SupportTickets.Add(ticket);
+            await _context.SaveChangesAsync();
+
+            // **อัปเดต** แก้ไขการเรียกใช้ Service แจ้งเตือน
+            var createdTicket = await _context.SupportTickets
+                .Include(t => t.ReportedByEmployee).ThenInclude(e => e.EmployeeDetail)
+                .Include(t => t.ReportedByEmployee).ThenInclude(e => e.Section)
+                .FirstOrDefaultAsync(t => t.Id == ticket.Id);
+
+            if (createdTicket != null)
+            {
+                // เปลี่ยนจาก _lineNotifyService เป็น _lineMessagingService
+                await lineMessagingService.SendTicketCreationNotificationAsync(createdTicket);
+            }
+
             return ticket;
         }
 

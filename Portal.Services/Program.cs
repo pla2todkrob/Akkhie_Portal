@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Portal.Services.Interfaces;
 using Portal.Services.Models;
@@ -31,6 +33,7 @@ builder.Services.AddDbContext<PortalDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.Configure<FileSettings>(builder.Configuration.GetSection("FileSettings"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 builder.Services.Configure<ActiveDirectorySettings>(builder.Configuration.GetSection(ActiveDirectorySettings.SectionName));
 
@@ -50,6 +53,7 @@ builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
 builder.Services.AddScoped<IITInventoryService, ITInventoryService>();
 builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
 builder.Services.AddScoped<ILineMessagingService, LineMessagingService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -126,6 +130,21 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// ทำให้สามารถเข้าถึงไฟล์ที่อัพโหลดผ่าน URL ได้
+// ดึงค่า Path จากการตั้งค่า
+var fileSettings = app.Services.GetRequiredService<IOptions<FileSettings>>().Value;
+var fileUploadPath = fileSettings.UploadPath;
+
+// ตรวจสอบว่า Path มีอยู่จริงหรือไม่
+if (Directory.Exists(fileUploadPath))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(fileUploadPath),
+        RequestPath = "" // ทำให้ Path ของไฟล์ตรงกับ UploadPath ใน Database
+    });
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -16,5 +16,6 @@ namespace Portal.Shared.Models.DTOs.Support
 
         [MaxLength(1000)]
         public string? Comment { get; set; }
+        public List<int> UploadedFileIds { get; set; } = new List<int>();
     }
 }

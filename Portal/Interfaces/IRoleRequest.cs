@@ -11,9 +11,5 @@ namespace Portal.Interfaces
     public interface IRoleRequest
     {
         Task<IEnumerable<Role>> GetAllAsync();
-        Task<Role> GetByIdAsync(int id);
-        Task<Role> CreateAsync(RoleRequest role);
-        Task<bool> UpdateAsync(int id, RoleRequest role);
-        Task<bool> DeleteAsync(int id);
     }
 }

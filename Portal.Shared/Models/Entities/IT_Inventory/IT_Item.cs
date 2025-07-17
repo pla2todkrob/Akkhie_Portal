@@ -25,6 +25,11 @@ namespace Portal.Shared.Models.Entities.IT_Inventory
         [Display(Name = "มีในสต็อก")]
         public bool IsStockItem { get; set; }
 
+        [Display(Name = "หน่วยนับ")]
+        [Required]
+        [MaxLength(50)]
+        public string Unit { get; set; } = "ชิ้น";
+
         [Display(Name = "รายละเอียด/สเปค")]
         [Column(TypeName = "nvarchar(max)")]
         public string? Specification { get; set; } // Store as JSON

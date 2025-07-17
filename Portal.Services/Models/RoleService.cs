@@ -1,49 +1,81 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
-using System.Data;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
     public class RoleService(PortalDbContext context) : IRoleService
     {
-        public async Task<List<Role>> AllAsync()
+        public async Task<IEnumerable<Role>> GetAllRolesAsync()
         {
             return await context.Roles.AsNoTracking().ToListAsync();
         }
 
-        public async Task<Role?> SearchAsync(int id)
+        public async Task<Role?> GetRoleByIdAsync(int id)
         {
             return await context.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
         }
 
-        public async Task<Role> SaveAsync(Role role)
+        public async Task<Role> CreateRoleAsync(Role role)
         {
-            ArgumentNullException.ThrowIfNull(role);
-            if (role.Id == 0)
-            {
-                context.Roles.Add(role);
-            }
-            else
-            {
-                var existingRole = await context.Roles.FindAsync(role.Id) ?? throw new DataException("ไม่พบบทบาทที่ต้องการบันทึก");
-
-                existingRole.Name = role.Name;
-                existingRole.Description = role.Description;
-            }
+            context.Roles.Add(role);
             await context.SaveChangesAsync();
             return role;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> UpdateRoleAsync(int id, Role role)
+        {
+            if (id != role.Id)
+            {
+                return false;
+            }
+
+            var existingRole = await context.Roles.FindAsync(id);
+            if (existingRole == null)
+            {
+                return false;
+            }
+
+            // Update properties
+            existingRole.Name = role.Name;
+            existingRole.Description = role.Description;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await RoleExists(id))
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return true;
+        }
+
+        public async Task<bool> DeleteRoleAsync(int id)
         {
             var role = await context.Roles.FindAsync(id);
-            if (role == null) return false;
+            if (role == null)
+            {
+                return false;
+            }
 
             context.Roles.Remove(role);
             await context.SaveChangesAsync();
             return true;
+        }
+
+        private async Task<bool> RoleExists(int id)
+        {
+            return await context.Roles.AnyAsync(e => e.Id == id);
         }
     }
 }

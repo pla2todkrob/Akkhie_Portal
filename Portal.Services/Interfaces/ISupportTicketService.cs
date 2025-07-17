@@ -2,9 +2,14 @@
 using Portal.Shared.Models.DTOs.Support;
 using Portal.Shared.Models.Entities.Support;
 using Portal.Shared.Models.ViewModel.Support;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Portal.Services.Interfaces
 {
+    /// <summary>
+    /// Interface สำหรับจัดการระบบ Support Ticket ทั้งหมด
+    /// </summary>
     public interface ISupportTicketService
     {
         Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request);

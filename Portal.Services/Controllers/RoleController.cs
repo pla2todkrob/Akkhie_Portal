@@ -1,99 +1,67 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Services.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
-using System.Net;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController(IRoleService roleService, ILogger<RoleController> logger) : ControllerBase
+    [Authorize] // ต้องมีการยืนยันตัวตนก่อนใช้งาน
+    public class RoleController(IRoleService roleService) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllRoles()
+        public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
         {
-            try
-            {
-                var roles = await roleService.AllAsync();
-                return Ok(ApiResponse.SuccessResponse(roles, "Roles retrieved successfully"));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error retrieving role list");
-                return StatusCode(
-                    (int)HttpStatusCode.InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            return Ok(await roleService.GetAllRolesAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> SearchRoleById(int id)
+        public async Task<ActionResult<Role>> GetRole(int id)
         {
-            try
+            var role = await roleService.GetRoleByIdAsync(id);
+            if (role == null)
             {
-                var role = await roleService.SearchAsync(id);
-                if (role == null)
-                {
-                    return NotFound(ApiResponse.ErrorResponse("Role not found"));
-                }
-                return Ok(ApiResponse.SuccessResponse(role, "Role retrieved successfully"));
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error retrieving role by id");
-                return StatusCode(
-                    (int)HttpStatusCode.InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            return Ok(role);
         }
 
-        [HttpPost("save")]
-        public async Task<IActionResult> SaveRole([FromBody] Role role)
+        [HttpPost]
+        public async Task<ActionResult<Role>> PostRole(Role role)
         {
-            try
+            var createdRole = await roleService.CreateRoleAsync(role);
+            return CreatedAtAction(nameof(GetRole), new { id = createdRole.Id }, createdRole);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutRole(int id, Role role)
+        {
+            if (id != role.Id)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ApiResponse.ErrorResponse("Invalid role data", [.. ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)]));
-                }
-                await roleService.SaveAsync(role);
-                return Ok(ApiResponse.SuccessResponse(role, "Role saved successfully"));
+                return BadRequest();
             }
-            catch (Exception ex)
+
+            var result = await roleService.UpdateRoleAsync(id, role);
+            if (!result)
             {
-                logger.LogError(ex, "Error saving role");
-                return StatusCode(
-                    (int)HttpStatusCode.InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
+                return NotFound();
             }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            try
+            var result = await roleService.DeleteRoleAsync(id);
+            if (!result)
             {
-                var result = await roleService.DeleteAsync(id);
-                if (!result)
-                {
-                    return NotFound(ApiResponse.ErrorResponse("Role not found"));
-                }
-
-                return Ok(ApiResponse.SuccessResponse(new { }, "Role deleted successfully"));
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error deleting role");
-                return StatusCode(
-                    (int)HttpStatusCode.InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            return NoContent();
         }
     }
 }

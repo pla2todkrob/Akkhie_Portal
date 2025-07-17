@@ -36,6 +36,7 @@ builder.Services.AddDbContext<PortalDbContext>(options =>
 builder.Services.Configure<FileSettings>(builder.Configuration.GetSection("FileSettings"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 builder.Services.Configure<ActiveDirectorySettings>(builder.Configuration.GetSection(ActiveDirectorySettings.SectionName));
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 builder.Services.AddHttpContextAccessor();
 
@@ -54,6 +55,7 @@ builder.Services.AddScoped<IITInventoryService, ITInventoryService>();
 builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
 builder.Services.AddScoped<ILineMessagingService, LineMessagingService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

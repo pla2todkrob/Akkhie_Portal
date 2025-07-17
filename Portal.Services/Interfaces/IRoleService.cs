@@ -5,12 +5,13 @@ namespace Portal.Services.Interfaces
 {
     public interface IRoleService
     {
-        Task<List<Role>> AllAsync();
+        Task<IEnumerable<Role>> GetAllRolesAsync();
 
-        Task<Role?> SearchAsync(int id);
+        Task<Role?> GetRoleByIdAsync(int id);
 
-        Task<Role> SaveAsync(Role role);
+        Task<Role> CreateRoleAsync(Role role);
+        Task<bool> UpdateRoleAsync(int id, Role role);
 
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteRoleAsync(int id);
     }
 }

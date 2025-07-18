@@ -32,6 +32,14 @@ namespace Portal.Services.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id}/departments")]
+        public async Task<IActionResult> GetDepartmentsByDivisionId(int id)
+        {
+            var result = await _divisionService.GetDepartmentsByDivisionIdAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(DivisionViewModel viewModel)
         {

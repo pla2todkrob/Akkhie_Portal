@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿//Portal.Services/Program.cs
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -144,7 +145,7 @@ if (Directory.Exists(fileUploadPath))
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(fileUploadPath),
-        RequestPath = "" // ทำให้ Path ของไฟล์ตรงกับ UploadPath ใน Database
+        RequestPath = "" 
     });
 }
 

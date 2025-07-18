@@ -32,6 +32,20 @@ namespace Portal.Services.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id}/branches")]
+        public async Task<IActionResult> GetBranchesByCompanyId(int id)
+        {
+            var result = await _companyService.GetBranchesByCompanyIdAsync(id);
+            return Ok(result);
+        }
+
+        [HttpGet("{id}/divisions")]
+        public async Task<IActionResult> GetDivisionsByCompanyId(int id)
+        {
+            var result = await _companyService.GetDivisionsByCompanyIdAsync(id);
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(CompanyViewModel viewModel)
         {

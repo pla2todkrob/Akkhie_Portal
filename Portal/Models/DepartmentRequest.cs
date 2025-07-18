@@ -2,6 +2,7 @@
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
+using System.Net.Http.Json;
 
 namespace Portal.Models
 {
@@ -13,24 +14,24 @@ namespace Portal.Models
         public async Task<IEnumerable<DepartmentViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.DepartmentAll);
-            var apiResponse = await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<DepartmentViewModel>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DepartmentViewModel>>();
+            return apiResponse ?? Enumerable.Empty<DepartmentViewModel>();
         }
 
         public async Task<DepartmentViewModel> GetByIdAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.DepartmentSearch, id);
             var response = await _httpClient.GetAsync(endpoint);
-            var apiResponse = await HandleResponse<DepartmentViewModel>(response);
-            return apiResponse.Data;
+            var apiResponse = await response.Content.ReadFromJsonAsync<DepartmentViewModel>();
+            return apiResponse;
         }
 
-        public async Task<IEnumerable<DepartmentViewModel>> GetByDivisionIdAsync(int divisionId)
+        public async Task<IEnumerable<SectionViewModel>> GetSectionsByDepartmentIdAsync(int departmentId)
         {
-            var endpoint = string.Format(_apiSettings.DepartmentsByDivision, divisionId);
+            var endpoint = string.Format(_apiSettings.SectionsByDepartment, departmentId);
             var response = await _httpClient.GetAsync(endpoint);
-            var apiResponse = await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<DepartmentViewModel>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<SectionViewModel>>();
+            return apiResponse ?? Enumerable.Empty<SectionViewModel>();
         }
 
         public async Task<ApiResponse<object>> CreateAsync(DepartmentViewModel viewModel)

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
@@ -26,9 +28,6 @@ namespace Portal.Controllers
             _roleRequest = roleRequest;
         }
 
-        // [FINAL FIX] ปรับแก้ Controller ทั้งหมดให้เรียกใช้เมธอดจาก Interface ที่เป็นมาตรฐานเดียวกัน
-        // และแปลงผลลัพธ์ (ViewModel) เป็น SelectListItem ก่อนส่งกลับเป็น JSON
-
         [HttpGet]
         public async Task<JsonResult> GetCompanies()
         {
@@ -46,9 +45,9 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetDivisions()
+        public async Task<JsonResult> GetDivisionsByCompany(int companyId)
         {
-            var divisions = await _divisionRequest.GetAllAsync();
+            var divisions = await _companyRequest.GetDivisionsByCompanyIdAsync(companyId);
             var selectList = divisions.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
             return Json(selectList);
         }
@@ -56,7 +55,7 @@ namespace Portal.Controllers
         [HttpGet]
         public async Task<JsonResult> GetDepartmentsByDivision(int id)
         {
-            var departments = await _departmentRequest.GetByDivisionIdAsync(id);
+            var departments = await _divisionRequest.GetDepartmentsByDivisionIdAsync(id);
             var selectList = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
             return Json(selectList);
         }
@@ -64,7 +63,7 @@ namespace Portal.Controllers
         [HttpGet]
         public async Task<JsonResult> GetSectionsByDepartment(int id)
         {
-            var sections = await _sectionRequest.GetByDepartmentIdAsync(id);
+            var sections = await _departmentRequest.GetSectionsByDepartmentIdAsync(id);
             var selectList = sections.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
             return Json(selectList);
         }

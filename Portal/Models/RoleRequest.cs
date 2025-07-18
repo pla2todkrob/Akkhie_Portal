@@ -12,8 +12,8 @@ namespace Portal.Models
         public async Task<IEnumerable<Role>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.RoleAll);
-            var apiResponse = await HandleResponse<IEnumerable<Role>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<Role>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<Role>>();
+            return apiResponse ?? Enumerable.Empty<Role>();
         }
     }
 }

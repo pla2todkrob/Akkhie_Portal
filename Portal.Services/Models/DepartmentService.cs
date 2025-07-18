@@ -45,14 +45,15 @@ namespace Portal.Services.Models
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<DepartmentViewModel>> GetByDivisionIdAsync(int divisionId)
+        public async Task<IEnumerable<SectionViewModel>> GetSectionsByDepartmentIdAsync(int departmentId)
         {
-            return await _context.Departments
-                .Where(d => d.DivisionId == divisionId)
-                .Select(d => new DepartmentViewModel
+            return await _context.Sections
+                .Where(s => s.DepartmentId == departmentId)
+                .Select(s => new SectionViewModel
                 {
-                    Id = d.Id,
-                    Name = d.Name
+                    Id = s.Id,
+                    Name = s.Name,
+                    DepartmentId = s.DepartmentId
                 }).ToListAsync();
         }
 

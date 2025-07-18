@@ -2,6 +2,7 @@
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
+using System.Net.Http.Json;
 
 namespace Portal.Models
 {
@@ -13,24 +14,32 @@ namespace Portal.Models
         public async Task<IEnumerable<CompanyViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.CompanyAll);
-            var apiResponse = await HandleResponse<IEnumerable<CompanyViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<CompanyViewModel>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<CompanyViewModel>>();
+            return apiResponse ?? Enumerable.Empty<CompanyViewModel>();
         }
 
         public async Task<CompanyViewModel> GetByIdAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.CompanySearch, id);
             var response = await _httpClient.GetAsync(endpoint);
-            var apiResponse = await HandleResponse<CompanyViewModel>(response);
-            return apiResponse.Data;
+            var apiResponse = await response.Content.ReadFromJsonAsync<CompanyViewModel>();
+            return apiResponse ?? throw new Exception("ไม่พบข้อมูลบริษัท");
         }
 
         public async Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId)
         {
             var endpoint = string.Format(_apiSettings.BranchesByCompany, companyId);
             var response = await _httpClient.GetAsync(endpoint);
-            var apiResponse = await HandleResponse<IEnumerable<CompanyBranchViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<CompanyBranchViewModel>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<CompanyBranchViewModel>>();
+            return apiResponse ?? Enumerable.Empty<CompanyBranchViewModel>();
+        }
+
+        public async Task<IEnumerable<DivisionViewModel>> GetDivisionsByCompanyIdAsync(int companyId)
+        {
+            var endpoint = string.Format(_apiSettings.DivisionsByCompany, companyId);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DivisionViewModel>>();
+            return apiResponse ?? Enumerable.Empty<DivisionViewModel>();
         }
 
         public async Task<ApiResponse<object>> CreateAsync(CompanyViewModel viewModel)

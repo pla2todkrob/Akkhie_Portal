@@ -103,7 +103,6 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function($) {
-            // Cache jQuery selectors
             const selectors = {
                 company: $('#CompanyId'),
                 branch: $('#CompanyBranchId'),
@@ -117,7 +116,6 @@
                 confirmPasswordInput: $('#ConfirmPassword')
             };
 
-            // Utility to populate a dropdown
             const populateDropdown = (element, url, placeholder) => {
                 return $.getJSON(url, function(data) {
                     element.empty().append($('<option></option>').val('').text(placeholder));
@@ -127,16 +125,13 @@
                 });
             };
 
-            // Utility to reset and disable dropdowns
             const resetDropdowns = (dropdowns, placeholderTexts) => {
                 dropdowns.forEach((dd, index) => {
                     dd.prop('disabled', true).empty().append(`<option value="">${placeholderTexts[index]}</option>`);
                 });
             };
 
-            // Setup cascading logic
             const setupCascadingDropdowns = () => {
-                // On Company Change -> Load Branches and Divisions
                 selectors.company.change(function() {
                     const companyId = $(this).val();
                     resetDropdowns(
@@ -148,13 +143,11 @@
                         populateDropdown(selectors.branch, `@Url.Action("GetBranchesByCompany", "Lookup")?id=${companyId}`, '-- กรุณาเลือกสาขา --')
                             .done(() => selectors.branch.prop('disabled', false));
 
-                        // [NEW LOGIC] Load divisions based on company
                         populateDropdown(selectors.division, `@Url.Action("GetDivisionsByCompany", "Lookup")?companyId=${companyId}`, '-- กรุณาเลือกสายงาน --')
                             .done(() => selectors.division.prop('disabled', false));
                     }
                 });
 
-                // On Division Change -> Load Departments
                 selectors.division.change(function() {
                     const divisionId = $(this).val();
                      resetDropdowns(
@@ -168,7 +161,6 @@
                     }
                 });
 
-                // On Department Change -> Load Sections
                 selectors.department.change(function() {
                     const departmentId = $(this).val();
                     resetDropdowns([selectors.section], ['-- กรุณาเลือกแผนก --']);
@@ -180,9 +172,7 @@
                 });
             };
 
-            // Main execution block
             $(function() {
-                // Setup password visibility toggles
                 const toggleVisibility = (input, btn) => {
                     const type = input.attr('type') === 'password' ? 'text' : 'password';
                     input.attr('type', type);
@@ -191,14 +181,10 @@
                 selectors.togglePassword.click(() => toggleVisibility(selectors.passwordInput, selectors.togglePassword));
                 selectors.toggleConfirmPassword.click(() => toggleVisibility(selectors.confirmPasswordInput, selectors.toggleConfirmPassword));
 
-                // Setup cascading dropdowns
                 setupCascadingDropdowns();
 
-                // Load initial data for root/independent dropdowns
                 populateDropdown(selectors.company, '@Url.Action("GetCompanies", "Lookup")', '-- กรุณาเลือกบริษัท --');
                 populateDropdown(selectors.role, '@Url.Action("GetRoles", "Lookup")', '-- กรุณาเลือกระดับผู้ใช้ --');
-                console.log('@Url.Action("GetCompanies", "Lookup")');
-                console.log('@Url.Action("GetRoles", "Lookup")');
             });
 
         })(jQuery);

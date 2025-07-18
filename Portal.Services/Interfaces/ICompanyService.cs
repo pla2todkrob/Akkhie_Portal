@@ -12,6 +12,7 @@ namespace Portal.Services.Interfaces
         Task<IEnumerable<CompanyViewModel>> GetAllAsync();
         Task<CompanyViewModel> GetByIdAsync(int id);
         Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId);
+        Task<IEnumerable<DivisionViewModel>> GetDivisionsByCompanyIdAsync(int companyId);
         Task<ApiResponse<Company>> CreateAsync(CompanyViewModel viewModel);
         Task<ApiResponse<Company>> UpdateAsync(int id, CompanyViewModel viewModel);
         Task<ApiResponse> DeleteAsync(int id);

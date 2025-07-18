@@ -2,6 +2,10 @@
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 
 namespace Portal.Models
 {
@@ -13,33 +17,37 @@ namespace Portal.Models
         public async Task<IEnumerable<DivisionViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.DivisionAll);
-            var apiResponse = await HandleResponse<IEnumerable<DivisionViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<DivisionViewModel>();
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DivisionViewModel>>();
+            return apiResponse ?? Enumerable.Empty<DivisionViewModel>();
         }
 
         public async Task<DivisionViewModel> GetByIdAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.DivisionSearch, id);
             var response = await _httpClient.GetAsync(endpoint);
-            var apiResponse = await HandleResponse<DivisionViewModel>(response);
-            return apiResponse.Data;
+            var apiResponse = await response.Content.ReadFromJsonAsync<DivisionViewModel>();
+            return apiResponse ?? throw new Exception("ไม่พบข้อมูลสายงาน");
         }
 
-        // [FIX] เปลี่ยน return type และการเรียก HandleResponse
+        public async Task<IEnumerable<DepartmentViewModel>> GetDepartmentsByDivisionIdAsync(int divisionId)
+        {
+            var endpoint = string.Format(_apiSettings.DepartmentsByDivision, divisionId);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DepartmentViewModel>>();
+            return apiResponse ?? Enumerable.Empty<DepartmentViewModel>();
+        }
         public async Task<ApiResponse<object>> CreateAsync(DivisionViewModel viewModel)
         {
             var response = await _httpClient.PostAsJsonAsync(_apiSettings.DivisionSave, viewModel);
             return await HandleResponse<object>(response);
         }
 
-        // [FIX] เปลี่ยน return type และการเรียก HandleResponse
         public async Task<ApiResponse<object>> UpdateAsync(int id, DivisionViewModel viewModel)
         {
             var response = await _httpClient.PutAsJsonAsync(_apiSettings.DivisionSave, viewModel);
             return await HandleResponse<object>(response);
         }
 
-        // [FIX] เปลี่ยน return type และการเรียก HandleResponse
         public async Task<ApiResponse<object>> DeleteAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.DivisionDelete, id);

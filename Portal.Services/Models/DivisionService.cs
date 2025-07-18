@@ -30,17 +30,7 @@ namespace Portal.Services.Models
                 }).ToListAsync();
         }
 
-        public async Task<IEnumerable<DivisionViewModel>> GetByCompanyIdAsync(int companyId)
-        {
-            return await _context.Divisions
-                .Where(d => d.CompanyId == companyId)
-                .Select(d => new DivisionViewModel
-                {
-                    Id = d.Id,
-                    Name = d.Name,
-                    TotalDepartment = d.Departments.Count()
-                }).ToListAsync();
-        }
+
 
         public async Task<DivisionViewModel> GetByIdAsync(int id)
         {
@@ -53,6 +43,20 @@ namespace Portal.Services.Models
                     CompanyId = d.CompanyId,
                     DepartmentViewModels = d.Departments.Select(dept => new DepartmentViewModel { Id = dept.Id, Name = dept.Name }).ToList()
                 }).FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<DepartmentViewModel>> GetDepartmentsByDivisionIdAsync(int divisionId)
+        {
+            return await _context.Departments
+                .Where(d => d.DivisionId == divisionId)
+                .Select(d => new DepartmentViewModel
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    DivisionId = d.DivisionId,
+                    DivisionName = d.Division.Name,
+                    TotalSection = d.Sections.Count()
+                }).ToListAsync();
         }
 
         public async Task<ApiResponse<Division>> CreateAsync(DivisionViewModel viewModel)

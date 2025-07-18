@@ -31,7 +31,7 @@ namespace Portal.Controllers
 
             if (divisionId.HasValue)
             {
-                var departments = await _departmentRequest.GetByDivisionIdAsync(divisionId.Value);
+                var departments = await _divisionRequest.GetDepartmentsByDivisionIdAsync(divisionId.Value);
                 ViewBag.Departments = new SelectList(departments, "Id", "Name", departmentId);
             }
             else

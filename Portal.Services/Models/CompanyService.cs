@@ -46,7 +46,7 @@ namespace Portal.Services.Models
                         Name = b.Name,
                         BranchCode = b.BranchCode
                     }).ToList()
-                }).FirstOrDefaultAsync();
+                }).FirstOrDefaultAsync() ?? new CompanyViewModel();
         }
 
         public async Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId)
@@ -58,6 +58,18 @@ namespace Portal.Services.Models
                     Id = b.Id,
                     Name = b.Name,
                     BranchCode = b.BranchCode
+                }).ToListAsync();
+        }
+
+        public async Task<IEnumerable<DivisionViewModel>> GetDivisionsByCompanyIdAsync(int companyId)
+        {
+            return await _context.Divisions
+                .Where(d => d.CompanyId == companyId)
+                .Select(d => new DivisionViewModel
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    TotalDepartment = d.Departments.Count()
                 }).ToListAsync();
         }
 

@@ -259,6 +259,7 @@ namespace Portal.Services.Models
                  new Role() { Id = (int)RoleType.Secretary, Name = RoleType.Secretary.GetDisplayName() },
                  new Role() { Id = (int)RoleType.DeputyManagingDirector, Name = RoleType.DeputyManagingDirector.GetDisplayName() },
                  new Role() { Id = (int)RoleType.DepartmentManager, Name = RoleType.DepartmentManager.GetDisplayName() },
+                 new Role() { Id = (int)RoleType.SectionManager, Name = RoleType.SectionManager.GetDisplayName() },
                  new Role() { Id = (int)RoleType.Staff, Name = RoleType.Staff.GetDisplayName() }
              );
 
@@ -271,10 +272,10 @@ namespace Portal.Services.Models
                 );
 
             modelBuilder.Entity<Division>().HasData(
-                new Division() { Id = 1, Name = "สายงานบริหาร" },
-                new Division() { Id = 2, Name = "สายงานบัญชีและการเงิน" },
-                new Division() { Id = 3, Name = "สายงานวิชาการ" },
-                new Division() { Id = 4, Name = "สายงานปฏิบัติการ" }
+                new Division() { Id = 1,CompanyId = 1, Name = "สายงานบริหาร" },
+                new Division() { Id = 2, CompanyId = 1, Name = "สายงานบัญชีและการเงิน" },
+                new Division() { Id = 3, CompanyId = 1, Name = "สายงานวิชาการ" },
+                new Division() { Id = 4, CompanyId = 1, Name = "สายงานปฏิบัติการ" }
                 );
 
             modelBuilder.Entity<Department>().HasData(

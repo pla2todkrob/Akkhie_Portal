@@ -5,6 +5,6 @@ namespace Portal.Services.Interfaces
 {
     public interface IRoleService
     {
-        Task<IEnumerable<Role>> GetAllRolesAsync();
+        Task<IEnumerable<Role>> AllAsync();
     }
 }

@@ -8,7 +8,7 @@ namespace Portal.Services.Models
 {
     public class RoleService(PortalDbContext context) : IRoleService
     {
-        public async Task<IEnumerable<Role>> GetAllRolesAsync()
+        public async Task<IEnumerable<Role>> AllAsync()
         {
             return await context.Roles.AsNoTracking().ToListAsync();
         }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Portal.Services.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,16 +28,20 @@ namespace Portal.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Divisions",
+                name: "IT_Items",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ItemType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsStockItem = table.Column<bool>(type: "bit", nullable: false),
+                    Unit = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Specification = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Divisions", x => x.Id);
+                    table.PrimaryKey("PK_IT_Items", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -52,6 +56,21 @@ namespace Portal.Services.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupportTicketCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CategoryType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupportTicketCategories", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,6 +90,74 @@ namespace Portal.Services.Migrations
                         name: "FK_CompanyBranches_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Divisions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CompanyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Divisions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Divisions_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IT_Stocks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IT_Stocks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IT_Stocks_IT_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "IT_Items",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IT_StandardSets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SetName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    AssignedToRoleId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IT_StandardSets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IT_StandardSets_IT_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "IT_Items",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_IT_StandardSets_Roles_AssignedToRoleId",
+                        column: x => x.AssignedToRoleId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -121,6 +208,7 @@ namespace Portal.Services.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -195,6 +283,7 @@ namespace Portal.Services.Migrations
                     Username = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     IsAdUser = table.Column<bool>(type: "bit", nullable: false),
+                    CompanyId = table.Column<int>(type: "int", nullable: false),
                     DivisionId = table.Column<int>(type: "int", nullable: true),
                     DepartmentId = table.Column<int>(type: "int", nullable: true),
                     SectionId = table.Column<int>(type: "int", nullable: true),
@@ -207,6 +296,12 @@ namespace Portal.Services.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Employees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Employees_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Employees_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -231,6 +326,97 @@ namespace Portal.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "IT_Assets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    SerialNumber = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    AssignedToEmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IT_Assets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IT_Assets_Employees_AssignedToEmployeeId",
+                        column: x => x.AssignedToEmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_IT_Assets_IT_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "IT_Items",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupportTickets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TicketNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequestType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    AssetId = table.Column<int>(type: "int", nullable: true),
+                    RequestedItemId = table.Column<int>(type: "int", nullable: true),
+                    Priority = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReportedByEmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssignedToEmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RelatedTicketId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupportTickets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_Employees_AssignedToEmployeeId",
+                        column: x => x.AssignedToEmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_Employees_ReportedByEmployeeId",
+                        column: x => x.ReportedByEmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_IT_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "IT_Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_IT_Items_RequestedItemId",
+                        column: x => x.RequestedItemId,
+                        principalTable: "IT_Items",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_SupportTicketCategories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "SupportTicketCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SupportTickets_SupportTickets_RelatedTicketId",
+                        column: x => x.RelatedTicketId,
+                        principalTable: "SupportTickets",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UploadedFiles",
                 columns: table => new
                 {
@@ -242,7 +428,8 @@ namespace Portal.Services.Migrations
                     UploadPath = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     UploadDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FileSize = table.Column<long>(type: "bigint", nullable: false),
-                    UploadedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    UploadedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SupportTicketId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -253,23 +440,53 @@ namespace Portal.Services.Migrations
                         principalTable: "Employees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UploadedFiles_SupportTickets_SupportTicketId",
+                        column: x => x.SupportTicketId,
+                        principalTable: "SupportTickets",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupportTicketHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TicketId = table.Column<int>(type: "int", nullable: false),
+                    EmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ActionDescription = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FileAttachmentId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupportTicketHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SupportTicketHistories_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SupportTicketHistories_SupportTickets_TicketId",
+                        column: x => x.TicketId,
+                        principalTable: "SupportTickets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SupportTicketHistories_UploadedFiles_FileAttachmentId",
+                        column: x => x.FileAttachmentId,
+                        principalTable: "UploadedFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.InsertData(
                 table: "Companies",
                 columns: new[] { "Id", "Name", "ShortName" },
                 values: new object[] { 1, "บริษัทอัคคีปราการ จำกัด (มหาชน)", "AKP" });
-
-            migrationBuilder.InsertData(
-                table: "Divisions",
-                columns: new[] { "Id", "Name" },
-                values: new object[,]
-                {
-                    { 1, "สายงานบริหาร" },
-                    { 2, "สายงานบัญชีและการเงิน" },
-                    { 3, "สายงานวิชาการ" },
-                    { 4, "สายงานปฏิบัติการ" }
-                });
 
             migrationBuilder.InsertData(
                 table: "Roles",
@@ -281,13 +498,25 @@ namespace Portal.Services.Migrations
                     { 3, null, "เลขานุการ" },
                     { 4, null, "รองกรรมการผู้จัดการ" },
                     { 5, null, "ผู้จัดการฝ่าย" },
-                    { 6, null, "เจ้าหน้าที่ทั่วไป" }
+                    { 6, null, "หัวหน้าแผนก" },
+                    { 7, null, "เจ้าหน้าที่ทั่วไป" }
                 });
 
             migrationBuilder.InsertData(
                 table: "CompanyBranches",
                 columns: new[] { "Id", "BranchCode", "CompanyId", "Name" },
                 values: new object[] { 1, "00", 1, "สำนักงานใหญ่" });
+
+            migrationBuilder.InsertData(
+                table: "Divisions",
+                columns: new[] { "Id", "CompanyId", "Name" },
+                values: new object[,]
+                {
+                    { 1, 1, "สายงานบริหาร" },
+                    { 2, 1, "สายงานบัญชีและการเงิน" },
+                    { 3, 1, "สายงานวิชาการ" },
+                    { 4, 1, "สายงานปฏิบัติการ" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Departments",
@@ -373,6 +602,11 @@ namespace Portal.Services.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Divisions_CompanyId",
+                table: "Divisions",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Divisions_Name",
                 table: "Divisions",
                 column: "Name",
@@ -430,6 +664,11 @@ namespace Portal.Services.Migrations
                 column: "LastName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Employees_CompanyId",
+                table: "Employees",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Employees_CreatedAt",
                 table: "Employees",
                 column: "CreatedAt");
@@ -471,6 +710,38 @@ namespace Portal.Services.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_IT_Assets_AssetTag",
+                table: "IT_Assets",
+                column: "AssetTag",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IT_Assets_AssignedToEmployeeId",
+                table: "IT_Assets",
+                column: "AssignedToEmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IT_Assets_ItemId",
+                table: "IT_Assets",
+                column: "ItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IT_StandardSets_AssignedToRoleId",
+                table: "IT_StandardSets",
+                column: "AssignedToRoleId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IT_StandardSets_ItemId",
+                table: "IT_StandardSets",
+                column: "ItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IT_Stocks_ItemId",
+                table: "IT_Stocks",
+                column: "ItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Roles_Name",
                 table: "Roles",
                 column: "Name",
@@ -488,9 +759,65 @@ namespace Portal.Services.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_SupportTicketHistories_EmployeeId",
+                table: "SupportTicketHistories",
+                column: "EmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTicketHistories_FileAttachmentId",
+                table: "SupportTicketHistories",
+                column: "FileAttachmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTicketHistories_TicketId",
+                table: "SupportTicketHistories",
+                column: "TicketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_AssetId",
+                table: "SupportTickets",
+                column: "AssetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_AssignedToEmployeeId",
+                table: "SupportTickets",
+                column: "AssignedToEmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_CategoryId",
+                table: "SupportTickets",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_RelatedTicketId",
+                table: "SupportTickets",
+                column: "RelatedTicketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_ReportedByEmployeeId",
+                table: "SupportTickets",
+                column: "ReportedByEmployeeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_RequestedItemId",
+                table: "SupportTickets",
+                column: "RequestedItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTickets_TicketNumber",
+                table: "SupportTickets",
+                column: "TicketNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_FileName",
                 table: "UploadedFiles",
                 column: "FileName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UploadedFiles_SupportTicketId",
+                table: "UploadedFiles",
+                column: "SupportTicketId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_UploadDateTime",
@@ -538,6 +865,18 @@ namespace Portal.Services.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
+                name: "FK_IT_Assets_Employees_AssignedToEmployeeId",
+                table: "IT_Assets");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_SupportTickets_Employees_AssignedToEmployeeId",
+                table: "SupportTickets");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_SupportTickets_Employees_ReportedByEmployeeId",
+                table: "SupportTickets");
+
+            migrationBuilder.DropForeignKey(
                 name: "FK_UploadedFiles_Employees_UploadedByUserId",
                 table: "UploadedFiles");
 
@@ -551,10 +890,16 @@ namespace Portal.Services.Migrations
                 name: "EmployeeDetails");
 
             migrationBuilder.DropTable(
-                name: "CompanyBranches");
+                name: "IT_StandardSets");
 
             migrationBuilder.DropTable(
-                name: "Companies");
+                name: "IT_Stocks");
+
+            migrationBuilder.DropTable(
+                name: "SupportTicketHistories");
+
+            migrationBuilder.DropTable(
+                name: "CompanyBranches");
 
             migrationBuilder.DropTable(
                 name: "Employees");
@@ -572,7 +917,22 @@ namespace Portal.Services.Migrations
                 name: "Departments");
 
             migrationBuilder.DropTable(
+                name: "SupportTickets");
+
+            migrationBuilder.DropTable(
                 name: "Divisions");
+
+            migrationBuilder.DropTable(
+                name: "IT_Assets");
+
+            migrationBuilder.DropTable(
+                name: "SupportTicketCategories");
+
+            migrationBuilder.DropTable(
+                name: "Companies");
+
+            migrationBuilder.DropTable(
+                name: "IT_Items");
         }
     }
 }

@@ -1,16 +1,14 @@
-﻿using Portal.Shared.Models.Entities;
+﻿using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Services.Interfaces
 {
     public interface IDivisionService
     {
-        Task<List<DivisionViewModel>> AllAsync();
-
-        Task<DivisionViewModel> SearchAsync(int id);
-
-        Task<DivisionViewModel> SaveAsync(DivisionViewModel division);
-
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<DivisionViewModel>> GetAllAsync();
+        Task<DivisionViewModel> GetByIdAsync(int id);
+        Task<ApiResponse> CreateAsync(DivisionViewModel viewModel);
+        Task<ApiResponse> UpdateAsync(int id, DivisionViewModel viewModel);
+        Task<ApiResponse> DeleteAsync(int id);
     }
 }

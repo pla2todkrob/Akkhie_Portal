@@ -20,7 +20,10 @@ namespace Portal.Shared.Enums
         [Display(Name = "ผู้จัดการฝ่าย")]
         DepartmentManager = 5,
 
+        [Display(Name = "หัวหน้าแผนก")]
+        SectionManager = 6,
+
         [Display(Name = "เจ้าหน้าที่ทั่วไป")]
-        Staff = 6
+        Staff = 7
     }
 }

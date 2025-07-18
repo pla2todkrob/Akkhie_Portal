@@ -1,4 +1,5 @@
 ﻿using Portal.Models;
+using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,6 +11,6 @@ namespace Portal.Interfaces
     /// </summary>
     public interface IRoleRequest
     {
-        Task<IEnumerable<Role>> GetAllAsync();
+        Task<ApiResponse<IEnumerable<Role>>> GetAllAsync();
     }
 }

@@ -1,125 +1,78 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Portal.Services.Interfaces;
-using Portal.Services.Models;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Services.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
-    public class DivisionController(IDivisionService divisionService, IDepartmentService departmentService, ILogger<DivisionController> logger) : ControllerBase
+    [Route("api/[controller]")]
+    public class DivisionController(IDivisionService divisionService) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAllDivisions()
+        public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var divisions = await divisionService.AllAsync();
-                return Ok(ApiResponse.SuccessResponse(divisions, "Divisions retrieved successfully"));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error in {ActionName}", nameof(GetAllDivisions));
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            var result = await divisionService.GetAllAsync();
+            return Ok(result);
         }
 
-        [HttpGet("{divisionId}/departments")]
-        public async Task<IActionResult> GetDepartmentsByDivision(int divisionId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            try
+            var result = await divisionService.GetByIdAsync(id);
+            if (result == null)
             {
-                var departments = await departmentService.SearchByDivisionAsync(divisionId);
-                if (departments == null || departments.Count == 0)
-                {
-                    return NotFound(ApiResponse.ErrorResponse("No departments found for the specified division."));
-                }
-                return Ok(ApiResponse.SuccessResponse(departments, "Departments retrieved successfully"));
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error in {ActionName}", nameof(GetDepartmentsByDivision));
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            return Ok(result);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetDivisionById(int id)
+        [HttpPost]
+        public async Task<IActionResult> Create(DivisionViewModel viewModel)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var division = await divisionService.SearchAsync(id);
-                if (division == null)
-                {
-                    return NotFound(ApiResponse.ErrorResponse("Division not found."));
-                }
-                return Ok(ApiResponse.SuccessResponse(division, "Division retrieved successfully"));
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+            var result = await divisionService.CreateAsync(viewModel);
+            if (result.Success)
             {
-                logger.LogError(ex, "Error in {ActionName}", nameof(GetDivisionById));
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
+                return Ok(result);
             }
+            return BadRequest(result);
         }
 
-        [HttpPost("save")]
-        public async Task<IActionResult> SaveDivision([FromBody] DivisionViewModel division)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, DivisionViewModel viewModel)
         {
-            if (division == null)
+            if (id != viewModel.Id)
             {
-                return BadRequest(ApiResponse.ErrorResponse("Invalid division data."));
+                return BadRequest("ID ไม่ตรงกัน");
             }
-            try
+
+            if (!ModelState.IsValid)
             {
-                var savedDivision = await divisionService.SaveAsync(division);
-                return Ok(ApiResponse.SuccessResponse(savedDivision, "Division saved successfully"));
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+
+            var result = await divisionService.UpdateAsync(id, viewModel);
+            if (result.Success)
             {
-                logger.LogError(ex, "Error in {ActionName}", nameof(SaveDivision));
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
+                return Ok(result);
             }
+            return BadRequest(result);
         }
 
-        [HttpDelete("{id:int}/delete")]
-        public async Task<IActionResult> DeleteDivision(int id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0)
+            var result = await divisionService.DeleteAsync(id);
+            if (result.Success)
             {
-                return BadRequest(ApiResponse.ErrorResponse("Invalid division ID."));
+                return Ok(result);
             }
-            try
-            {
-                var isDeleted = await divisionService.DeleteAsync(id);
-                if (!isDeleted)
-                {
-                    return NotFound(ApiResponse.ErrorResponse("Division not found or could not be deleted."));
-                }
-                return Ok(ApiResponse.SuccessResponse(isDeleted, "Division deleted successfully"));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error in {ActionName}", nameof(DeleteDivision));
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            return BadRequest(result);
         }
     }
 }

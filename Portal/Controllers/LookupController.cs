@@ -24,7 +24,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> GetRoles()
         {
-            var response = await roleRequest.AllAsync();
+            var response = await roleRequest.GetAllAsync();
             if (!response.Success)
             {
                 logger.LogWarning("Failed to get roles: {Message}", response.Message);

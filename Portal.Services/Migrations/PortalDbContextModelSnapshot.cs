@@ -249,12 +249,17 @@ namespace Portal.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -265,21 +270,25 @@ namespace Portal.Services.Migrations
                         new
                         {
                             Id = 1,
+                            CompanyId = 1,
                             Name = "สายงานบริหาร"
                         },
                         new
                         {
                             Id = 2,
+                            CompanyId = 1,
                             Name = "สายงานบัญชีและการเงิน"
                         },
                         new
                         {
                             Id = 3,
+                            CompanyId = 1,
                             Name = "สายงานวิชาการ"
                         },
                         new
                         {
                             Id = 4,
+                            CompanyId = 1,
                             Name = "สายงานปฏิบัติการ"
                         });
                 });
@@ -510,6 +519,11 @@ namespace Portal.Services.Migrations
                     b.Property<string>("Specification")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("Id");
 
                     b.ToTable("IT_Items");
@@ -622,6 +636,11 @@ namespace Portal.Services.Migrations
                         new
                         {
                             Id = 6,
+                            Name = "หัวหน้าแผนก"
+                        },
+                        new
+                        {
+                            Id = 7,
                             Name = "เจ้าหน้าที่ทั่วไป"
                         });
                 });
@@ -1006,6 +1025,17 @@ namespace Portal.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Division");
+                });
+
+            modelBuilder.Entity("Portal.Shared.Models.Entities.Division", b =>
+                {
+                    b.HasOne("Portal.Shared.Models.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Employee", b =>

@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Options;
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
-using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
 using System.Net.Http.Headers;
 
@@ -9,58 +9,67 @@ namespace Portal.Models
 {
     public class DivisionRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), IDivisionRequest
     {
-        public async Task<ApiResponse<IEnumerable<DivisionViewModel>>> AllAsync()
+        // Use the 'new' keyword to explicitly hide the inherited member
+        private readonly new HttpClient _httpClient = httpClient;
+
+        public async Task<IEnumerable<DivisionViewModel>> GetAll()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.DivisionAll);
-                return await HandleResponse<IEnumerable<DivisionViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<DivisionViewModel>>.ErrorResponse($"Error fetching all divisions: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync("api/division");
+            var apiResponse = await HandleResponse<IEnumerable<DivisionViewModel>>(response);
+            return apiResponse.Success && apiResponse.Data != null ? apiResponse.Data : [];
         }
 
-        public async Task<ApiResponse<DivisionViewModel>> SearchAsync(int id)
+        public async Task<DivisionViewModel> GetById(int id)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.DivisionSearch, id);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<DivisionViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<DivisionViewModel>.ErrorResponse($"Error fetching division with ID {id}: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync($"api/division/{id}");
+            var apiResponse = await HandleResponse<DivisionViewModel>(response);
+            return apiResponse.Success && apiResponse.Data != null ? apiResponse.Data : throw new InvalidOperationException("Division not found.");
         }
 
-        public async Task<ApiResponse<object>> SaveAsync(DivisionViewModel model)
+        public async Task<ApiResponse> Create(DivisionViewModel viewModel)
         {
-            try
+            var response = await _httpClient.PostAsJsonAsync("api/division", viewModel);
+            var apiResponse = await HandleResponse<object>(response);
+            return new ApiResponse
             {
-                var response = await _httpClient.PostAsJsonAsync(_apiSettings.DivisionSave, model);
-                return await HandleResponse<object>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<object>.ErrorResponse($"Error saving division: {ex.Message}");
-            }
+                Success = apiResponse.Success,
+                Message = apiResponse.Message,
+                Data = apiResponse.Data,
+                Errors = apiResponse.Errors
+            };
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
+        public async Task<ApiResponse> Update(int id, DivisionViewModel viewModel)
         {
-            try
+            var response = await _httpClient.PutAsJsonAsync($"api/division/{id}", viewModel);
+            var apiResponse = await HandleResponse<object>(response);
+            return new ApiResponse
             {
-                var endpoint = string.Format(_apiSettings.DivisionDelete, id);
-                var response = await _httpClient.DeleteAsync(endpoint);
-                return await HandleResponse<bool>(response);
-            }
-            catch (Exception ex)
+                Success = apiResponse.Success,
+                Message = apiResponse.Message,
+                Data = apiResponse.Data,
+                Errors = apiResponse.Errors
+            };
+        }
+
+        public async Task<ApiResponse> Delete(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/division/{id}");
+            var apiResponse = await HandleResponse<object>(response);
+            return new ApiResponse
             {
-                return ApiResponse<bool>.ErrorResponse($"Error deleting division with ID {id}: {ex.Message}");
-            }
+                Success = apiResponse.Success,
+                Message = apiResponse.Message,
+                Data = apiResponse.Data,
+                Errors = apiResponse.Errors
+            };
+        }
+
+        public async Task<IEnumerable<SelectListItem>> GetLookupByCompany(int companyId)
+        {
+            var response = await _httpClient.GetAsync($"api/lookup/divisions/company/{companyId}");
+            var apiResponse = await HandleResponse<IEnumerable<SelectListItem>>(response);
+            return apiResponse.Success && apiResponse.Data != null ? apiResponse.Data : [];
         }
     }
 }

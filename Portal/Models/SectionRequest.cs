@@ -1,80 +1,55 @@
 ﻿using Microsoft.Extensions.Options;
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
-using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
-using System.Net.Http.Headers;
 
 namespace Portal.Models
 {
-    public class SectionRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), ISectionRequest
+    public class SectionRequest : BaseRequest, ISectionRequest
     {
-        public async Task<ApiResponse<IEnumerable<SectionViewModel>>> AllAsync()
+        public SectionRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
+            : base(httpClient, apiSettings) { }
+
+        public async Task<IEnumerable<SectionViewModel>> GetAllAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.SectionAll);
-                return await HandleResponse<IEnumerable<SectionViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<SectionViewModel>>.ErrorResponse($"Error fetching all sections: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.SectionAll);
+            var apiResponse = await HandleResponse<IEnumerable<SectionViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<SectionViewModel>();
         }
 
-        public async Task<ApiResponse<SectionViewModel>> SearchAsync(int id)
+        public async Task<SectionViewModel> GetByIdAsync(int id)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.SectionSearch, id);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<SectionViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SectionViewModel>.ErrorResponse($"Error fetching section: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.SectionSearch, id);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<SectionViewModel>(response);
+            return apiResponse.Data;
         }
 
-        public async Task<ApiResponse<IEnumerable<SectionViewModel>>> SearchByDepartment(int departmentId)
+        public async Task<IEnumerable<SectionViewModel>> GetByDepartmentIdAsync(int departmentId)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.SectionsByDepartment, departmentId);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<IEnumerable<SectionViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<SectionViewModel>>.ErrorResponse($"Error fetching sections: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.SectionsByDepartment, departmentId);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<IEnumerable<SectionViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<SectionViewModel>();
         }
 
-        public async Task<ApiResponse<SectionViewModel>> SaveAsync(SectionViewModel model)
+        public async Task<ApiResponse<object>> CreateAsync(SectionViewModel viewModel)
         {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync(_apiSettings.SectionSave, model);
-                return await HandleResponse<SectionViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SectionViewModel>.ErrorResponse($"Error saving section: {ex.Message}");
-            }
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SectionSave, viewModel);
+            return await HandleResponse<object>(response);
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
+        public async Task<ApiResponse<object>> UpdateAsync(int id, SectionViewModel viewModel)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.SectionDelete, id);
-                var response = await _httpClient.DeleteAsync(endpoint);
-                return await HandleResponse<bool>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResponse($"Error deleting section: {ex.Message}");
-            }
+            var response = await _httpClient.PutAsJsonAsync(_apiSettings.SectionSave, viewModel);
+            return await HandleResponse<object>(response);
+        }
+
+        public async Task<ApiResponse<object>> DeleteAsync(int id)
+        {
+            var endpoint = string.Format(_apiSettings.SectionDelete, id);
+            var response = await _httpClient.DeleteAsync(endpoint);
+            return await HandleResponse<object>(response);
         }
     }
 }

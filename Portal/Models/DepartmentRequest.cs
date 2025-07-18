@@ -1,80 +1,55 @@
 ﻿using Microsoft.Extensions.Options;
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
-using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
-using System.Net.Http.Headers;
 
 namespace Portal.Models
 {
-    public class DepartmentRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), IDepartmentRequest
+    public class DepartmentRequest : BaseRequest, IDepartmentRequest
     {
-        public async Task<ApiResponse<IEnumerable<DepartmentViewModel>>> AllAsync()
+        public DepartmentRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
+            : base(httpClient, apiSettings) { }
+
+        public async Task<IEnumerable<DepartmentViewModel>> GetAllAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.DepartmentAll);
-                return await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<DepartmentViewModel>>.ErrorResponse($"Error fetching all divisions: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.DepartmentAll);
+            var apiResponse = await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<DepartmentViewModel>();
         }
 
-        public async Task<ApiResponse<IEnumerable<DepartmentViewModel>>> SearchByDivision(int divisionId)
+        public async Task<DepartmentViewModel> GetByIdAsync(int id)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.DepartmentsByDivision, divisionId);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<DepartmentViewModel>>.ErrorResponse($"Error fetching departments: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.DepartmentSearch, id);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<DepartmentViewModel>(response);
+            return apiResponse.Data;
         }
 
-        public async Task<ApiResponse<DepartmentViewModel>> SearchAsync(int id)
+        public async Task<IEnumerable<DepartmentViewModel>> GetByDivisionIdAsync(int divisionId)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.DepartmentSearch, id);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<DepartmentViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<DepartmentViewModel>.ErrorResponse($"Error fetching department: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.DepartmentsByDivision, divisionId);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<IEnumerable<DepartmentViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<DepartmentViewModel>();
         }
 
-        public async Task<ApiResponse<DepartmentViewModel>> SaveAsync(DepartmentViewModel model)
+        public async Task<ApiResponse<object>> CreateAsync(DepartmentViewModel viewModel)
         {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync(_apiSettings.DepartmentSave, model);
-                return await HandleResponse<DepartmentViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<DepartmentViewModel>.ErrorResponse($"Error saving department: {ex.Message}");
-            }
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.DepartmentSave, viewModel);
+            return await HandleResponse<object>(response);
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
+        public async Task<ApiResponse<object>> UpdateAsync(int id, DepartmentViewModel viewModel)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.DepartmentDelete, id);
-                var response = await _httpClient.DeleteAsync(endpoint);
-                return await HandleResponse<bool>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResponse($"Error deleting department: {ex.Message}");
-            }
+            var response = await _httpClient.PutAsJsonAsync(_apiSettings.DepartmentSave, viewModel);
+            return await HandleResponse<object>(response);
+        }
+
+        public async Task<ApiResponse<object>> DeleteAsync(int id)
+        {
+            var endpoint = string.Format(_apiSettings.DepartmentDelete, id);
+            var response = await _httpClient.DeleteAsync(endpoint);
+            return await HandleResponse<object>(response);
         }
     }
 }

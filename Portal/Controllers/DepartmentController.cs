@@ -1,171 +1,106 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Controllers
 {
-    [Authorize]
-    public class DepartmentController(ILogger<AuthController> logger, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest, ISectionRequest sectionRequest) : Controller
+    public class DepartmentController : Controller
     {
-        public async Task<IActionResult> Index()
+        private readonly IDepartmentRequest _departmentRequest;
+        private readonly IDivisionRequest _divisionRequest;
+
+        public DepartmentController(IDepartmentRequest departmentRequest, IDivisionRequest divisionRequest)
         {
-            var response = await departmentRequest.AllAsync();
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get departments: {Message}", response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No departments found.");
-                return NotFound("No departments found.");
-            }
-            return View(response.Data);
+            _departmentRequest = departmentRequest;
+            _divisionRequest = divisionRequest;
         }
 
-        public async Task<IActionResult> GetSections(int id)
+        public async Task<IActionResult> Index()
         {
-            if (id <= 0)
-            {
-                logger.LogWarning("Invalid department ID: {id}", id);
-                return BadRequest("Invalid department ID.");
-            }
-            var response = await sectionRequest.SearchByDepartment(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get sections for department {id}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No sections found for department {id}.", id);
-                return NotFound($"No sections found for department ID {id}.");
-            }
-            return PartialView("_Sections", response.Data);
+            var departments = await _departmentRequest.GetAllAsync();
+            return View(departments);
+        }
+
+        private async Task PopulateDivisionsDropDownList(object selectedDivision = null)
+        {
+            var divisions = await _divisionRequest.GetAllAsync();
+            ViewBag.Divisions = new SelectList(divisions, "Id", "Name", selectedDivision);
         }
 
         public async Task<IActionResult> Create()
         {
-            var divisions = await divisionRequest.AllAsync();
-            ViewData["Divisions"] = divisions.Data?.Select(d => new SelectListItem
+            var model = new DepartmentViewModel
             {
-                Value = d.Id.ToString(),
-                Text = d.Name
-            }) ?? [];
-            return View(new DepartmentViewModel());
+                SectionViewModels = new List<SectionViewModel> { new() }
+            };
+            await PopulateDivisionsDropDownList();
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DepartmentViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                logger.LogWarning("Invalid model state: {Errors}", string.Join(", ", errors));
-                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลไม่ถูกต้อง", errors));
-            }
-
-            try
-            {
-                var response = await departmentRequest.SaveAsync(model);
-                if (!response.Success)
+                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
+                var response = await _departmentRequest.CreateAsync(model);
+                if (response.Success)
                 {
-                    logger.LogError("Failed to save department: {Message}", response.Message);
-                    return BadRequest(response);
+                    return Ok(new { success = true });
                 }
-
-                return Ok(response);
+                ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error saving department");
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
-            }
+            await PopulateDivisionsDropDownList(model.DivisionId);
+            return BadRequest(ModelState);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            if (id <= 0)
+            var department = await _departmentRequest.GetByIdAsync(id);
+            if (department == null)
             {
-                logger.LogWarning("Invalid department ID: {id}", id);
-                return BadRequest("Invalid department ID.");
+                return NotFound();
             }
-            var response = await departmentRequest.SearchAsync(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get department {id}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null)
-            {
-                logger.LogWarning("Department with ID {id} not found.", id);
-                return NotFound($"Department with ID {id} not found.");
-            }
-
-            var divisions = await divisionRequest.AllAsync();
-            ViewData["Divisions"] = divisions.Data?.Select(d => new SelectListItem
-            {
-                Value = d.Id.ToString(),
-                Text = d.Name,
-                Selected = d.Id == response.Data.DivisionId
-            }) ?? [];
-
-            return View(response.Data);
+            await PopulateDivisionsDropDownList(department.DivisionId);
+            return View(department);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(DepartmentViewModel model)
+        public async Task<IActionResult> Edit(int id, DepartmentViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (id != model.Id)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-                logger.LogWarning("Invalid model state: {Errors}", string.Join(", ", errors));
-                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลไม่ถูกต้อง", errors));
+                return BadRequest();
             }
-            try
+
+            if (ModelState.IsValid)
             {
-                var response = await departmentRequest.SaveAsync(model);
-                if (!response.Success)
+                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
+                var response = await _departmentRequest.UpdateAsync(id, model);
+                if (response.Success)
                 {
-                    logger.LogError("Failed to update department: {Message}", response.Message);
-                    return BadRequest(response);
+                    return Ok(new { success = true });
                 }
-                return Ok(response);
+                ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error updating department");
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
-            }
+            await PopulateDivisionsDropDownList(model.DivisionId);
+            return BadRequest(ModelState);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0)
+            // [FIX] เปลี่ยน Delete ให้รองรับการเรียกผ่าน AJAX และคืนค่าเป็น JSON
+            var response = await _departmentRequest.DeleteAsync(id);
+            if (response.Success)
             {
-                logger.LogWarning("Invalid department ID: {id}", id);
-                return BadRequest("Invalid department ID.");
+                return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });
             }
-            var response = await departmentRequest.DeleteAsync(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to delete department {id}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            return Ok(response);
+            return BadRequest(new { success = false, message = response.Message ?? "เกิดข้อผิดพลาดในการลบข้อมูล" });
         }
     }
 }

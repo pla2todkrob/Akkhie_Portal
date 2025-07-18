@@ -1,28 +1,19 @@
 ﻿using Microsoft.Extensions.Options;
 using Portal.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 
 namespace Portal.Models
 {
-    public class RoleRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), IRoleRequest
+    public class RoleRequest : BaseRequest, IRoleRequest
     {
+        public RoleRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
+            : base(httpClient, apiSettings) { }
 
-        public async Task<ApiResponse<IEnumerable<Role>>> GetAllAsync()
+        public async Task<IEnumerable<Role>> GetAllAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.RoleAll);
-                return await HandleResponse<IEnumerable<Role>>(response);
-            }
-            catch (HttpRequestException ex)
-            {
-                return ApiResponse<IEnumerable<Role>>.ErrorResponse($"Error fetching all roles: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.RoleAll);
+            var apiResponse = await HandleResponse<IEnumerable<Role>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<Role>();
         }
     }
 }

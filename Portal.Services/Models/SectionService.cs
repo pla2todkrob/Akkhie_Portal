@@ -1,95 +1,98 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// FileName: Portal.Services/Models/SectionService.cs
+using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
+using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class SectionService(PortalDbContext context) : ISectionService
+    public class SectionService : ISectionService
     {
-        public async Task<List<SectionViewModel>> AllAsync()
+        private readonly PortalDbContext _context;
+
+        public SectionService(PortalDbContext context)
         {
-            return await context.Sections
-                .AsNoTracking()
-                .Include(i => i.Department)
-                .ThenInclude(ti => ti.Division)
-                .Select(s => SetModel(s))
-                .ToListAsync();
+            _context = context;
         }
 
-        public async Task<SectionViewModel> SearchAsync(int id)
+        public async Task<IEnumerable<SectionViewModel>> GetAllAsync()
         {
-            return await context.Sections
-                .AsNoTracking()
-                .Where(w => w.Id == id)
-                .Include(i => i.Department)
-                .ThenInclude(ti => ti.Division)
-                .Select(s => SetModel(s))
-                .FirstOrDefaultAsync() ?? new SectionViewModel();
-        }
-
-        public async Task<List<SectionViewModel>> SearchByDepartmentAsync(int id)
-        {
-            return await context.Sections
-                .AsNoTracking()
-                .Include(i => i.Department)
-                .ThenInclude(ti => ti.Division)
-                .Where(w => w.DepartmentId == id)
-                .Select(s => SetModel(s))
-                .ToListAsync();
-        }
-
-        public async Task<SectionViewModel> SaveAsync(SectionViewModel model)
-        {
-            ArgumentNullException.ThrowIfNull(model);
-            using var transaction = await context.Database.BeginTransactionAsync();
-            try
-            {
-                Section section;
-                if (model.Id == 0)
+            return await _context.Sections
+                .Select(s => new SectionViewModel
                 {
-                    section = new() { Name = model.Name, DepartmentId = model.DepartmentId };
-                    await context.Sections.AddAsync(section);
-                }
-                else
+                    Id = s.Id,
+                    Name = s.Name,
+                    DepartmentId = s.DepartmentId,
+                    DepartmentName = s.Department.Name
+                }).ToListAsync();
+        }
+
+        public async Task<SectionViewModel> GetByIdAsync(int id)
+        {
+            return await _context.Sections
+                .Where(s => s.Id == id)
+                .Select(s => new SectionViewModel
                 {
-                    section = await context.Sections
-                        .FirstOrDefaultAsync(f => f.Id == model.Id)
-                        ?? throw new KeyNotFoundException("ไม่พบแผนกที่ต้องการบันทึก");
-                    section.Name = model.Name;
-                    section.DepartmentId = model.DepartmentId;
-                }
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return await SearchAsync(section.Id) ?? throw new InvalidOperationException("ไม่พบข้อมูลแผนกหลังจากบันทึก");
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    Id = s.Id,
+                    Name = s.Name,
+                    DepartmentId = s.DepartmentId,
+                    DivisionId = s.Department.DivisionId
+                }).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<IEnumerable<SectionViewModel>> GetByDepartmentIdAsync(int departmentId)
         {
-            var section = await context.Sections
-                .FirstOrDefaultAsync(f => f.Id == id)
-                ?? throw new KeyNotFoundException("Section not found for deletion");
-            context.Sections.Remove(section);
-            return await context.SaveChangesAsync() > 0;
+            return await _context.Sections
+                .Where(s => s.DepartmentId == departmentId)
+                .Select(s => new SectionViewModel
+                {
+                    Id = s.Id,
+                    Name = s.Name
+                }).ToListAsync();
         }
 
-        private static SectionViewModel SetModel(Section section)
+        public async Task<ApiResponse<Section>> CreateAsync(SectionViewModel viewModel)
         {
-            return new SectionViewModel
+            var section = new Section
             {
-                Id = section.Id,
-                Name = section.Name,
-                DepartmentId = section.DepartmentId,
-                DepartmentName = section.Department.Name,
-                DivisionId = section.Department.DivisionId,
-                DivisionName = section.Department.Division.Name
+                Name = viewModel.Name,
+                DepartmentId = viewModel.DepartmentId
             };
+            _context.Sections.Add(section);
+            await _context.SaveChangesAsync();
+            return new ApiResponse<Section> { Success = true, Data = section };
+        }
+
+        public async Task<ApiResponse<Section>> UpdateAsync(int id, SectionViewModel viewModel)
+        {
+            var section = await _context.Sections.FindAsync(id);
+            if (section == null)
+            {
+                return new ApiResponse<Section> { Success = false, Message = "Section not found." };
+            }
+
+            section.Name = viewModel.Name;
+            section.DepartmentId = viewModel.DepartmentId;
+
+            await _context.SaveChangesAsync();
+            return new ApiResponse<Section> { Success = true, Data = section };
+        }
+
+        public async Task<ApiResponse> DeleteAsync(int id)
+        {
+            var section = await _context.Sections.FindAsync(id);
+            if (section == null)
+            {
+                return new ApiResponse { Success = false, Message = "Section not found." };
+            }
+
+            _context.Sections.Remove(section);
+            await _context.SaveChangesAsync();
+            return new ApiResponse { Success = true };
         }
     }
 }

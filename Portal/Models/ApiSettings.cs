@@ -16,6 +16,7 @@
         public string CompanySave { get; set; } = string.Empty;
         public string CompanyDelete { get; set; } = string.Empty;
         public string BranchesByCompany { get; set; } = string.Empty;
+        public string DivisionsByCompany { get; set; } = string.Empty;
         public string DivisionAll { get; set; } = string.Empty;
         public string DivisionSearch { get; set; } = string.Empty;
         public string DivisionSave { get; set; } = string.Empty;

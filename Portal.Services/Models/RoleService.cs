@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// FileName: Portal.Services/Models/RoleService.cs
+using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.Entities;
 using System.Collections.Generic;
@@ -6,11 +7,18 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class RoleService(PortalDbContext context) : IRoleService
+    public class RoleService : IRoleService
     {
-        public async Task<IEnumerable<Role>> AllAsync()
+        private readonly PortalDbContext _context;
+
+        public RoleService(PortalDbContext context)
         {
-            return await context.Roles.AsNoTracking().ToListAsync();
+            _context = context;
+        }
+
+        public async Task<IEnumerable<Role>> GetAllAsync()
+        {
+            return await _context.Roles.ToListAsync();
         }
     }
 }

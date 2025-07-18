@@ -1,88 +1,55 @@
 ﻿using Microsoft.Extensions.Options;
 using Portal.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
-using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
-using System.Net.Http.Headers;
 
 namespace Portal.Models
 {
-    public class CompanyRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), ICompanyRequest
+    public class CompanyRequest : BaseRequest, ICompanyRequest
     {
-        public async Task<ApiResponse<IEnumerable<CompanyViewModel>>> AllAsync()
+        public CompanyRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
+            : base(httpClient, apiSettings) { }
+
+        public async Task<IEnumerable<CompanyViewModel>> GetAllAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.CompanyAll);
-                return await HandleResponse<IEnumerable<CompanyViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<CompanyViewModel>>.ErrorResponse($"Error fetching all companies: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.CompanyAll);
+            var apiResponse = await HandleResponse<IEnumerable<CompanyViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<CompanyViewModel>();
         }
 
-        public async Task<ApiResponse<IEnumerable<CompanyBranchViewModel>>> GetBranchesByCompanyAsync(int id)
+        public async Task<CompanyViewModel> GetByIdAsync(int id)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.BranchesByCompany, id);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<IEnumerable<CompanyBranchViewModel>>(response);
-            }
-            catch (Exception)
-            {
-                return ApiResponse<IEnumerable<CompanyBranchViewModel>>.ErrorResponse("Error fetching company branches");
-            }
+            var endpoint = string.Format(_apiSettings.CompanySearch, id);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<CompanyViewModel>(response);
+            return apiResponse.Data;
         }
 
-        public async Task<ApiResponse<object>> SaveAsync(CompanyViewModel model)
+        public async Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId)
         {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync(_apiSettings.CompanySave, model);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorResponse = await response.Content.ReadFromJsonAsync<ApiResponse>();
-                    return errorResponse ?? ApiResponse.ErrorResponse("เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ");
-                }
-
-                var successResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
-                return successResponse ?? ApiResponse<object>.ErrorResponse("Unexpected null response from the server");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.ErrorResponse($"Error saving company: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.BranchesByCompany, companyId);
+            var response = await _httpClient.GetAsync(endpoint);
+            var apiResponse = await HandleResponse<IEnumerable<CompanyBranchViewModel>>(response);
+            return apiResponse.Data ?? Enumerable.Empty<CompanyBranchViewModel>();
         }
 
-        public async Task<ApiResponse<CompanyViewModel>> SearchAsync(int id)
+        public async Task<ApiResponse<object>> CreateAsync(CompanyViewModel viewModel)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.CompanySearch, id);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<CompanyViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CompanyViewModel>.ErrorResponse($"Error searching company: {ex.Message}");
-            }
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.CompanySave, viewModel);
+            return await HandleResponse<object>(response);
         }
 
-        public async Task<ApiResponse<bool>> DeleteAsync(int id)
+        public async Task<ApiResponse<object>> UpdateAsync(int id, CompanyViewModel viewModel)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.CompanyDelete, id);
-                var response = await _httpClient.DeleteAsync(endpoint);
-                return await HandleResponse<bool>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResponse($"Error deleting company: {ex.Message}");
-            }
+            var response = await _httpClient.PutAsJsonAsync(_apiSettings.CompanySave, viewModel);
+            return await HandleResponse<object>(response);
+        }
+
+        public async Task<ApiResponse<object>> DeleteAsync(int id)
+        {
+            var endpoint = string.Format(_apiSettings.CompanyDelete, id);
+            var response = await _httpClient.DeleteAsync(endpoint);
+            return await HandleResponse<object>(response);
         }
     }
 }

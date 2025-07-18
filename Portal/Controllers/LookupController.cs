@@ -1,188 +1,80 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
-using Portal.Models;
-using Portal.Shared.Enums.Support;
 
 namespace Portal.Controllers
 {
-    public class LookupController(
-        ILogger<LookupController> logger, 
-        IRoleRequest roleRequest, 
-        ICompanyRequest companyRequest, 
-        IDivisionRequest divisionRequest, 
-        IDepartmentRequest departmentRequest, 
-        ISectionRequest sectionRequest, 
-        ISupportTicketRequest supportTicketRequest,
-        IITInventoryRequest itInventoryRequest) : Controller
+    public class LookupController : Controller
     {
-        public IActionResult Index()
+        private readonly ICompanyRequest _companyRequest;
+        private readonly IDivisionRequest _divisionRequest;
+        private readonly IDepartmentRequest _departmentRequest;
+        private readonly ISectionRequest _sectionRequest;
+        private readonly IRoleRequest _roleRequest;
+
+        public LookupController(
+            ICompanyRequest companyRequest,
+            IDivisionRequest divisionRequest,
+            IDepartmentRequest departmentRequest,
+            ISectionRequest sectionRequest,
+            IRoleRequest roleRequest)
         {
-            return RedirectToAction("Index", "Home");
+            _companyRequest = companyRequest;
+            _divisionRequest = divisionRequest;
+            _departmentRequest = departmentRequest;
+            _sectionRequest = sectionRequest;
+            _roleRequest = roleRequest;
         }
 
-        public async Task<IActionResult> GetRoles()
-        {
-            var response = await roleRequest.GetAllAsync();
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get roles: {Message}", response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No roles found.");
-                return NotFound("No roles found.");
-            }
+        // [FINAL FIX] ปรับแก้ Controller ทั้งหมดให้เรียกใช้เมธอดจาก Interface ที่เป็นมาตรฐานเดียวกัน
+        // และแปลงผลลัพธ์ (ViewModel) เป็น SelectListItem ก่อนส่งกลับเป็น JSON
 
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
-
-        public async Task<IActionResult> GetCompanies()
-        {
-            var response = await companyRequest.AllAsync();
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get companies: {Message}", response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No companies found.");
-                return NotFound("No companies found.");
-            }
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
-
-        public async Task<IActionResult> GetBranchesByCompany(int id)
-        {
-            var response = await companyRequest.GetBranchesByCompanyAsync(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get branches for company {CompanyId}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No branches found for company {CompanyId}.", id);
-                return NotFound("No branches found for the specified company.");
-            }
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
-
-        public async Task<IActionResult> GetDivisions()
-        {
-            var response = await divisionRequest.AllAsync();
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get divisions: {Message}", response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No divisions found.");
-                return NotFound("No divisions found.");
-            }
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
-
-        public async Task<IActionResult> GetDepartmentsByDivision(int id)
-        {
-            var response = await departmentRequest.SearchByDivision(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get departments for division {DivisionId}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No departments found for division {DivisionId}.", id);
-                return NotFound("No departments found for the specified division.");
-            }
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
-
-        public async Task<IActionResult> GetSectionsByDepartment(int id)
-        {
-            var response = await sectionRequest.SearchByDepartment(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get sections for department {DepartmentId}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No sections found for department {DepartmentId}.", id);
-                return NotFound("No sections found for the specified department.");
-            }
-            return Json(response.Data.Select(s => new
-            {
-                value = s.Id.ToString(),
-                text = s.Name
-            }));
-        }
         [HttpGet]
-        public async Task<IActionResult> GetSupportCategories()
+        public async Task<JsonResult> GetCompanies()
         {
-            // For now, we fetch only "Issue" type categories for the form.
-            var response = await supportTicketRequest.GetCategoriesAsync(TicketCategoryType.Issue.ToString());
-
-            if (!response.Success || response.Data == null)
-            {
-                return Json(new { success = false, message = response.Message ?? "Could not load categories." });
-            }
-
-            var categories = response.Data.Select(s => new {
-                id = s.Id,
-                name = s.Name
-            });
-
-            return Json(new { success = true, data = categories });
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetMySupportTickets()
-        {
-            var response = await supportTicketRequest.GetMyTicketsAsync();
-            return Json(response);
+            var companies = await _companyRequest.GetAllAsync();
+            var selectList = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
+            return Json(selectList);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTicketDetails(int id)
+        public async Task<JsonResult> GetBranchesByCompany(int id)
         {
-            if (id <= 0)
-            {
-                return BadRequest(new { success = false, message = "Invalid Ticket ID." });
-            }
-            var response = await supportTicketRequest.GetTicketDetailsAsync(id);
-            return Json(response);
+            var branches = await _companyRequest.GetBranchesByCompanyIdAsync(id);
+            var selectList = branches.Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name });
+            return Json(selectList);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetITStockItems()
+        public async Task<JsonResult> GetDivisions()
         {
-            var response = await itInventoryRequest.GetAvailableStockItemsAsync();
-            return Json(response);
+            var divisions = await _divisionRequest.GetAllAsync();
+            var selectList = divisions.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
+            return Json(selectList);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetDepartmentsByDivision(int id)
+        {
+            var departments = await _departmentRequest.GetByDivisionIdAsync(id);
+            var selectList = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
+            return Json(selectList);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetSectionsByDepartment(int id)
+        {
+            var sections = await _sectionRequest.GetByDepartmentIdAsync(id);
+            var selectList = sections.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
+            return Json(selectList);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetRoles()
+        {
+            var roles = await _roleRequest.GetAllAsync();
+            var selectList = roles.Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name });
+            return Json(selectList);
         }
     }
 }

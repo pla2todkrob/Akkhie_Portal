@@ -1,146 +1,130 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// FileName: Portal.Services/Models/CompanyService.cs
+using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class CompanyService(PortalDbContext context) : ICompanyService
+    public class CompanyService : ICompanyService
     {
-        public async Task<List<CompanyViewModel>> AllAsync()
+        private readonly PortalDbContext _context;
+
+        public CompanyService(PortalDbContext context)
         {
-            return await context.Companies
-                .AsNoTracking()
-                .Include(i => i.Branches)
-                .Select(s => SetModel(s)).ToListAsync();
+            _context = context;
         }
 
-        public async Task<CompanyViewModel?> SearchAsync(int id)
+        public async Task<IEnumerable<CompanyViewModel>> GetAllAsync()
         {
-            return await context.Companies
-                .AsNoTracking()
-                .Where(w => w.Id == id)
-                .Include(i => i.Branches)
-                .Select(s => SetModel(s))
-                .FirstOrDefaultAsync();
+            return await _context.Companies
+                .Select(c => new CompanyViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ShortName = c.ShortName,
+                    TotalBranch = c.Branches.Count()
+                }).ToListAsync();
         }
 
-        public async Task<CompanyViewModel> SaveAsync(CompanyViewModel companyViewModel)
+        public async Task<CompanyViewModel> GetByIdAsync(int id)
         {
-            Company company;
-            bool isNew = companyViewModel.Id == 0;
-            using var transaction = await context.Database.BeginTransactionAsync();
-            if (isNew)
-            {
-                // Create new company
-                company = new Company
+            return await _context.Companies
+                .Where(c => c.Id == id)
+                .Select(c => new CompanyViewModel
                 {
-                    Name = companyViewModel.Name,
-                    ShortName = companyViewModel.ShortName
-                };
-                context.Companies.Add(company);
-                await context.SaveChangesAsync();
-            }
-            else
-            {
-                // Update existing company
-                company = await context.Companies
-                    .AsNoTracking()
-                    .Include(i => i.Branches)
-                    .FirstOrDefaultAsync(f => f.Id == companyViewModel.Id) ?? throw new InvalidOperationException("ไม่พบบริษัทที่ต้องการบันทึก");
-
-                company.Name = companyViewModel.Name;
-                company.ShortName = companyViewModel.ShortName;
-            }
-
-            // Handle branches
-            if (companyViewModel.CompanyBranchViewModels != null)
-            {
-                var existingBranches = company.Branches.ToList();
-                var incomingBranches = companyViewModel.CompanyBranchViewModels.ToList();
-
-                // Delete branches not in incoming list
-                var branchesToDelete = existingBranches
-                    .Where(eb => !incomingBranches.Any(ib => ib.Id == eb.Id))
-                    .ToList();
-
-                foreach (var branch in branchesToDelete)
-                {
-                    context.CompanyBranches.Remove(branch);
-                }
-
-                // Update or add branches
-                foreach (var branchVm in incomingBranches)
-                {
-                    if (branchVm.Id == 0)
+                    Id = c.Id,
+                    Name = c.Name,
+                    ShortName = c.ShortName,
+                    CompanyBranchViewModels = c.Branches.Select(b => new CompanyBranchViewModel
                     {
-                        // Add new branch
-                        var newBranch = new CompanyBranch
-                        {
-                            Name = branchVm.Name,
-                            BranchCode = branchVm.BranchCode,
-                            CompanyId = company.Id
-                        };
-                        context.CompanyBranches.Add(newBranch);
-                    }
-                    else
-                    {
-                        // Update existing branch
-                        var existingBranch = existingBranches.FirstOrDefault(b => b.Id == branchVm.Id);
-                        if (existingBranch != null)
-                        {
-                            existingBranch.Name = branchVm.Name;
-                            existingBranch.BranchCode = branchVm.BranchCode;
-                        }
-                    }
-                }
-            }
-
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return await SearchAsync(company.Id) ?? throw new InvalidOperationException("ไม่พบข้อมูลบริษัทหลังจากบันทึก");
+                        Id = b.Id,
+                        Name = b.Name,
+                        BranchCode = b.BranchCode
+                    }).ToList()
+                }).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId)
         {
-            var company = await context.Companies.FindAsync(id);
-            if (company == null) return false;
-            context.Companies.Remove(company);
-            await context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<CompanyBranchViewModel>> SearchBranchesByCompany(int id)
-        {
-            return await context.CompanyBranches
-                .Where(w => w.CompanyId == id)
-                .Select(s => new CompanyBranchViewModel()
+            return await _context.CompanyBranches
+                .Where(b => b.CompanyId == companyId)
+                .Select(b => new CompanyBranchViewModel
                 {
-                    Id = s.Id,
-                    Name = s.Name,
-                    BranchCode = s.BranchCode,
-                    CompanyId = s.CompanyId
-                })
-                .ToListAsync();
+                    Id = b.Id,
+                    Name = b.Name,
+                    BranchCode = b.BranchCode
+                }).ToListAsync();
         }
 
-        private static CompanyViewModel SetModel(Company company)
+        public async Task<ApiResponse<Company>> CreateAsync(CompanyViewModel viewModel)
         {
-            return new CompanyViewModel()
+            var company = new Company
             {
-                Id = company.Id,
-                Name = company.Name,
-                ShortName = company.ShortName,
-                TotalBranch = company.Branches.Count,
-                CompanyBranchViewModels = [.. company.Branches.Select(s2 => new CompanyBranchViewModel()
-                {
-                    Id = s2.Id,
-                    Name = s2.Name,
-                    BranchCode = s2.BranchCode,
-                    CompanyId = s2.CompanyId
-                })]
+                Name = viewModel.Name,
+                ShortName = viewModel.ShortName
             };
+
+            foreach (var branchVm in viewModel.CompanyBranchViewModels)
+            {
+                if (!string.IsNullOrWhiteSpace(branchVm.Name))
+                {
+                    company.Branches.Add(new CompanyBranch
+                    {
+                        Name = branchVm.Name,
+                        BranchCode = branchVm.BranchCode
+                    });
+                }
+            }
+
+            _context.Companies.Add(company);
+            await _context.SaveChangesAsync();
+            return new ApiResponse<Company> { Success = true, Data = company };
+        }
+
+        public async Task<ApiResponse<Company>> UpdateAsync(int id, CompanyViewModel viewModel)
+        {
+            var company = await _context.Companies.Include(c => c.Branches).FirstOrDefaultAsync(c => c.Id == id);
+            if (company == null)
+            {
+                return new ApiResponse<Company> { Success = false, Message = "Company not found." };
+            }
+
+            company.Name = viewModel.Name;
+            company.ShortName = viewModel.ShortName;
+
+            company.Branches.Clear();
+            foreach (var branchVm in viewModel.CompanyBranchViewModels)
+            {
+                if (!string.IsNullOrWhiteSpace(branchVm.Name))
+                {
+                    company.Branches.Add(new CompanyBranch
+                    {
+                        Name = branchVm.Name,
+                        BranchCode = branchVm.BranchCode
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return new ApiResponse<Company> { Success = true, Data = company };
+        }
+
+        public async Task<ApiResponse> DeleteAsync(int id)
+        {
+            var company = await _context.Companies.FindAsync(id);
+            if (company == null)
+            {
+                return new ApiResponse { Success = false, Message = "Company not found." };
+            }
+
+            _context.Companies.Remove(company);
+            await _context.SaveChangesAsync();
+            return new ApiResponse { Success = true };
         }
     }
 }

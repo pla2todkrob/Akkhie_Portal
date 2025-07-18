@@ -1,175 +1,102 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Metadata;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
 using Portal.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
-    [Authorize]
-    public class CompanyController(ILogger<AuthController> logger, ICompanyRequest companyRequest) : Controller
+    public class CompanyController : Controller
     {
-        public async Task<IActionResult> Index()
+        private readonly ICompanyRequest _companyRequest;
+
+        public CompanyController(ICompanyRequest companyRequest)
         {
-            var response = await companyRequest.AllAsync();
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get companies: {Message}", response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No companies found.");
-                return NotFound("No companies found.");
-            }
-            return View(response.Data);
+            _companyRequest = companyRequest;
         }
 
-        public async Task<IActionResult> GetBranches(int id)
+        // [FINAL FIX] ปรับแก้ Controller ให้เรียกใช้เมธอดจาก Interface ฉบับล่าสุด
+        public async Task<IActionResult> Index()
         {
-            if (id <= 0)
-            {
-                logger.LogWarning("Invalid company ID: {Id}", id);
-                return BadRequest("Invalid company ID.");
-            }
-            var response = await companyRequest.GetBranchesByCompanyAsync(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to get branches for company {Id}: {Message}", id, response.Message);
-                return BadRequest(response);
-            }
-            if (response.Data == null || !response.Data.Any())
-            {
-                logger.LogWarning("No branches found for company {Id}.", id);
-                return NotFound($"No branches found for company with ID {id}.");
-            }
-            return PartialView("_Branches", response.Data);
+            var companies = await _companyRequest.GetAllAsync();
+            return View(companies);
+        }
+
+        // Action สำหรับแสดงรายการสาขาใน Modal
+        public async Task<IActionResult> Branches(int id)
+        {
+            var branches = await _companyRequest.GetBranchesByCompanyIdAsync(id);
+            return PartialView("_Branches", branches);
         }
 
         public IActionResult Create()
         {
-            return View(new CompanyViewModel());
+            var model = new CompanyViewModel
+            {
+                // เริ่มต้นด้วยสาขาว่าง 1 รายการสำหรับกรอกข้อมูล
+                CompanyBranchViewModels = new List<CompanyBranchViewModel> { new() }
+            };
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CompanyViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                logger.LogWarning("Invalid model state: {Errors}", string.Join(", ", errors));
-                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลไม่ถูกต้อง", errors));
-            }
-
-            try
-            {
-                var response = await companyRequest.SaveAsync(model);
-
-                if (!response.Success)
+                var response = await _companyRequest.CreateAsync(model);
+                if (response.Success)
                 {
-                    logger.LogError("Failed to save company: {Message}", response.Message);
-                    return BadRequest(response);
+                    // ส่งผลลัพธ์กลับไปให้ AJAX ที่ฝั่ง Client
+                    return Ok(new { success = true });
                 }
-
-                return Ok(response);
+                ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error saving company");
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
-            }
+            // ส่ง Model State ที่มี Error กลับไปให้ AJAX
+            return BadRequest(ModelState);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            if (id <= 0)
+            var company = await _companyRequest.GetByIdAsync(id);
+            if (company == null)
             {
-                logger.LogWarning("Invalid company ID: {Id}", id);
-                return BadRequest("Invalid company ID.");
+                return NotFound();
             }
-            var response = await companyRequest.SearchAsync(id);
-            if (!response.Success)
-            {
-                logger.LogWarning("Failed to find company with ID {Id}: {Message}", id, response.Message);
-                return NotFound(response);
-            }
-            if (response.Data == null)
-            {
-                logger.LogWarning("Company with ID {Id} not found.", id);
-                return NotFound($"Company with ID {id} not found.");
-            }
-            return View(response.Data);
+            return View(company);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CompanyViewModel model)
         {
-            if (id <= 0)
+            if (id != model.Id)
             {
-                logger.LogWarning("Invalid company ID: {Id}", id);
-                return BadRequest("Invalid company ID.");
-            }
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                logger.LogWarning("Invalid model state: {Errors}", string.Join(", ", errors));
-                return BadRequest(ApiResponse.ErrorResponse("ข้อมูลไม่ถูกต้อง", errors));
+                return BadRequest();
             }
 
-            try
+            if (ModelState.IsValid)
             {
-                var response = await companyRequest.SaveAsync(model);
-
-                if (!response.Success)
+                var response = await _companyRequest.UpdateAsync(id, model);
+                if (response.Success)
                 {
-                    logger.LogError("Failed to save company: {Message}", response.Message);
-                    return BadRequest(response);
+                    return Ok(new { success = true });
                 }
-
-                return Ok(response);
+                ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error saving company");
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
-            }
+            return BadRequest(ModelState);
         }
 
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0)
+            var response = await _companyRequest.DeleteAsync(id);
+            if (response.Success)
             {
-                logger.LogWarning("Invalid company ID: {Id}", id);
-                return BadRequest("Invalid company ID.");
+                return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });
             }
-            try
-            {
-                var response = await companyRequest.DeleteAsync(id);
-                if (!response.Success)
-                {
-                    logger.LogError("Failed to delete company with ID {Id}: {Message}", id, response.Message);
-                    return BadRequest(response);
-                }
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error deleting company with ID {Id}", id);
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
-            }
+            return BadRequest(new { success = false, message = response.Message ?? "เกิดข้อผิดพลาดในการลบข้อมูล" });
         }
     }
 }

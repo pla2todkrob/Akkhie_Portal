@@ -1,34 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// FileName: Portal.Services/Controllers/RoleController.cs
 using Microsoft.AspNetCore.Mvc;
 using Portal.Services.Interfaces;
-using Portal.Shared.Models.DTOs.Shared;
-using Portal.Shared.Models.Entities;
-using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController(IRoleService roleService, ILogger<RoleController> logger) : ControllerBase
+    public class RoleController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult> GetRoles()
+        private readonly IRoleService _roleService;
+
+        public RoleController(IRoleService roleService)
         {
-            try
-            {
-                var roles = await roleService.AllAsync();
-                return Ok(ApiResponse.SuccessResponse(roles, "Roles retrieved successfully"));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error retrieving role list");
-                return StatusCode(
-                    (int)HttpStatusCode.InternalServerError,
-                    ApiResponse.ErrorResponse($"An error occurred: {ex.GetBaseException().Message}")
-                );
-            }
+            _roleService = roleService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _roleService.GetAllAsync();
+            return Ok(result);
         }
     }
 }

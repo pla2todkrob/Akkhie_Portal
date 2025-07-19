@@ -27,7 +27,8 @@ namespace Portal.Services.Models
                     Id = c.Id,
                     Name = c.Name,
                     ShortName = c.ShortName,
-                    TotalBranch = c.Branches.Count()
+                    TotalBranch = c.Branches.Count(),
+                    TotalDivision = c.Divisions.Count(),
                 }).ToListAsync();
         }
 
@@ -45,6 +46,12 @@ namespace Portal.Services.Models
                         Id = b.Id,
                         Name = b.Name,
                         BranchCode = b.BranchCode
+                    }).ToList(),
+                    DivisionViewModels = c.Divisions.Select(d => new DivisionViewModel
+                    {
+                        Id = d.Id,
+                        Name = d.Name,
+                        TotalDepartment = d.Departments.Count()
                     }).ToList()
                 }).FirstOrDefaultAsync() ?? new CompanyViewModel();
         }
@@ -89,6 +96,17 @@ namespace Portal.Services.Models
                     {
                         Name = branchVm.Name,
                         BranchCode = branchVm.BranchCode
+                    });
+                }
+            }
+
+            foreach (var divisionVm in viewModel.DivisionViewModels)
+            {
+                if (!string.IsNullOrWhiteSpace(divisionVm.Name))
+                {
+                    company.Divisions.Add(new Division
+                    {
+                        Name = divisionVm.Name
                     });
                 }
             }

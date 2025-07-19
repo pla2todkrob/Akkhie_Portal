@@ -19,7 +19,7 @@
             <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
             <p class="text-muted mb-0"><i class="bi bi-info-circle me-2"></i>รายการบริษัททั้งหมดในระบบ</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary">
+        <a asp-action="Create" asp-area="" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i>เพิ่มบริษัท
         </a>
     </div>
@@ -47,11 +47,10 @@
                                     @if (item.TotalBranch > 0)
                                     {
                                         <button class="btn btn-info btn-sm"
-                                           onclick="showGlobalModal({
-                                                   url: '@Url.Action("GetBranches", "Company", new { id = item.Id })',
-                                                   title: 'รายการสาขา - @item.Name',
-                                                   size: 'lg'
-                                               })">
+                                                onclick="showGlobalModal({
+                                                            url: '@Url.Action("Branches", "Company", new { id = item.Id })',
+                                                            title: 'รายการสาขา - @item.Name',
+                                                            size: 'lg'})">
                                             <i class="bi bi-diagram-2 me-1"></i>@Html.DisplayFor(modelItem => item.TotalBranch)
                                         </button>
                                     }
@@ -82,8 +81,8 @@
         $(document).ready(function() {
             const table = app.setupDataTable('#viewTable', {
                 columnDefs: [
-                    { 
-                        orderable: false, targets: [2,3] 
+                    {
+                        orderable: false, targets: [2,3]
                     },
                     {
                         responsivePriority: 1,

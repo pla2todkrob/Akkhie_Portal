@@ -19,6 +19,10 @@ namespace Portal.Shared.Models.ViewModel
         [Display(Name = "จำนวนสาขา")]
         public int TotalBranch { get; set; }
 
+        [Display(Name = "จำนวนสายงาน")]
+        public int TotalDivision { get; set; }
+
         public List<CompanyBranchViewModel> CompanyBranchViewModels { get; set; } = [new CompanyBranchViewModel()];
+        public List<DivisionViewModel> DivisionViewModels { get; set; } = [new DivisionViewModel()];
     }
 }

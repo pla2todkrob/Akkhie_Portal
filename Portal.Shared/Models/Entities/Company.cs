@@ -17,6 +17,7 @@ namespace Portal.Shared.Models.Entities
         public string ShortName { get; set; } = string.Empty!;
 
         public ICollection<CompanyBranch> Branches { get; set; } = [];
+        public ICollection<Division> Divisions { get; set; } = [];
         public ICollection<EmployeeCompanyAccess> EmployeeAccesses { get; set; } = [];
     }
 }

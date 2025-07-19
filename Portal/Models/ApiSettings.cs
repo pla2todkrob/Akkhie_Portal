@@ -13,7 +13,8 @@
         public string RoleAll { get; set; } = string.Empty;
         public string CompanyAll { get; set; } = string.Empty;
         public string CompanySearch { get; set; } = string.Empty;
-        public string CompanySave { get; set; } = string.Empty;
+        public string CompanyCreate { get; set; } = string.Empty;
+        public string CompanyEdit { get; set; } = string.Empty;
         public string CompanyDelete { get; set; } = string.Empty;
         public string BranchesByCompany { get; set; } = string.Empty;
         public string DivisionsByCompany { get; set; } = string.Empty;

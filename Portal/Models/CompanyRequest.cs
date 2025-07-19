@@ -44,13 +44,14 @@ namespace Portal.Models
 
         public async Task<ApiResponse<object>> CreateAsync(CompanyViewModel viewModel)
         {
-            var response = await _httpClient.PostAsJsonAsync(_apiSettings.CompanySave, viewModel);
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.CompanyCreate, viewModel);
             return await HandleResponse<object>(response);
         }
 
         public async Task<ApiResponse<object>> UpdateAsync(int id, CompanyViewModel viewModel)
         {
-            var response = await _httpClient.PutAsJsonAsync(_apiSettings.CompanySave, viewModel);
+            var endpoint = string.Format(_apiSettings.CompanyEdit, id);
+            var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
             return await HandleResponse<object>(response);
         }
 

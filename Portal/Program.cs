@@ -71,13 +71,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// เปิดใช้งาน Authentication และ Authorization (ต้องอยู่หลัง UseRouting)
 app.UseAuthentication();
 app.UseAuthorization();
 
-// [CRITICAL FIX] กำหนดเส้นทาง (Route) พื้นฐานสำหรับ MVC
-// นี่คือส่วนสำคัญที่สุดที่ทำให้ระบบรู้จัก URL ในรูปแบบ {controller}/{action}/{id?}
-// และสามารถส่ง Request ไปยัง Controller ที่ถูกต้องได้
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

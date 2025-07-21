@@ -5,16 +5,13 @@ using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Models
 {
-    public class SectionRequest : BaseRequest, ISectionRequest
+    public class SectionRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), ISectionRequest
     {
-        public SectionRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
-            : base(httpClient, apiSettings) { }
-
         public async Task<IEnumerable<SectionViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.SectionAll);
             var apiResponse = await HandleResponse<IEnumerable<SectionViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<SectionViewModel>();
+            return apiResponse.Data ?? [];
         }
 
         public async Task<SectionViewModel> GetByIdAsync(int id)
@@ -30,7 +27,7 @@ namespace Portal.Models
             var endpoint = string.Format(_apiSettings.SectionsByDepartment, departmentId);
             var response = await _httpClient.GetAsync(endpoint);
             var apiResponse = await HandleResponse<IEnumerable<SectionViewModel>>(response);
-            return apiResponse.Data ?? Enumerable.Empty<SectionViewModel>();
+            return apiResponse.Data ?? [];
         }
 
         public async Task<ApiResponse<object>> CreateAsync(SectionViewModel viewModel)

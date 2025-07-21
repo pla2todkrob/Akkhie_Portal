@@ -12,18 +12,9 @@ namespace Portal.Services.Models
     /// <summary>
     /// Service สำหรับจัดการไฟล์
     /// </summary>
-    public class FileService : IFileService
+    public class FileService(PortalDbContext context, IOptions<FileSettings> fileSettings, ICurrentUserService currentUserService) : IFileService
     {
-        private readonly PortalDbContext _context;
-        private readonly string _uploadPath;
-        private readonly ICurrentUserService _currentUserService;
-
-        public FileService(PortalDbContext context, IOptions<FileSettings> fileSettings, ICurrentUserService currentUserService)
-        {
-            _context = context;
-            _uploadPath = fileSettings.Value.UploadPath;
-            _currentUserService = currentUserService;
-        }
+        private readonly string _uploadPath = fileSettings.Value.UploadPath;
 
         public async Task<List<UploadedFile>> UploadFilesAsync(List<IFormFile> files)
         {
@@ -66,15 +57,15 @@ namespace Portal.Services.Models
                         FileSize = file.Length,
                         UploadPath = Path.Combine(yearMonthFolder, uniqueFileName).Replace('\\', '/'), // ใช้ / เพื่อให้เป็น URL-friendly
                         UploadDateTime = DateTime.UtcNow,
-                        UploadedByUserId = _currentUserService.UserId!.Value
+                        UploadedByUserId = currentUserService.UserId!.Value
                     };
 
-                    _context.UploadedFiles.Add(fileEntity);
+                    context.UploadedFiles.Add(fileEntity);
                     uploadedFileEntities.Add(fileEntity);
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return uploadedFileEntities;
         }

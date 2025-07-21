@@ -5,33 +5,22 @@ using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Controllers
 {
-    public class SectionController : Controller
+    public class SectionController(ISectionRequest sectionRequest, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest) : Controller
     {
-        private readonly ISectionRequest _sectionRequest;
-        private readonly IDivisionRequest _divisionRequest;
-        private readonly IDepartmentRequest _departmentRequest;
-
-        public SectionController(ISectionRequest sectionRequest, IDivisionRequest divisionRequest, IDepartmentRequest departmentRequest)
-        {
-            _sectionRequest = sectionRequest;
-            _divisionRequest = divisionRequest;
-            _departmentRequest = departmentRequest;
-        }
-
         public async Task<IActionResult> Index()
         {
-            var sections = await _sectionRequest.GetAllAsync();
+            var sections = await sectionRequest.GetAllAsync();
             return View(sections);
         }
 
         private async Task PopulateDropdowns(int? divisionId = null, int? departmentId = null)
         {
-            var divisions = await _divisionRequest.GetAllAsync();
+            var divisions = await divisionRequest.GetAllAsync();
             ViewBag.Divisions = new SelectList(divisions, "Id", "Name", divisionId);
 
             if (divisionId.HasValue)
             {
-                var departments = await _divisionRequest.GetDepartmentsByDivisionIdAsync(divisionId.Value);
+                var departments = await divisionRequest.GetDepartmentsByDivisionIdAsync(divisionId.Value);
                 ViewBag.Departments = new SelectList(departments, "Id", "Name", departmentId);
             }
             else
@@ -53,7 +42,7 @@ namespace Portal.Controllers
             if (ModelState.IsValid)
             {
                 // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _sectionRequest.CreateAsync(model);
+                var response = await sectionRequest.CreateAsync(model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
@@ -66,7 +55,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var section = await _sectionRequest.GetByIdAsync(id);
+            var section = await sectionRequest.GetByIdAsync(id);
             if (section == null)
             {
                 return NotFound();
@@ -87,7 +76,7 @@ namespace Portal.Controllers
             if (ModelState.IsValid)
             {
                 // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _sectionRequest.UpdateAsync(id, model);
+                var response = await sectionRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
@@ -103,7 +92,7 @@ namespace Portal.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             // [FIX] เปลี่ยน Delete ให้รองรับการเรียกผ่าน AJAX และคืนค่าเป็น JSON
-            var response = await _sectionRequest.DeleteAsync(id);
+            var response = await sectionRequest.DeleteAsync(id);
             if (response.Success)
             {
                 return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });

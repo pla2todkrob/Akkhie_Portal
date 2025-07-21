@@ -9,18 +9,34 @@
 
     <input type="hidden" asp-for="Id" />
 
+
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 d-flex align-items-center">
-                <i class="bi bi-building text-primary me-2"></i>
+                <i class="bi bi-diagram-3-fill text-primary me-2"></i>
                 <span>ข้อมูลสายงาน</span>
             </h5>
         </div>
         <div class="card-body">
-            <div class="form-floating">
-                <input asp-for="Name" class="form-control" placeholder=" ">
-                <label asp-for="Name" class="text-muted"></label>
-                <span asp-validation-for="Name" class="text-danger small"></span>
+            <div class="row g-3">
+                <!-- Dropdown สำหรับเลือกบริษัท (เพิ่มใหม่) -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-select" required>
+                            <option value="">-- กรุณาเลือกบริษัท --</option>
+                        </select>
+                        <label asp-for="CompanyId" class="text-muted"></label>
+                        <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                    </div>
+                </div>
+                <!-- Input สำหรับชื่อสายงาน -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Name" class="form-control" placeholder=" " required>
+                        <label asp-for="Name" class="text-muted"></label>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -29,8 +45,8 @@
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 d-flex align-items-center">
-                    <i class="bi bi-shop text-primary me-2"></i>
-                    <span>รายการฝ่าย</span>
+                    <i class="bi bi-collection-fill text-primary me-2"></i>
+                    <span>รายการฝ่าย (Departments)</span>
                 </h5>
                 <button type="button" class="btn btn-sm btn-primary" id="add-child">
                     <i class="bi bi-plus-circle me-1"></i>เพิ่มฝ่าย
@@ -39,27 +55,30 @@
         </div>
         <div class="card-body">
             <div class="row row-cols-1 row-cols-lg-2 g-4" id="childContainer">
-                @for (var i = 0; i < Model.DepartmentViewModels.Count; i++)
+                @if (Model.DepartmentViewModels != null)
                 {
-                    <div class="col child-item">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-light">
-                                <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-child">
-                                        <i class="bi bi-trash me-1"></i>ลบ
-                                    </button>
+                    @for (var i = 0; i < Model.DepartmentViewModels.Count; i++)
+                    {
+                        <div class="col child-item">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-child">
+                                            <i class="bi bi-trash me-1"></i>ลบ
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="card-body">
-                                <input type="hidden" asp-for="DepartmentViewModels[i].Id" />
-                                <div class="form-floating">
-                                    <input asp-for="DepartmentViewModels[i].Name" class="form-control" placeholder=" " required>
-                                    <label asp-for="DepartmentViewModels[i].Name" class="text-muted"></label>
-                                    <span asp-validation-for="DepartmentViewModels[i].Name" class="text-danger small"></span>
+                                <div class="card-body">
+                                    <input type="hidden" asp-for="DepartmentViewModels[i].Id" />
+                                    <div class="form-floating">
+                                        <input asp-for="DepartmentViewModels[i].Name" class="form-control" placeholder=" " required>
+                                        <label asp-for="DepartmentViewModels[i].Name" class="text-muted"></label>
+                                        <span asp-validation-for="DepartmentViewModels[i].Name" class="text-danger small"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         </div>

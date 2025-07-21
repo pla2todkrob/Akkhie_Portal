@@ -6,16 +6,13 @@ using System.Net.Http.Json;
 
 namespace Portal.Models
 {
-    public class DepartmentRequest : BaseRequest, IDepartmentRequest
+    public class DepartmentRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), IDepartmentRequest
     {
-        public DepartmentRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
-            : base(httpClient, apiSettings) { }
-
         public async Task<IEnumerable<DepartmentViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.DepartmentAll);
             var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DepartmentViewModel>>();
-            return apiResponse ?? Enumerable.Empty<DepartmentViewModel>();
+            return apiResponse ?? [];
         }
 
         public async Task<DepartmentViewModel> GetByIdAsync(int id)
@@ -31,26 +28,30 @@ namespace Portal.Models
             var endpoint = string.Format(_apiSettings.SectionsByDepartment, departmentId);
             var response = await _httpClient.GetAsync(endpoint);
             var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<SectionViewModel>>();
-            return apiResponse ?? Enumerable.Empty<SectionViewModel>();
+            return apiResponse ?? [];
         }
 
-        public async Task<ApiResponse<object>> CreateAsync(DepartmentViewModel viewModel)
+        public async Task<ApiResponse> CreateAsync(DepartmentViewModel viewModel)
         {
-            var response = await _httpClient.PostAsJsonAsync(_apiSettings.DepartmentSave, viewModel);
-            return await HandleResponse<object>(response);
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.DepartmentCreate, viewModel);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
 
-        public async Task<ApiResponse<object>> UpdateAsync(int id, DepartmentViewModel viewModel)
+        public async Task<ApiResponse> UpdateAsync(int id, DepartmentViewModel viewModel)
         {
-            var response = await _httpClient.PutAsJsonAsync(_apiSettings.DepartmentSave, viewModel);
-            return await HandleResponse<object>(response);
+            var endpoint = string.Format(_apiSettings.DepartmentUpdate, id);
+            var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
 
-        public async Task<ApiResponse<object>> DeleteAsync(int id)
+        public async Task<ApiResponse> DeleteAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.DepartmentDelete, id);
             var response = await _httpClient.DeleteAsync(endpoint);
-            return await HandleResponse<object>(response);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
     }
 }

@@ -10,18 +10,11 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class SectionService : ISectionService
+    public class SectionService(PortalDbContext context) : ISectionService
     {
-        private readonly PortalDbContext _context;
-
-        public SectionService(PortalDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<SectionViewModel>> GetAllAsync()
         {
-            return await _context.Sections
+            return await context.Sections
                 .Select(s => new SectionViewModel
                 {
                     Id = s.Id,
@@ -33,7 +26,7 @@ namespace Portal.Services.Models
 
         public async Task<SectionViewModel> GetByIdAsync(int id)
         {
-            return await _context.Sections
+            return await context.Sections
                 .Where(s => s.Id == id)
                 .Select(s => new SectionViewModel
                 {
@@ -46,7 +39,7 @@ namespace Portal.Services.Models
 
         public async Task<IEnumerable<SectionViewModel>> GetByDepartmentIdAsync(int departmentId)
         {
-            return await _context.Sections
+            return await context.Sections
                 .Where(s => s.DepartmentId == departmentId)
                 .Select(s => new SectionViewModel
                 {
@@ -62,14 +55,14 @@ namespace Portal.Services.Models
                 Name = viewModel.Name,
                 DepartmentId = viewModel.DepartmentId
             };
-            _context.Sections.Add(section);
-            await _context.SaveChangesAsync();
+            context.Sections.Add(section);
+            await context.SaveChangesAsync();
             return new ApiResponse<Section> { Success = true, Data = section };
         }
 
         public async Task<ApiResponse<Section>> UpdateAsync(int id, SectionViewModel viewModel)
         {
-            var section = await _context.Sections.FindAsync(id);
+            var section = await context.Sections.FindAsync(id);
             if (section == null)
             {
                 return new ApiResponse<Section> { Success = false, Message = "Section not found." };
@@ -78,20 +71,20 @@ namespace Portal.Services.Models
             section.Name = viewModel.Name;
             section.DepartmentId = viewModel.DepartmentId;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return new ApiResponse<Section> { Success = true, Data = section };
         }
 
         public async Task<ApiResponse> DeleteAsync(int id)
         {
-            var section = await _context.Sections.FindAsync(id);
+            var section = await context.Sections.FindAsync(id);
             if (section == null)
             {
                 return new ApiResponse { Success = false, Message = "Section not found." };
             }
 
-            _context.Sections.Remove(section);
-            await _context.SaveChangesAsync();
+            context.Sections.Remove(section);
+            await context.SaveChangesAsync();
             return new ApiResponse { Success = true };
         }
     }

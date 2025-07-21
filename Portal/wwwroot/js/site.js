@@ -368,3 +368,81 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => App.init());
 })();
+
+/**
+* Shows a global modal with content loaded from a specified URL.
+* @param {object} options - Configuration for the modal.
+* @param {string} options.url - The URL to load content from.
+* @param {string} options.title - The title to display in the modal header.
+* @param {string} [options.size=''] - The modal size (e.g., 'sm', 'lg', 'xl').
+*/
+function showGlobalModal(options) {
+    const { url, title, size = '' } = options;
+    const modalElement = document.getElementById('globalModal');
+    const modalDialog = document.getElementById('globalModalDialog');
+    const modalContent = document.getElementById('globalModalContent');
+
+    if (!modalElement || !modalDialog || !modalContent) {
+        console.error('Global modal elements not found in the DOM.');
+        return;
+    }
+
+    // Reset modal size
+    modalDialog.className = 'modal-dialog modal-dialog-centered modal-dialog-scrollable';
+    if (size) {
+        modalDialog.classList.add(`modal-${size}`);
+    }
+
+    // Set a loading state
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h5 class="modal-title">${title}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>`;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    // Fetch content
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(html => {
+            // Create a temporary div to parse the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // Construct the final modal content with the header
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h5 class="modal-title">${title}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>`;
+
+            // Append the loaded body and footer
+            modalContent.appendChild(tempDiv);
+        })
+        .catch(error => {
+            console.error('Failed to load modal content:', error);
+            modalContent.innerHTML = `
+                 <div class="modal-header">
+                    <h5 class="modal-title text-danger">Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">Sorry, we were unable to load the content.</p>
+                </div>`;
+        });
+}

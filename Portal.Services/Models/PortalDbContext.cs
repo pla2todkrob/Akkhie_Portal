@@ -72,7 +72,7 @@ namespace Portal.Services.Models
             {
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
 
-                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => new { e.Name, e.CompanyId }).IsUnique();
             });
 
             modelBuilder.Entity<Employee>(entity =>
@@ -272,7 +272,7 @@ namespace Portal.Services.Models
                 );
 
             modelBuilder.Entity<Division>().HasData(
-                new Division() { Id = 1,CompanyId = 1, Name = "สายงานบริหาร" },
+                new Division() { Id = 1, CompanyId = 1, Name = "สายงานบริหาร" },
                 new Division() { Id = 2, CompanyId = 1, Name = "สายงานบัญชีและการเงิน" },
                 new Division() { Id = 3, CompanyId = 1, Name = "สายงานวิชาการ" },
                 new Division() { Id = 4, CompanyId = 1, Name = "สายงานปฏิบัติการ" }

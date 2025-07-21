@@ -3,16 +3,15 @@
 @{
     ViewData["Title"] = "จัดการข้อมูลสายงาน";
     Layout = "_Layout";
+    var breadcrumbs = new List<Tuple<string, string>>
+    {
+        new("หน้าแรก", Url.Action("Index","Home") ?? ""),
+        new("ข้อมูลสายงาน", "")
+    };
 }
 
 <div class="container py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
-            <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
-        </ol>
-    </nav>
+    <partial name="_Breadcrumb" model="breadcrumbs" />
 
     <!-- Header with create button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -33,6 +32,7 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-nowrap">@Html.DisplayNameFor(model => model.Name)</th>
+                            <th class="text-nowrap">@Html.DisplayNameFor(model => model.CompanyName)</th>
                             <th class="text-nowrap text-center">@Html.DisplayNameFor(model => model.TotalDepartment)</th>
                             <th class="text-nowrap text-center">จัดการ</th>
                         </tr>
@@ -42,29 +42,28 @@
                         {
                             <tr>
                                 <td class="align-middle">@Html.DisplayFor(modelItem => item.Name)</td>
+                                <td class="align-middle text-nowrap">@Html.DisplayFor(modelItem => item.CompanyName)</td>
                                 <td class="align-middle text-center fit-content">
                                     @if (item.TotalDepartment > 0)
                                     {
-                                        <button class="btn btn-info btn-sm"
+                                        <button type="button" class="btn btn-info btn-sm"
                                                 onclick="showGlobalModal({
-                                                   url: '@Url.Action("GetDepartments", "Division", new { id = item.Id })',
-                                                   title: 'รายการฝ่ายภายใน - @item.Name',
-                                                   size: 'lg'
-                                               })">
+                                                           url: '@Url.Action("Departments", "Division", new { id = item.Id })',
+                                                           title: 'รายการฝ่าย - @item.Name',
+                                                           size: 'lg'
+                                                       })">
                                             <i class="bi bi-diagram-2 me-1"></i>@Html.DisplayFor(modelItem => item.TotalDepartment)
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-secondary bg-opacity-10"><i class="bi bi-slash-circle me-1"></i>ไม่มีฝ่าย</span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark-emphasis"><i class="bi bi-slash-circle me-1"></i>ไม่มีฝ่าย</span>
                                     }
                                 </td>
                                 <td class="align-middle text-center fit-content">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
-                                            <i class="bi bi-pencil-square me-1"></i>แก้ไข
-                                        </a>
-                                    </div>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square me-1"></i>แก้ไข
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -81,21 +80,13 @@
         $(document).ready(function() {
             const table = app.setupDataTable('#viewTable', {
                 columnDefs: [
-                    {
-                        orderable: false, targets: [1,2]
-                    },
-                    {
-                        responsivePriority: 1,
-                        targets: 0
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: 2
-                    }
+                    { orderable: false, targets: [2, 3] },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 3 }
                 ],
-                fixedColumns:{
-                    left:1,
-                    right:1
+                fixedColumns: {
+                    left: 1,
+                    right: 1
                 }
             });
         });

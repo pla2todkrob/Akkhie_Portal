@@ -12,8 +12,8 @@ namespace Portal.Services.Interfaces
         Task<IEnumerable<DivisionViewModel>> GetAllAsync();
         Task<DivisionViewModel> GetByIdAsync(int id);
         Task<IEnumerable<DepartmentViewModel>> GetDepartmentsByDivisionIdAsync(int divisionId);
-        Task<ApiResponse<Division>> CreateAsync(DivisionViewModel viewModel);
-        Task<ApiResponse<Division>> UpdateAsync(int id, DivisionViewModel viewModel);
+        Task<ApiResponse> CreateAsync(DivisionViewModel viewModel);
+        Task<ApiResponse> UpdateAsync(int id, DivisionViewModel viewModel);
         Task<ApiResponse> DeleteAsync(int id);
     }
 }

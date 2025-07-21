@@ -1,29 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
+using Portal.Models;
 using Portal.Shared.Models.ViewModel;
 
 namespace Portal.Controllers
 {
-    public class DivisionController : Controller
+    public class DivisionController(IDivisionRequest divisionRequest, ICompanyRequest companyRequest) : Controller
     {
-        private readonly IDivisionRequest _divisionRequest;
-
-        public DivisionController(IDivisionRequest divisionRequest)
-        {
-            _divisionRequest = divisionRequest;
-        }
-
         public async Task<IActionResult> Index()
         {
-            var divisions = await _divisionRequest.GetAllAsync();
+            var divisions = await divisionRequest.GetAllAsync();
             return View(divisions);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Departments(int id)
         {
+            var departments = await divisionRequest.GetDepartmentsByDivisionIdAsync(id);
+            return PartialView("_Departments", departments);
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            // ดึงข้อมูลบริษัททั้งหมด
+            var companies = await companyRequest.GetAllAsync();
+            ViewBag.Companies = new SelectList(companies, "Id", "Name");
             var model = new DivisionViewModel
             {
-                DepartmentViewModels = new List<DepartmentViewModel> { new() }
+                DepartmentViewModels = [new()]
             };
             return View(model);
         }
@@ -34,8 +38,7 @@ namespace Portal.Controllers
         {
             if (ModelState.IsValid)
             {
-                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _divisionRequest.CreateAsync(model);
+                var response = await divisionRequest.CreateAsync(model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
@@ -47,7 +50,9 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var division = await _divisionRequest.GetByIdAsync(id);
+            var companies = await companyRequest.GetAllAsync();
+            ViewBag.Companies = new SelectList(companies, "Id", "Name");
+            var division = await divisionRequest.GetByIdAsync(id);
             if (division == null)
             {
                 return NotFound();
@@ -66,8 +71,7 @@ namespace Portal.Controllers
 
             if (ModelState.IsValid)
             {
-                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _divisionRequest.UpdateAsync(id, model);
+                var response = await divisionRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
@@ -81,8 +85,7 @@ namespace Portal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            // [FIX] เปลี่ยน Delete ให้รองรับการเรียกผ่าน AJAX และคืนค่าเป็น JSON
-            var response = await _divisionRequest.DeleteAsync(id);
+            var response = await divisionRequest.DeleteAsync(id);
             if (response.Success)
             {
                 return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });

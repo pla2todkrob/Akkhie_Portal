@@ -16,38 +16,29 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class EmailService : IEmailService
+    public class EmailService(IOptions<SmtpSettings> smtpSettings, PortalDbContext context, ILogger<EmailService> logger) : IEmailService
     {
-        private readonly SmtpSettings _smtpSettings;
-        private readonly PortalDbContext _context;
-        private readonly ILogger<EmailService> _logger;
-
-        public EmailService(IOptions<SmtpSettings> smtpSettings, PortalDbContext context, ILogger<EmailService> logger)
-        {
-            _smtpSettings = smtpSettings.Value;
-            _context = context;
-            _logger = logger;
-        }
+        private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
 
         public async Task SendNewTicketNotificationAsync(SupportTicket ticket)
         {
             try
             {
                 // 1. ดึงข้อมูลผู้ที่เกี่ยวข้อง (Reporter) โดยดึงข้อมูล Detail และ Role มาด้วย
-                var reporter = await _context.Employees
+                var reporter = await context.Employees
                                              .Include(e => e.EmployeeDetail) // <-- Include EmployeeDetail
                                              .Include(e => e.Role)
                                              .FirstOrDefaultAsync(e => e.Id == ticket.ReportedByEmployeeId); // <-- แก้ไขเป็น ReportedByEmployeeId
 
                 if (reporter?.EmployeeDetail == null)
                 {
-                    _logger.LogWarning("Cannot find reporter's detail with ID {UserId} for Ticket {TicketId}", ticket.ReportedByEmployeeId, ticket.Id);
+                    logger.LogWarning("Cannot find reporter's detail with ID {UserId} for Ticket {TicketId}", ticket.ReportedByEmployeeId, ticket.Id);
                     return;
                 }
 
                 // 2. ค้นหาผู้รับอีเมลตามเงื่อนไข
                 // To: ทีม IT (Section ID = 2)
-                var toEmails = await _context.Employees
+                var toEmails = await context.Employees
                                              .Include(e => e.EmployeeDetail) // <-- Include EmployeeDetail
                                              .Where(e => e.SectionId == 2 && e.EmployeeDetail != null && !string.IsNullOrEmpty(e.EmployeeDetail.Email))
                                              .Select(e => e.EmployeeDetail.Email)
@@ -56,7 +47,7 @@ namespace Portal.Services.Models
 
                 if (!toEmails.Any())
                 {
-                    _logger.LogWarning("No recipients found in IT section (SectionId = 2) for new ticket notification.");
+                    logger.LogWarning("No recipients found in IT section (SectionId = 2) for new ticket notification.");
                     return;
                 }
 
@@ -67,7 +58,7 @@ namespace Portal.Services.Models
                 var bccEmails = new List<string>();
                 if (reporter.RoleId != (int)RoleType.DepartmentManager) // ใช้ Enum เพื่อความชัดเจน
                 {
-                    bccEmails = await _context.Employees
+                    bccEmails = await context.Employees
                                               .Include(e => e.EmployeeDetail) // <-- Include EmployeeDetail
                                               .Where(e => e.RoleId == (int)RoleType.DepartmentManager && e.EmployeeDetail != null && !string.IsNullOrEmpty(e.EmployeeDetail.Email))
                                               .Select(e => e.EmployeeDetail.Email)
@@ -106,11 +97,11 @@ namespace Portal.Services.Models
                 await smtp.SendAsync(email);
                 await smtp.DisconnectAsync(true);
 
-                _logger.LogInformation("New ticket notification sent successfully for Ticket ID {TicketId}", ticket.Id);
+                logger.LogInformation("New ticket notification sent successfully for Ticket ID {TicketId}", ticket.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send new ticket notification for Ticket ID {TicketId}", ticket.Id);
+                logger.LogError(ex, "Failed to send new ticket notification for Ticket ID {TicketId}", ticket.Id);
             }
         }
 

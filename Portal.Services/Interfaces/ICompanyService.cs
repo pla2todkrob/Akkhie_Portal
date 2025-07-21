@@ -13,8 +13,8 @@ namespace Portal.Services.Interfaces
         Task<CompanyViewModel> GetByIdAsync(int id);
         Task<IEnumerable<CompanyBranchViewModel>> GetBranchesByCompanyIdAsync(int companyId);
         Task<IEnumerable<DivisionViewModel>> GetDivisionsByCompanyIdAsync(int companyId);
-        Task<ApiResponse<Company>> CreateAsync(CompanyViewModel viewModel);
-        Task<ApiResponse<Company>> UpdateAsync(int id, CompanyViewModel viewModel);
+        Task<ApiResponse> CreateAsync(CompanyViewModel viewModel);
+        Task<ApiResponse> UpdateAsync(int id, CompanyViewModel viewModel);
         Task<ApiResponse> DeleteAsync(int id);
     }
 }

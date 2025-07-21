@@ -23,6 +23,6 @@ namespace Portal.Shared.Models.ViewModel
         public int TotalDivision { get; set; }
 
         public List<CompanyBranchViewModel> CompanyBranchViewModels { get; set; } = [new CompanyBranchViewModel()];
-        public List<DivisionViewModel> DivisionViewModels { get; set; } = [new DivisionViewModel()];
+        public List<DivisionViewModel>? DivisionViewModels { get; set; }
     }
 }

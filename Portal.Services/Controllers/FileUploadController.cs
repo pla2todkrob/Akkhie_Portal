@@ -13,14 +13,8 @@ namespace Portal.Services.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class FileUploadController : ControllerBase
+    public class FileUploadController(IFileService fileService) : ControllerBase
     {
-        private readonly IFileService _fileService;
-
-        public FileUploadController(IFileService fileService)
-        {
-            _fileService = fileService;
-        }
 
         /// <summary>
         /// Endpoint สำหรับอัพโหลดไฟล์
@@ -39,7 +33,7 @@ namespace Portal.Services.Controllers
                     return BadRequest(new ApiResponse<object> { Success = false, Message = "No files uploaded." });
                 }
 
-                var uploadedFileEntities = await _fileService.UploadFilesAsync(files);
+                var uploadedFileEntities = await fileService.UploadFilesAsync(files);
 
                 // Map Entity to DTO
                 var resultDto = uploadedFileEntities.Select(f => new FileUploadResultDto

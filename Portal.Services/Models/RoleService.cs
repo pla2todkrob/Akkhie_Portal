@@ -7,18 +7,11 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class RoleService : IRoleService
+    public class RoleService(PortalDbContext context) : IRoleService
     {
-        private readonly PortalDbContext _context;
-
-        public RoleService(PortalDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Role>> GetAllAsync()
         {
-            return await _context.Roles.ToListAsync();
+            return await context.Roles.ToListAsync();
         }
     }
 }

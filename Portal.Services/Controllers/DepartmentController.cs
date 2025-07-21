@@ -8,26 +8,19 @@ namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DepartmentController : ControllerBase
+    public class DepartmentController(IDepartmentService departmentService) : ControllerBase
     {
-        private readonly IDepartmentService _departmentService;
-
-        public DepartmentController(IDepartmentService departmentService)
-        {
-            _departmentService = departmentService;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _departmentService.GetAllAsync();
+            var result = await departmentService.GetAllAsync();
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _departmentService.GetByIdAsync(id);
+            var result = await departmentService.GetByIdAsync(id);
             if (result == null) return NotFound();
             return Ok(result);
         }
@@ -35,7 +28,7 @@ namespace Portal.Services.Controllers
         [HttpGet("{id}/sections")]
         public async Task<IActionResult> GetSectionsByDepartmentId(int id)
         {
-            var result = await _departmentService.GetSectionsByDepartmentIdAsync(id);
+            var result = await departmentService.GetSectionsByDepartmentIdAsync(id);
             if (result == null) return NotFound();
             return Ok(result);
         }
@@ -43,7 +36,7 @@ namespace Portal.Services.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DepartmentViewModel viewModel)
         {
-            var result = await _departmentService.CreateAsync(viewModel);
+            var result = await departmentService.CreateAsync(viewModel);
             if (!result.Success) return BadRequest(result);
             return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
         }
@@ -51,7 +44,7 @@ namespace Portal.Services.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, DepartmentViewModel viewModel)
         {
-            var result = await _departmentService.UpdateAsync(id, viewModel);
+            var result = await departmentService.UpdateAsync(id, viewModel);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
@@ -59,7 +52,7 @@ namespace Portal.Services.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _departmentService.DeleteAsync(id);
+            var result = await departmentService.DeleteAsync(id);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }

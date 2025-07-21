@@ -19,7 +19,7 @@
             <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
             <p class="text-muted mb-0"><i class="bi bi-info-circle me-2"></i>รายการบริษัททั้งหมดในระบบ</p>
         </div>
-        <a asp-action="Create" asp-area="" class="btn btn-primary">
+        <a asp-action="Create" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i>เพิ่มบริษัท
         </a>
     </div>
@@ -34,6 +34,7 @@
                             <th class="text-nowrap">@Html.DisplayNameFor(model => model.Name)</th>
                             <th class="text-nowrap">@Html.DisplayNameFor(model => model.ShortName)</th>
                             <th class="text-nowrap text-center">@Html.DisplayNameFor(model => model.TotalBranch)</th>
+                            <th class="text-nowrap text-center">@Html.DisplayNameFor(model => model.TotalDivision)</th>
                             <th class="text-nowrap text-center">จัดการ</th>
                         </tr>
                     </thead>
@@ -46,17 +47,36 @@
                                 <td class="align-middle text-center fit-content">
                                     @if (item.TotalBranch > 0)
                                     {
-                                        <button class="btn btn-info btn-sm"
+                                        <button type="button" class="btn btn-info btn-sm"
                                                 onclick="showGlobalModal({
-                                                            url: '@Url.Action("Branches", "Company", new { id = item.Id })',
-                                                            title: 'รายการสาขา - @item.Name',
-                                                            size: 'lg'})">
+                                                       url: '@Url.Action("Branches", "Company", new { id = item.Id })',
+                                                       title: 'รายการสาขา - @item.Name',
+                                                       size: 'lg'
+                                                   })">
                                             <i class="bi bi-diagram-2 me-1"></i>@Html.DisplayFor(modelItem => item.TotalBranch)
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-secondary bg-opacity-10"><i class="bi bi-slash-circle me-1"></i>ไม่มีสาขา</span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark-emphasis"><i class="bi bi-slash-circle me-1"></i>ไม่มีสาขา</span>
+                                    }
+                                </td>
+                                <td class="align-middle text-center fit-content">
+                                    @if (item.TotalDivision > 0)
+                                    {
+                                        @* หมายเหตุ: คุณจะต้องสร้าง Action "Divisions" ใน CompanyController เพื่อให้ปุ่มนี้ทำงาน *@
+                                        <button type="button" class="btn btn-success btn-sm"
+                                                onclick="showGlobalModal({
+                                                       url: '@Url.Action("Divisions", "Company", new { id = item.Id })',
+                                                       title: 'รายการสายงาน - @item.Name',
+                                                       size: 'lg'
+                                                   })">
+                                            <i class="bi bi-collection me-1"></i>@Html.DisplayFor(modelItem => item.TotalDivision)
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark-emphasis"><i class="bi bi-slash-circle me-1"></i>ไม่มีสายงาน</span>
                                     }
                                 </td>
                                 <td class="align-middle text-center fit-content">
@@ -82,7 +102,7 @@
             const table = app.setupDataTable('#viewTable', {
                 columnDefs: [
                     {
-                        orderable: false, targets: [2,3]
+                        orderable: false, targets: [2, 3, 4]
                     },
                     {
                         responsivePriority: 1,
@@ -90,7 +110,7 @@
                     },
                     {
                         responsivePriority: 2,
-                        targets: 3
+                        targets: 4
                     }
                 ],
                 fixedColumns:{

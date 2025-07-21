@@ -2,39 +2,44 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Portal.Interfaces;
 using Portal.Shared.Models.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
-    public class DepartmentController : Controller
+    public class DepartmentController(IDepartmentRequest departmentRequest, ICompanyRequest companyRequest, IDivisionRequest divisionRequest) : Controller
     {
-        private readonly IDepartmentRequest _departmentRequest;
-        private readonly IDivisionRequest _divisionRequest;
-
-        public DepartmentController(IDepartmentRequest departmentRequest, IDivisionRequest divisionRequest)
-        {
-            _departmentRequest = departmentRequest;
-            _divisionRequest = divisionRequest;
-        }
-
         public async Task<IActionResult> Index()
         {
-            var departments = await _departmentRequest.GetAllAsync();
+            var departments = await departmentRequest.GetAllAsync();
             return View(departments);
         }
 
-        private async Task PopulateDivisionsDropDownList(object selectedDivision = null)
+        // Helper method สำหรับจัดการ Dropdowns ทั้งหมด
+        private async Task PopulateDropdowns(DepartmentViewModel model = null)
         {
-            var divisions = await _divisionRequest.GetAllAsync();
-            ViewBag.Divisions = new SelectList(divisions, "Id", "Name", selectedDivision);
+            var companies = await companyRequest.GetAllAsync();
+            ViewBag.Companies = new SelectList(companies, "Id", "Name", model?.CompanyId);
+
+            if (model?.CompanyId > 0)
+            {
+                // ถ้ามี CompanyId, ให้ดึง Division ที่เกี่ยวข้องมาแสดง
+                var allDivisions = await divisionRequest.GetAllAsync(); // หมายเหตุ: ควรมี API ที่กรองได้ดีกว่านี้
+                var filteredDivisions = allDivisions.Where(d => d.CompanyId == model.CompanyId);
+                ViewBag.Divisions = new SelectList(filteredDivisions, "Id", "Name", model?.DivisionId);
+            }
+            else
+            {
+                // ถ้ายังไม่ได้เลือก Company, ให้ Dropdown ของ Division เป็นค่าว่าง
+                ViewBag.Divisions = new SelectList(Enumerable.Empty<SelectListItem>(), "Id", "Name");
+            }
         }
 
         public async Task<IActionResult> Create()
         {
-            var model = new DepartmentViewModel
-            {
-                SectionViewModels = new List<SectionViewModel> { new() }
-            };
-            await PopulateDivisionsDropDownList();
+            await PopulateDropdowns();
+            var model = new DepartmentViewModel { SectionViewModels = new List<SectionViewModel> { new() } };
             return View(model);
         }
 
@@ -44,26 +49,23 @@ namespace Portal.Controllers
         {
             if (ModelState.IsValid)
             {
-                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _departmentRequest.CreateAsync(model);
+                var response = await departmentRequest.CreateAsync(model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            await PopulateDivisionsDropDownList(model.DivisionId);
+            await PopulateDropdowns(model); // ส่ง Dropdown กลับไปอีกครั้งเมื่อเกิด Error
             return BadRequest(ModelState);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var department = await _departmentRequest.GetByIdAsync(id);
-            if (department == null)
-            {
-                return NotFound();
-            }
-            await PopulateDivisionsDropDownList(department.DivisionId);
+            var department = await departmentRequest.GetByIdAsync(id);
+            if (department == null) return NotFound();
+
+            await PopulateDropdowns(department);
             return View(department);
         }
 
@@ -71,22 +73,18 @@ namespace Portal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, DepartmentViewModel model)
         {
-            if (id != model.Id)
-            {
-                return BadRequest();
-            }
+            if (id != model.Id) return BadRequest();
 
             if (ModelState.IsValid)
             {
-                // [FIX] ตรวจสอบ response.Success จาก ApiResponse<object>
-                var response = await _departmentRequest.UpdateAsync(id, model);
+                var response = await departmentRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            await PopulateDivisionsDropDownList(model.DivisionId);
+            await PopulateDropdowns(model); // ส่ง Dropdown กลับไปอีกครั้งเมื่อเกิด Error
             return BadRequest(ModelState);
         }
 
@@ -94,13 +92,14 @@ namespace Portal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            // [FIX] เปลี่ยน Delete ให้รองรับการเรียกผ่าน AJAX และคืนค่าเป็น JSON
-            var response = await _departmentRequest.DeleteAsync(id);
-            if (response.Success)
-            {
-                return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });
-            }
-            return BadRequest(new { success = false, message = response.Message ?? "เกิดข้อผิดพลาดในการลบข้อมูล" });
+            var response = await departmentRequest.DeleteAsync(id);
+            return Ok(response);
+        }
+
+        public async Task<IActionResult> Sections(int id)
+        {
+            var sections = await departmentRequest.GetSectionsByDepartmentIdAsync(id);
+            return PartialView("_Sections", sections);
         }
     }
 }

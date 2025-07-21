@@ -20,14 +20,14 @@
             <div class="row g-3">
                 <div class="col-md-8">
                     <div class="form-floating">
-                        <input asp-for="Name" class="form-control" placeholder="ชื่อบริษัท">
+                        <input asp-for="Name" class="form-control" placeholder="ชื่อบริษัท" required>
                         <label asp-for="Name" class="text-muted"></label>
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input asp-for="ShortName" class="form-control" placeholder="ชื่อย่อบริษัท">
+                        <input asp-for="ShortName" class="form-control" placeholder="ชื่อย่อบริษัท" required>
                         <label asp-for="ShortName" class="text-muted"></label>
                         <span asp-validation-for="ShortName" class="text-danger small"></span>
                     </div>
@@ -36,63 +36,139 @@
         </div>
     </div>
 
+    <!-- ===== ส่วนจัดการฝ่าย (Divisions) - เพิ่มใหม่ ===== -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-collection text-primary me-2"></i>
+                    <span>รายการฝ่าย (Divisions)</span>
+                </h5>
+                <button type="button" class="btn btn-sm btn-primary add-child-item" data-container="#divisionContainer" data-template="#divisionTemplate">
+                    <i class="bi bi-plus-circle me-1"></i>เพิ่มฝ่าย
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="divisionContainer" class="d-flex flex-column gap-3">
+                @if (Model.DivisionViewModels != null)
+                {
+                    @for (var i = 0; i < Model.DivisionViewModels.Count; i++)
+                    {
+                        <div class="child-item input-group">
+                            <input type="hidden" asp-for="DivisionViewModels[i].Id" />
+                            <input type="hidden" asp-for="DivisionViewModels[i].CompanyName" />
+                            <div class="form-floating flex-grow-1">
+                                <input asp-for="DivisionViewModels[i].Name" class="form-control" placeholder="ชื่อฝ่าย" required />
+                                <label asp-for="DivisionViewModels[i].Name"></label>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger remove-child-item"><i class="bi bi-trash"></i></button>
+                            <span asp-validation-for="DivisionViewModels[i].Name" class="text-danger w-100 d-block small mt-1"></span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ส่วนจัดการสาขา (Branches) - ปรับปรุงเล็กน้อย ===== -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-shop text-primary me-2"></i>
-                    <span>รายการสาขา</span>
+                    <span>รายการสาขา (Branches)</span>
                 </h5>
-                <button type="button" class="btn btn-sm btn-primary" id="add-child">
+                <button type="button" class="btn btn-sm btn-primary add-child-item" data-container="#branchContainer" data-template="#branchTemplate">
                     <i class="bi bi-plus-circle me-1"></i>เพิ่มสาขา
                 </button>
             </div>
         </div>
         <div class="card-body">
-            <div class="row row-cols-1 row-cols-lg-2 g-4" id="childContainer">
-                @for (var i = 0; i < Model.CompanyBranchViewModels.Count; i++)
+            <div class="row row-cols-1 row-cols-lg-2 g-4" id="branchContainer">
+                @if (Model.CompanyBranchViewModels != null)
                 {
-                    <div class="col child-item">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-light">
-                                <div class="d-flex justify-content-end">
-                                    @if (i == 0)
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-warning" id="clear-child">
-                                            <i class="bi bi-stars me-1"></i>ล้าง
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-child">
+                    @for (var i = 0; i < Model.CompanyBranchViewModels.Count; i++)
+                    {
+                        <div class="col child-item">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-child-item">
                                             <i class="bi bi-trash me-1"></i>ลบ
                                         </button>
-                                    }
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <input type="hidden" asp-for="CompanyBranchViewModels[i].Id" />
-                                <div class="row g-3">
-                                    <div class="col-md-9 col-lg-8">
-                                        <div class="form-floating">
-                                            <input asp-for="CompanyBranchViewModels[i].Name" class="form-control" placeholder="ชื่อสาขา" required>
-                                            <label asp-for="CompanyBranchViewModels[i].Name" class="text-muted"></label>
-                                            <span asp-validation-for="CompanyBranchViewModels[i].Name" class="text-danger small"></span>
-                                        </div>
                                     </div>
-                                    <div class="col-md-3 col-lg-4">
-                                        <div class="form-floating">
-                                            <input asp-for="CompanyBranchViewModels[i].BranchCode" class="form-control" placeholder="รหัสสาขา" required>
-                                            <label asp-for="CompanyBranchViewModels[i].BranchCode" class="text-muted"></label>
-                                            <span asp-validation-for="CompanyBranchViewModels[i].BranchCode" class="text-danger small"></span>
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" asp-for="CompanyBranchViewModels[i].Id" />
+                                    <div class="row g-3">
+                                        <div class="col-md-9 col-lg-8">
+                                            <div class="form-floating">
+                                                <input asp-for="CompanyBranchViewModels[i].Name" class="form-control" placeholder="ชื่อสาขา" required>
+                                                <label asp-for="CompanyBranchViewModels[i].Name" class="text-muted"></label>
+                                                <span asp-validation-for="CompanyBranchViewModels[i].Name" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-lg-4">
+                                            <div class="form-floating">
+                                                <input asp-for="CompanyBranchViewModels[i].BranchCode" class="form-control" placeholder="รหัสสาขา" required>
+                                                <label asp-for="CompanyBranchViewModels[i].BranchCode" class="text-muted"></label>
+                                                <span asp-validation-for="CompanyBranchViewModels[i].BranchCode" class="text-danger small"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
             </div>
         </div>
     </div>
 </form>
+
+<!-- ===== Templates สำหรับ JavaScript (ซ่อนไว้) ===== -->
+<div id="divisionTemplate" class="d-none">
+    <div class="child-item input-group">
+        <input type="hidden" name="DivisionViewModels.Index" value="--i--" />
+        <input type="hidden" name="DivisionViewModels[--i--].Id" value="0" />
+        <input type="hidden" name="DivisionViewModels[--i--].CompanyName" value="0" />
+        <div class="form-floating flex-grow-1">
+            <input type="text" name="DivisionViewModels[--i--].Name" class="form-control" placeholder="ชื่อฝ่าย" required />
+            <label>ชื่อฝ่าย</label>
+        </div>
+        <button type="button" class="btn btn-outline-danger remove-child-item"><i class="bi bi-trash"></i></button>
+    </div>
+</div>
+
+<div id="branchTemplate" class="d-none">
+    <div class="col child-item">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-child-item">
+                        <i class="bi bi-trash me-1"></i>ลบ
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <input type="hidden" name="CompanyBranchViewModels.Index" value="--i--" />
+                <input type="hidden" name="CompanyBranchViewModels[--i--].Id" value="0" />
+                <div class="row g-3">
+                    <div class="col-md-9 col-lg-8">
+                        <div class="form-floating">
+                            <input type="text" name="CompanyBranchViewModels[--i--].Name" class="form-control" placeholder="ชื่อสาขา" required>
+                            <label class="text-muted">ชื่อสาขา</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-4">
+                        <div class="form-floating">
+                            <input type="text" name="CompanyBranchViewModels[--i--].BranchCode" class="form-control" placeholder="รหัสสาขา" required>
+                            <label class="text-muted">รหัสสาขา</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

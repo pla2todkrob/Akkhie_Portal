@@ -21,6 +21,6 @@ namespace Portal.Shared.Models.DTOs.Support
         [Display(Name = "อ้างอิง Ticket เก่า")]
         public int? RelatedTicketId { get; set; }
 
-        public List<int> UploadedFileIds { get; set; } = new List<int>();
+        public List<int> UploadedFileIds { get; set; } = [];
     }
 }

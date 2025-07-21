@@ -1,5 +1,8 @@
-﻿using Portal.Shared.Models.DTOs.Shared;
+﻿// FileName: Portal/Interfaces/IDepartmentRequest.cs
+using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Portal.Interfaces
 {
@@ -7,9 +10,9 @@ namespace Portal.Interfaces
     {
         Task<IEnumerable<DepartmentViewModel>> GetAllAsync();
         Task<DepartmentViewModel> GetByIdAsync(int id);
+        Task<ApiResponse> CreateAsync(DepartmentViewModel viewModel);
+        Task<ApiResponse> UpdateAsync(int id, DepartmentViewModel viewModel);
+        Task<ApiResponse> DeleteAsync(int id);
         Task<IEnumerable<SectionViewModel>> GetSectionsByDepartmentIdAsync(int departmentId);
-        Task<ApiResponse<object>> CreateAsync(DepartmentViewModel viewModel);
-        Task<ApiResponse<object>> UpdateAsync(int id, DepartmentViewModel viewModel);
-        Task<ApiResponse<object>> DeleteAsync(int id);
     }
 }

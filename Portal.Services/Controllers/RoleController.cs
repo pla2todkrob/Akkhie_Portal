@@ -7,19 +7,12 @@ namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController : ControllerBase
+    public class RoleController(IRoleService roleService) : ControllerBase
     {
-        private readonly IRoleService _roleService;
-
-        public RoleController(IRoleService roleService)
-        {
-            _roleService = roleService;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _roleService.GetAllAsync();
+            var result = await roleService.GetAllAsync();
             return Ok(result);
         }
     }

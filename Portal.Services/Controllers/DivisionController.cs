@@ -8,26 +8,19 @@ namespace Portal.Services.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DivisionController : ControllerBase
+    public class DivisionController(IDivisionService divisionService) : ControllerBase
     {
-        private readonly IDivisionService _divisionService;
-
-        public DivisionController(IDivisionService divisionService)
-        {
-            _divisionService = divisionService;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _divisionService.GetAllAsync();
+            var result = await divisionService.GetAllAsync();
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _divisionService.GetByIdAsync(id);
+            var result = await divisionService.GetByIdAsync(id);
             if (result == null) return NotFound();
             return Ok(result);
         }
@@ -35,7 +28,7 @@ namespace Portal.Services.Controllers
         [HttpGet("{id}/departments")]
         public async Task<IActionResult> GetDepartmentsByDivisionId(int id)
         {
-            var result = await _divisionService.GetDepartmentsByDivisionIdAsync(id);
+            var result = await divisionService.GetDepartmentsByDivisionIdAsync(id);
             if (result == null) return NotFound();
             return Ok(result);
         }
@@ -43,15 +36,15 @@ namespace Portal.Services.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(DivisionViewModel viewModel)
         {
-            var result = await _divisionService.CreateAsync(viewModel);
+            var result = await divisionService.CreateAsync(viewModel);
             if (!result.Success) return BadRequest(result);
-            return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, DivisionViewModel viewModel)
         {
-            var result = await _divisionService.UpdateAsync(id, viewModel);
+            var result = await divisionService.UpdateAsync(id, viewModel);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
@@ -59,7 +52,7 @@ namespace Portal.Services.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _divisionService.DeleteAsync(id);
+            var result = await divisionService.DeleteAsync(id);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }

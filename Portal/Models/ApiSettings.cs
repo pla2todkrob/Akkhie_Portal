@@ -20,12 +20,14 @@
         public string DivisionsByCompany { get; set; } = string.Empty;
         public string DivisionAll { get; set; } = string.Empty;
         public string DivisionSearch { get; set; } = string.Empty;
-        public string DivisionSave { get; set; } = string.Empty;
+        public string DivisionCreate { get; set; } = string.Empty;
+        public string DivisionEdit { get; set; } = string.Empty;
         public string DivisionDelete { get; set; } = string.Empty;
         public string DepartmentAll { get; set; } = string.Empty;
         public string DepartmentSearch { get; set; } = string.Empty;
         public string DepartmentsByDivision { get; set; } = string.Empty;
-        public string DepartmentSave { get; set; } = string.Empty;
+        public string DepartmentCreate { get; set; } = string.Empty;
+        public string DepartmentUpdate { get; set; } = string.Empty;
         public string DepartmentDelete { get; set; } = string.Empty;
         public string SectionAll { get; set; } = string.Empty;
         public string SectionSearch { get; set; } = string.Empty;

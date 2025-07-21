@@ -12,7 +12,7 @@ namespace Portal.Services.Models
     public class AuditEntry(EntityEntry entry, string tableName)
     {
         public EntityEntry Entry { get; } = entry;
-        public List<PropertyEntry> TemporaryProperties { get; } = new List<PropertyEntry>();
+        public List<PropertyEntry> TemporaryProperties { get; } = [];
         public Guid TransactionId { get; set; }
 
         public string? UserId { get; set; }

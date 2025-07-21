@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Portal.Shared.Models.ViewModel
 {
@@ -17,16 +12,23 @@ namespace Portal.Shared.Models.ViewModel
         [Required(ErrorMessage = "กรุณากรอกชื่อฝ่าย")]
         public string Name { get; set; } = string.Empty;
 
+        [Display(Name = "บริษัท")]
+        [Required(ErrorMessage = "กรุณาเลือกบริษัท")]
+        public int CompanyId { get; set; }
+
         [Display(Name = "สายงาน")]
         [Required(ErrorMessage = "กรุณาเลือกสายงาน")]
         public int DivisionId { get; set; }
 
         [Display(Name = "สายงาน")]
-        public string DivisionName { get; set; } = string.Empty;
+        public string? DivisionName { get; set; }
 
-        [Display(Name = "จำนวนแผนก")]
+        [Display(Name = "บริษัท")]
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "จำนวนหน่วยงาน")]
         public int TotalSection { get; set; }
 
-        public List<SectionViewModel> SectionViewModels { get; set; } = [];
+        public List<SectionViewModel> SectionViewModels { get; set; } = new();
     }
 }

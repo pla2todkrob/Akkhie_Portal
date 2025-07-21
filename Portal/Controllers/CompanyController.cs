@@ -5,27 +5,28 @@ using System.Threading.Tasks;
 
 namespace Portal.Controllers
 {
-    public class CompanyController : Controller
+    public class CompanyController(ICompanyRequest companyRequest) : Controller
     {
-        private readonly ICompanyRequest _companyRequest;
-
-        public CompanyController(ICompanyRequest companyRequest)
-        {
-            _companyRequest = companyRequest;
-        }
 
         // [FINAL FIX] ปรับแก้ Controller ให้เรียกใช้เมธอดจาก Interface ฉบับล่าสุด
         public async Task<IActionResult> Index()
         {
-            var companies = await _companyRequest.GetAllAsync();
+            var companies = await companyRequest.GetAllAsync();
             return View(companies);
         }
 
         // Action สำหรับแสดงรายการสาขาใน Modal
         public async Task<IActionResult> Branches(int id)
         {
-            var branches = await _companyRequest.GetBranchesByCompanyIdAsync(id);
+            var branches = await companyRequest.GetBranchesByCompanyIdAsync(id);
             return PartialView("_Branches", branches);
+        }
+
+        public async Task<IActionResult> Divisions(int id)
+        {
+            var divisions = await companyRequest.GetDivisionsByCompanyIdAsync(id);
+
+            return PartialView("_Divisions", divisions);
         }
 
         public IActionResult Create()
@@ -33,7 +34,7 @@ namespace Portal.Controllers
             var model = new CompanyViewModel
             {
                 // เริ่มต้นด้วยสาขาว่าง 1 รายการสำหรับกรอกข้อมูล
-                CompanyBranchViewModels = new List<CompanyBranchViewModel> { new() }
+                CompanyBranchViewModels = [new()]
             };
             return View(model);
         }
@@ -44,7 +45,7 @@ namespace Portal.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _companyRequest.CreateAsync(model);
+                var response = await companyRequest.CreateAsync(model);
                 if (response.Success)
                 {
                     // ส่งผลลัพธ์กลับไปให้ AJAX ที่ฝั่ง Client
@@ -58,7 +59,7 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var company = await _companyRequest.GetByIdAsync(id);
+            var company = await companyRequest.GetByIdAsync(id);
             if (company == null)
             {
                 return NotFound();
@@ -77,7 +78,7 @@ namespace Portal.Controllers
 
             if (ModelState.IsValid)
             {
-                var response = await _companyRequest.UpdateAsync(id, model);
+                var response = await companyRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
                     return Ok(new { success = true });
@@ -91,7 +92,7 @@ namespace Portal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var response = await _companyRequest.DeleteAsync(id);
+            var response = await companyRequest.DeleteAsync(id);
             if (response.Success)
             {
                 return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });

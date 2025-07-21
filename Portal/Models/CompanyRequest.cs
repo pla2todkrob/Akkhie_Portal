@@ -6,16 +6,13 @@ using System.Net.Http.Json;
 
 namespace Portal.Models
 {
-    public class CompanyRequest : BaseRequest, ICompanyRequest
+    public class CompanyRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings) : BaseRequest(httpClient, apiSettings), ICompanyRequest
     {
-        public CompanyRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
-            : base(httpClient, apiSettings) { }
-
         public async Task<IEnumerable<CompanyViewModel>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(_apiSettings.CompanyAll);
             var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<CompanyViewModel>>();
-            return apiResponse ?? Enumerable.Empty<CompanyViewModel>();
+            return apiResponse ?? [];
         }
 
         public async Task<CompanyViewModel> GetByIdAsync(int id)
@@ -31,7 +28,7 @@ namespace Portal.Models
             var endpoint = string.Format(_apiSettings.BranchesByCompany, companyId);
             var response = await _httpClient.GetAsync(endpoint);
             var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<CompanyBranchViewModel>>();
-            return apiResponse ?? Enumerable.Empty<CompanyBranchViewModel>();
+            return apiResponse ?? [];
         }
 
         public async Task<IEnumerable<DivisionViewModel>> GetDivisionsByCompanyIdAsync(int companyId)
@@ -39,27 +36,27 @@ namespace Portal.Models
             var endpoint = string.Format(_apiSettings.DivisionsByCompany, companyId);
             var response = await _httpClient.GetAsync(endpoint);
             var apiResponse = await response.Content.ReadFromJsonAsync<IEnumerable<DivisionViewModel>>();
-            return apiResponse ?? Enumerable.Empty<DivisionViewModel>();
+            return apiResponse ?? [];
         }
 
-        public async Task<ApiResponse<object>> CreateAsync(CompanyViewModel viewModel)
+        public async Task<ApiResponse> CreateAsync(CompanyViewModel viewModel)
         {
             var response = await _httpClient.PostAsJsonAsync(_apiSettings.CompanyCreate, viewModel);
-            return await HandleResponse<object>(response);
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
 
-        public async Task<ApiResponse<object>> UpdateAsync(int id, CompanyViewModel viewModel)
+        public async Task<ApiResponse> UpdateAsync(int id, CompanyViewModel viewModel)
         {
             var endpoint = string.Format(_apiSettings.CompanyEdit, id);
             var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
-            return await HandleResponse<object>(response);
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
 
-        public async Task<ApiResponse<object>> DeleteAsync(int id)
+        public async Task<ApiResponse> DeleteAsync(int id)
         {
             var endpoint = string.Format(_apiSettings.CompanyDelete, id);
             var response = await _httpClient.DeleteAsync(endpoint);
-            return await HandleResponse<object>(response);
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }
     }
 }

@@ -10,18 +10,11 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class DepartmentService : IDepartmentService
+    public class DepartmentService(PortalDbContext context) : IDepartmentService
     {
-        private readonly PortalDbContext _context;
-
-        public DepartmentService(PortalDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<DepartmentViewModel>> GetAllAsync()
         {
-            return await _context.Departments
+            return await context.Departments
                 .Select(d => new DepartmentViewModel
                 {
                     Id = d.Id,
@@ -34,7 +27,7 @@ namespace Portal.Services.Models
 
         public async Task<DepartmentViewModel> GetByIdAsync(int id)
         {
-            return await _context.Departments
+            return await context.Departments
                 .Where(d => d.Id == id)
                 .Select(d => new DepartmentViewModel
                 {
@@ -47,7 +40,7 @@ namespace Portal.Services.Models
 
         public async Task<IEnumerable<SectionViewModel>> GetSectionsByDepartmentIdAsync(int departmentId)
         {
-            return await _context.Sections
+            return await context.Sections
                 .Where(s => s.DepartmentId == departmentId)
                 .Select(s => new SectionViewModel
                 {
@@ -73,14 +66,14 @@ namespace Portal.Services.Models
                 }
             }
 
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
+            context.Departments.Add(department);
+            await context.SaveChangesAsync();
             return new ApiResponse<Department> { Success = true, Data = department };
         }
 
         public async Task<ApiResponse<Department>> UpdateAsync(int id, DepartmentViewModel viewModel)
         {
-            var department = await _context.Departments.Include(d => d.Sections).FirstOrDefaultAsync(d => d.Id == id);
+            var department = await context.Departments.Include(d => d.Sections).FirstOrDefaultAsync(d => d.Id == id);
             if (department == null)
             {
                 return new ApiResponse<Department> { Success = false, Message = "Department not found." };
@@ -98,20 +91,20 @@ namespace Portal.Services.Models
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return new ApiResponse<Department> { Success = true, Data = department };
         }
 
         public async Task<ApiResponse> DeleteAsync(int id)
         {
-            var department = await _context.Departments.FindAsync(id);
+            var department = await context.Departments.FindAsync(id);
             if (department == null)
             {
                 return new ApiResponse { Success = false, Message = "Department not found." };
             }
 
-            _context.Departments.Remove(department);
-            await _context.SaveChangesAsync();
+            context.Departments.Remove(department);
+            await context.SaveChangesAsync();
             return new ApiResponse { Success = true };
         }
     }

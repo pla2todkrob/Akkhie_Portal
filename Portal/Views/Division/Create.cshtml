@@ -15,15 +15,6 @@
                 <h2 class="mb-0 text-primary">@ViewData["Title"]</h2>
             </div>
 
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body">
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        กรุณากรอกข้อมูลให้ครบถ้วน
-                    </p>
-                </div>
-            </div>
-
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <partial name="_DivisionForm" model="Model" />
@@ -46,6 +37,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/Division/formEvent.js" asp-append-version="true"></script>
-    <script src="~/js/Division/handleChild.js" asp-append-version="true"></script>
+    <script src="~/js/division-form.js" asp-append-version="true"></script>
 }

@@ -1,14 +1,17 @@
 ﻿@model Portal.Shared.Models.ViewModel.DivisionViewModel
 
-<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" class="needs-validation" data-ajax="true" data-success-url="@Url.Action("Index","Division")" novalidate>
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show mb-4">
-        @Html.AntiForgeryToken()
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" class="needs-validation"
+      data-ajax="true"
+      data-success-url="@Url.Action("Index","Division")"
+      data-confirm="true"
+      novalidate>
+
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show mb-4 d-none">
         <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>พบข้อผิดพลาด</h5>
     </div>
 
     <input type="hidden" asp-for="Id" />
-
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
@@ -19,7 +22,6 @@
         </div>
         <div class="card-body">
             <div class="row g-3">
-                <!-- Dropdown สำหรับเลือกบริษัท (เพิ่มใหม่) -->
                 <div class="col-md-6">
                     <div class="form-floating">
                         <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-select" required>
@@ -29,7 +31,6 @@
                         <span asp-validation-for="CompanyId" class="text-danger small"></span>
                     </div>
                 </div>
-                <!-- Input สำหรับชื่อสายงาน -->
                 <div class="col-md-6">
                     <div class="form-floating">
                         <input asp-for="Name" class="form-control" placeholder=" " required>
@@ -48,13 +49,13 @@
                     <i class="bi bi-collection-fill text-primary me-2"></i>
                     <span>รายการฝ่าย (Departments)</span>
                 </h5>
-                <button type="button" class="btn btn-sm btn-primary" id="add-child">
+                <button type="button" class="btn btn-sm btn-primary" id="add-department-btn">
                     <i class="bi bi-plus-circle me-1"></i>เพิ่มฝ่าย
                 </button>
             </div>
         </div>
         <div class="card-body">
-            <div class="row row-cols-1 row-cols-lg-2 g-4" id="childContainer">
+            <div id="departmentContainer" class="row row-cols-1 row-cols-lg-2 g-4">
                 @if (Model.DepartmentViewModels != null)
                 {
                     @for (var i = 0; i < Model.DepartmentViewModels.Count; i++)
@@ -63,7 +64,7 @@
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-header bg-light">
                                     <div class="d-flex justify-content-end">
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-child">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-department-btn">
                                             <i class="bi bi-trash me-1"></i>ลบ
                                         </button>
                                     </div>
@@ -84,3 +85,27 @@
         </div>
     </div>
 </form>
+
+<!-- Template for adding new departments -->
+<div id="departmentTemplate" class="d-none">
+    <div class="col child-item">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-department-btn">
+                        <i class="bi bi-trash me-1"></i>ลบ
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <input type="hidden" name="DepartmentViewModels.Index" value="{index}" />
+                <input type="hidden" name="DepartmentViewModels[{index}].Id" value="0" />
+                <div class="form-floating">
+                    <input name="DepartmentViewModels[{index}].Name" class="form-control" placeholder=" " required data-val="true" data-val-required="กรุณากรอกชื่อฝ่าย">
+                    <label>ชื่อฝ่าย</label>
+                    <span class="text-danger small" data-valmsg-for="DepartmentViewModels[{index}].Name" data-valmsg-replace="true"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

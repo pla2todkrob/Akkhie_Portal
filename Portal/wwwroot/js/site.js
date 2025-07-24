@@ -1,244 +1,65 @@
-﻿// wwwroot/js/site.js - Global JavaScript for the application
-(function () {
+﻿// =================================================================================
+// site.js: Global JavaScript for the Portal application
+// This file contains shared functions for layout, plugins, modals, data tables,
+// and system-wide confirmation dialogs for all CRUD operations.
+// Version: 3.1 (Fixed modal header issue)
+// =================================================================================
+
+(function ($) {
     'use strict';
 
-    const App = {
-        // ------------------------------
-        // 🔧 INITIALIZATION
-        // ------------------------------
+    /**
+     * The main application object that encapsulates all global functions.
+     * @namespace app
+     */
+    const app = {
 
-        init: function () {
-            this.setupLayout();
-            this.initializePlugins();
-            this.setupGlobalEventListeners();
-        },
+        // =========================================================================
+        // A. Layout & Utility Functions (Alphabetical Order)
+        // =========================================================================
 
-        setupLayout: function () {
-            this.calculateStickyPositions();
-            window.addEventListener('resize', this.calculateStickyPositions.bind(this));
-        },
-
+        /**
+         * Dynamically calculates and sets the 'top' and 'bottom' CSS properties
+         * for elements with 'setStickyTop' or 'setStickyBottom' classes.
+         */
         calculateStickyPositions: function () {
             const header = document.querySelector('header');
-            const footer = 0;
             const main = document.querySelector('main');
-
             const headerHeight = header ? header.offsetHeight : 0;
             const mainPaddingTop = main ? parseFloat(window.getComputedStyle(main).paddingTop) : 0;
-            const headerHeightWithPadding = headerHeight + mainPaddingTop;
+            const topStartPosition = headerHeight + mainPaddingTop;
 
-            // Sticky Top Stack
-            let topOffset = headerHeightWithPadding;
+            let topOffset = topStartPosition;
             document.querySelectorAll('.setStickyTop').forEach(el => {
                 el.style.top = `${topOffset}px`;
                 el.style.position = 'sticky';
                 el.style.zIndex = '1020';
-                el.style.backdropFilter = 'blur(5px)';
-                topOffset += el.offsetHeight;
             });
 
-            // Sticky Bottom Stack
-            let bottomOffset = footer ? footer.offsetHeight : 0;
+            let bottomOffset = 0;
             document.querySelectorAll('.setStickyBottom').forEach(el => {
                 el.style.bottom = `${bottomOffset}px`;
                 el.style.position = 'sticky';
                 el.style.zIndex = '1020';
-                el.style.backdropFilter = 'blur(5px)';
-                bottomOffset += el.offsetHeight;
             });
         },
 
-        // ------------------------------
-        // 🔌 PLUGINS
-        // ------------------------------
-
-        initializePlugins: function () {
-            this.initializeTooltips();
-            this.initializePopovers();
+        /**
+         * Copies a given string to the user's clipboard.
+         * @param {string} text - The text to copy.
+         */
+        copyToClipboard: function (text) {
+            navigator.clipboard.writeText(text)
+                .then(() => this.showSuccessToast('คัดลอกข้อความแล้ว'))
+                .catch(() => this.showErrorToast('ไม่สามารถคัดลอกข้อความได้'));
         },
 
-        initializeTooltips: function () {
-            const tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltipElements.forEach(el => {
-                const instance = bootstrap.Tooltip.getInstance(el);
-                if (instance) instance.dispose();
-                new bootstrap.Tooltip(el, { trigger: 'hover focus' });
-            });
-        },
-
-        initializePopovers: function () {
-            const popoverElements = document.querySelectorAll('[data-bs-toggle="popover"]');
-            popoverElements.forEach(el => {
-                const instance = bootstrap.Popover.getInstance(el);
-                if (instance) instance.dispose();
-                new bootstrap.Popover(el);
-            });
-        },
-
-        // ------------------------------
-        // 🌐 EVENT LISTENERS
-        // ------------------------------
-
-        setupGlobalEventListeners: function () {
-            $(document).ajaxComplete(() => this.initializePlugins());
-            $(document).on('shown.bs.modal', () => this.initializePlugins());
-        },
-
-        // ------------------------------
-        // 🧱 DYNAMIC FORM MANAGEMENT
-        // ------------------------------
-
-        manageDynamicItems: function (options) {
-            const container = $(options.containerSelector);
-            let itemIndex = container.find(options.itemSelector).length;
-
-            const updateItemIndexes = () => {
-                container.find(options.itemSelector).each(function (index) {
-                    const $item = $(this);
-                    if (options.titleSelector) {
-                        $item.find(options.titleSelector).text(`${options.itemTitle} ${index + 1}`);
-                    }
-                    $item.find('[name]').each(function () {
-                        const $el = $(this);
-                        const name = $el.attr('name').replace(/\[\d+\]/, `[${index}]`);
-                        $el.attr('name', name);
-                    });
-                    $item.find('[data-valmsg-for]').each(function () {
-                        const $el = $(this);
-                        const valFor = $el.attr('data-valmsg-for').replace(/\[\d+\]/, `[${index}]`);
-                        $el.attr('data-valmsg-for', valFor);
-                    });
-                    $item.find('label[for]').each(function () {
-                        const $label = $(this);
-                        const forAttr = $label.attr('for').replace(/_\d+__/, `_${index}__`);
-                        $label.attr('for', forAttr);
-                    });
-                });
-                itemIndex = container.find(options.itemSelector).length;
-            };
-
-            const revalidateForm = () => {
-                const $form = $('form');
-                $form.removeData('validator').removeData('unobtrusiveValidation');
-                $.validator.unobtrusive.parse($form);
-            };
-
-            $(document).on('click', options.addButtonSelector, function () {
-                const newItem = options.template
-                    .replace(/{index}/g, itemIndex)
-                    .replace(/{indexDisplay}/g, itemIndex + 1);
-                container.append(newItem);
-                updateItemIndexes();
-                revalidateForm();
-                $(options.focusSelector).focus();
-                if (options.onAdd) options.onAdd();
-            });
-
-            $(document).on('click', options.removeButtonSelector, function () {
-                const $item = $(this).closest(options.itemSelector);
-                $item.remove();
-                updateItemIndexes();
-                revalidateForm();
-                if (options.onRemove) options.onRemove();
-            });
-
-            if (options.clearButtonSelector) {
-                $(document).on('click', options.clearButtonSelector, function () {
-                    const items = container.find(options.itemSelector);
-                    if (items.length > 1) {
-                        items.slice(1).remove();
-                        updateItemIndexes();
-                        revalidateForm();
-                        if (options.onClear) options.onClear();
-                        App.showSuccessToast('ล้างข้อมูลสาขาทั้งหมดเรียบร้อยแล้ว (ยกเว้นรายการแรก)');
-                    }
-                });
-            }
-        },
-
-        // ------------------------------
-        // 📤 FORM SUBMISSION
-        // ------------------------------
-
-        handleFormSubmission: function (options) {
-            const $form = $(options.formSelector);
-            const $btn = $form.find('button[type="submit"]');
-            const $spinner = $btn.find('.spinner-border');
-
-            $form.on('submit', function (e) {
-                e.preventDefault();
-                if (!$form.attr('data-ajax')) return;
-
-                $btn.prop('disabled', true);
-                $spinner.removeClass('d-none');
-
-                $.ajax({
-                    url: $form.attr('action'),
-                    method: $form.attr('method'),
-                    data: $form.serialize(),
-                    complete: () => {
-                        $btn.prop('disabled', false);
-                        $spinner.addClass('d-none');
-                    },
-                    success: (response) => {
-                        if (response.success) {
-                            App.showSuccessAlert(response.message || 'ดำเนินการสำเร็จ', {
-                                onAction: () => {
-                                    if (options.successUrl) {
-                                        window.location.href = options.successUrl;
-                                    }
-                                }
-                            });
-                        } else {
-                            App.handleApiError(response);
-                        }
-                    },
-                    error: (xhr) => {
-                        if (xhr.status === 400 && xhr.responseJSON) {
-                            App.handleApiError(xhr.responseJSON);
-                        } else {
-                            App.showErrorAlert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-                        }
-                    }
-                });
-            });
-        },
-
-        handleApiError: function (response) {
-            const $form = $('form');
-            const $validationSummary = $form.find('.validation-summary-errors');
-            $validationSummary.removeClass('d-none').empty();
-
-            if (response.errors?.length) {
-                response.errors.forEach(error => {
-                    $validationSummary.append($('<li></li>').text(error));
-                });
-            }
-
-            if (response.message) {
-                this.showErrorToast(response.message);
-            }
-        },
-
-        // ------------------------------
-        // 🧰 UTILITIES
-        // ------------------------------
-
-        togglePasswordVisibility: function (inputSelector, toggleIconSelector) {
-            const input = document.querySelector(inputSelector);
-            const icon = document.querySelector(toggleIconSelector);
-
-            if (!input) return;
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                if (icon) icon.classList.replace('bi-eye', 'bi-eye-slash');
-            } else {
-                input.type = 'password';
-                if (icon) icon.classList.replace('bi-eye-slash', 'bi-eye');
-            }
-        },
-
+        /**
+         * Creates a debounced function that delays invoking the provided function.
+         * @param {Function} func - The function to debounce.
+         * @param {number} [wait=300] - The number of milliseconds to delay.
+         * @returns {Function} The new debounced function.
+         */
         debounce: function (func, wait = 300) {
             let timeout;
             return function (...args) {
@@ -247,6 +68,11 @@
             };
         },
 
+        /**
+         * Triggers a browser download for a file from a given URL.
+         * @param {string} url - The URL of the file to download.
+         * @param {string} [fileName='download'] - The desired name for the downloaded file.
+         */
         downloadFile: function (url, fileName = 'download') {
             const link = document.createElement('a');
             link.href = url;
@@ -256,193 +82,356 @@
             document.body.removeChild(link);
         },
 
-        copyToClipboard: function (text) {
-            navigator.clipboard.writeText(text)
-                .then(() => this.showSuccessToast('คัดลอกข้อความแล้ว'))
-                .catch(() => this.showErrorToast('ไม่สามารถคัดลอกข้อความได้'));
-        },
+        // =========================================================================
+        // B. Form & AJAX Handling (Alphabetical Order)
+        // =========================================================================
 
-        // ------------------------------
-        // 🔔 ALERTS & TOASTS
-        // ------------------------------
+        /**
+         * A generic handler for submitting forms via AJAX.
+         * @param {HTMLFormElement} form - The form element to submit.
+         */
+        handleAjaxForm: function (form) {
+            const $form = $(form);
+            const $submitButton = $form.find('button[type="submit"]');
+            const $spinner = $submitButton.find('.spinner-border');
 
-        showConfirmDialog: function (options) {
-            return Swal.fire({
-                title: options.title || 'ยืนยันการดำเนินการ',
-                html: options.text || options.html || 'คุณแน่ใจหรือไม่?',
-                icon: options.icon || 'warning',
-                showCancelButton: true,
-                confirmButtonColor: options.confirmColor || '#d33',
-                cancelButtonColor: options.cancelColor || '#3085d6',
-                confirmButtonText: options.confirmText || 'ตกลง',
-                cancelButtonText: options.cancelText || 'ยกเลิก',
-                draggable: true
+            if (!$form.valid()) {
+                this.showErrorToast('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
+            $submitButton.prop('disabled', true);
+            $spinner.removeClass('d-none');
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: $form.attr('method'),
+                data: $form.serialize(),
+                success: (response) => {
+                    if (response.success) {
+                        const successUrl = $form.data('success-url');
+                        this.showSuccessAlert(response.message || 'บันทึกข้อมูลสำเร็จ', {
+                            onAction: () => {
+                                if (successUrl) {
+                                    window.location.href = successUrl;
+                                }
+                            }
+                        });
+                    } else {
+                        this.showErrorAlert(response.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    }
+                },
+                error: (xhr) => {
+                    this.showErrorAlert(`เกิดข้อผิดพลาด: ${xhr.statusText}`);
+                },
+                complete: () => {
+                    $submitButton.prop('disabled', false);
+                    $spinner.addClass('d-none');
+                }
             });
         },
 
+        /**
+         * Handles dynamic addition and removal of form items.
+         * @param {object} options - Configuration for managing dynamic items.
+         */
+        manageDynamicItems: function (options) {
+            const container = $(options.containerSelector);
+            const revalidateForm = () => {
+                const $form = container.closest('form');
+                $form.removeData('validator').removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse($form);
+            };
+
+            $(document).on('click', options.addButtonSelector, () => {
+                const newIndex = container.find(options.itemSelector).length;
+                const newItemHtml = options.template.replace(/\{index\}/g, newIndex);
+                container.append(newItemHtml);
+                revalidateForm();
+                if (options.focusSelector) $(options.focusSelector).focus();
+                if (options.onAdd) options.onAdd();
+            });
+
+            container.on('click', options.removeButtonSelector, function () {
+                $(this).closest(options.itemSelector).remove();
+                revalidateForm();
+                if (options.onRemove) options.onRemove();
+            });
+        },
+
+        /**
+         * Toggles the visibility of a password input field.
+         * @param {string} inputSelector - The CSS selector for the password input.
+         * @param {string} toggleSelector - The CSS selector for the toggle button/icon.
+         */
+        togglePasswordVisibility: function (inputSelector, toggleSelector) {
+            const input = $(inputSelector);
+            const icon = $(toggleSelector).find('i');
+            if (input.length) {
+                const isPassword = input.attr('type') === 'password';
+                input.attr('type', isPassword ? 'text' : 'password');
+                icon.toggleClass('bi-eye-slash bi-eye');
+            }
+        },
+
+        // =========================================================================
+        // C. Initialization & Event Listeners (Alphabetical Order)
+        // =========================================================================
+
+        /**
+         * Main initialization function for the application.
+         */
+        init: function () {
+            this.setupLayout();
+            this.initializePlugins();
+            this.setupGlobalEventListeners();
+        },
+
+        /**
+         * Initializes third-party plugins like Tooltips and Popovers.
+         */
+        initializePlugins: function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(el => new bootstrap.Popover(el));
+        },
+
+        /**
+         * Sets up global event listeners for the application.
+         */
+        setupGlobalEventListeners: function () {
+            $(document).on('ajaxComplete shown.bs.modal', () => this.initializePlugins());
+        },
+
+        /**
+         * Sets up layout-related functionalities.
+         */
+        setupLayout: function () {
+            this.calculateStickyPositions();
+            window.addEventListener('resize', this.debounce(this.calculateStickyPositions.bind(this)));
+        },
+
+        // =========================================================================
+        // D. UI Components (Modals, Alerts, Toasts) (Alphabetical Order)
+        // =========================================================================
+
+        /**
+         * Initializes a DataTable with standardized settings for the project.
+         * @param {string} selector - The CSS selector for the table element.
+         * @param {object} [options={}] - Custom options to override the defaults.
+         * @returns {object} The initialized DataTable instance.
+         */
+        setupDataTable: function (selector, options = {}) {
+            const defaultOptions = {
+                language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/th.json' },
+                responsive: true
+            };
+            return $(selector).DataTable({ ...defaultOptions, ...options });
+        },
+
+        /**
+         * Shows a confirmation dialog using SweetAlert2.
+         * @param {object} options - Custom SweetAlert2 options.
+         * @returns {Promise} A promise that resolves with the dialog result.
+         */
+        showConfirmDialog: function (options) {
+            const defaultOptions = {
+                title: 'ยืนยันการดำเนินการ',
+                html: 'คุณแน่ใจหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+            };
+            return Swal.fire({ ...defaultOptions, ...options });
+        },
+
+        /**
+         * Shows an error alert using SweetAlert2.
+         * @param {string} message - The error message to display.
+         */
         showErrorAlert: function (message) {
-            return Swal.fire({
+            Swal.fire({
                 icon: 'error',
                 title: 'เกิดข้อผิดพลาด',
                 html: message,
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#3085d6',
-                draggable: true
             });
         },
 
-        showSuccessAlert: function (message, options = {}) {
-            return Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ',
-                html: message || options.text || options.html,
-                timer: options.timer || null,
-                showConfirmButton: options.showConfirmButton ?? true,
-                confirmButtonText: options.confirmButtonText || 'ตกลง',
-                confirmButtonColor: options.confirmButtonColor || '#3085d6',
-                allowOutsideClick: options.allowOutsideClick ?? false,
-                allowEscapeKey: options.allowEscapeKey ?? false,
-                timerProgressBar: !!options.timer,
-                didClose: options.onClose || null,
-                draggable: true
-            }).then((result) => {
-                if ((result.isConfirmed || result.dismiss === Swal.DismissReason.timer) && typeof options.onAction === 'function') {
-                    options.onAction();
-                }
-            });
-        },
-
-        showInfoAlert: function (message, options = {}) {
-            return Swal.fire({
-                icon: 'info',
-                title: options.title || 'ข้อมูล',
-                html: message || options.text || options.html ,
-                timer: options.timer || null,
-                showConfirmButton: options.showConfirmButton ?? true,
-                confirmButtonText: options.confirmButtonText || 'ตกลง',
-                confirmButtonColor: options.confirmButtonColor || '#3085d6',
-                allowOutsideClick: options.allowOutsideClick ?? false,
-                allowEscapeKey: options.allowEscapeKey ?? false,
-                timerProgressBar: !!options.timer,
-                didClose: options.onClose || null,
-                draggable: true
-            }).then((result) => {
-                if ((result.isConfirmed || result.dismiss === Swal.DismissReason.timer) && typeof options.onAction === 'function') {
-                    options.onAction();
-                }
-            });
-        },
-
-        showSuccessToast: function (message) {
-            toastr.success(message, 'สำเร็จ', {
-                positionClass: 'toast-bottom-left',
-                timeOut: 3000
-            });
-        },
-
+        /**
+         * Shows an error toast notification for non-blocking feedback.
+         * @param {string} message - The error message to display.
+         */
         showErrorToast: function (message) {
-            toastr.error(message, 'ผิดพลาด', {
-                positionClass: 'toast-bottom-left',
-                timeOut: 3000
-            });
+            toastr.error(message, 'ผิดพลาด');
         },
 
-        // ------------------------------
-        // 📊 DATATABLE
-        // ------------------------------
+        /**
+         * Displays a global modal and loads content into it asynchronously.
+         * @param {object} options - Configuration for the modal.
+         * @param {string} options.url - The URL to load content from.
+         * @param {string} options.title - The title to display in the modal header.
+         * @param {string} [options.size='lg'] - The modal size ('sm', 'lg', 'xl').
+         */
+        showGlobalModal: async function (options) {
+            const { url, title, size = 'lg' } = options;
+            const modalEl = document.getElementById('globalModal');
+            const modalDialog = document.getElementById('globalModalDialog');
+            const modalContent = document.getElementById('globalModalContent');
+            if (!modalEl) return;
 
-        setupDataTable: function (tableSelector, options = {}) {
-            const defaults = {
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/2.0.3/i18n/th.json'
-                },
-                responsive: true
-            };
-            return $(tableSelector).DataTable({ ...defaults, ...options });
-        }
-    };
+            modalDialog.className = `modal-dialog modal-dialog-centered modal-dialog-scrollable modal-${size}`;
 
-    // Public API
-    window.app = App;
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => App.init());
-})();
-
-/**
-* Shows a global modal with content loaded from a specified URL.
-* @param {object} options - Configuration for the modal.
-* @param {string} options.url - The URL to load content from.
-* @param {string} options.title - The title to display in the modal header.
-* @param {string} [options.size=''] - The modal size (e.g., 'sm', 'lg', 'xl').
-*/
-function showGlobalModal(options) {
-    const { url, title, size = '' } = options;
-    const modalElement = document.getElementById('globalModal');
-    const modalDialog = document.getElementById('globalModalDialog');
-    const modalContent = document.getElementById('globalModalContent');
-
-    if (!modalElement || !modalDialog || !modalContent) {
-        console.error('Global modal elements not found in the DOM.');
-        return;
-    }
-
-    // Reset modal size
-    modalDialog.className = 'modal-dialog modal-dialog-centered modal-dialog-scrollable';
-    if (size) {
-        modalDialog.classList.add(`modal-${size}`);
-    }
-
-    // Set a loading state
-    modalContent.innerHTML = `
-        <div class="modal-header">
-            <h5 class="modal-title">${title}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        </div>`;
-
-    // Show the modal
-    const modal = new bootstrap.Modal(modalElement);
-    modal.show();
-
-    // Fetch content
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.text();
-        })
-        .then(html => {
-            // Create a temporary div to parse the HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            // Construct the final modal content with the header
-            modalContent.innerHTML = `
+            const headerHtml = `
                 <div class="modal-header">
                     <h5 class="modal-title">${title}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>`;
 
-            // Append the loaded body and footer
-            modalContent.appendChild(tempDiv);
-        })
-        .catch(error => {
-            console.error('Failed to load modal content:', error);
-            modalContent.innerHTML = `
-                 <div class="modal-header">
-                    <h5 class="modal-title text-danger">Error</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-danger">Sorry, we were unable to load the content.</p>
+            const loadingBodyHtml = `
+                <div class="modal-body text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>`;
+
+            modalContent.innerHTML = headerHtml + loadingBodyHtml;
+
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+                const partialHtml = await response.text();
+
+                // **THE FIX IS HERE:** Reconstruct the content with the header and the fetched partial view HTML.
+                modalContent.innerHTML = headerHtml + partialHtml;
+
+            } catch (error) {
+                console.error('Failed to load modal content:', error);
+                const errorBodyHtml = `
+                    <div class="modal-body">
+                        <p class="text-danger">ไม่สามารถโหลดข้อมูลได้</p>
+                    </div>`;
+                modalContent.innerHTML = headerHtml.replace(title, "Error") + errorBodyHtml;
+            }
+        },
+
+        /**
+         * Shows an info alert using SweetAlert2.
+         * @param {string} message - The info message to display.
+         * @param {object} [options={}] - Custom SweetAlert2 options.
+         */
+        showInfoAlert: function (message, options = {}) {
+            const defaultOptions = {
+                icon: 'info',
+                title: 'แจ้งเพื่อทราบ',
+                html: message,
+            };
+            return Swal.fire({ ...defaultOptions, ...options });
+        },
+
+        /**
+         * Shows a success alert using SweetAlert2, with a callback on action.
+         * @param {string} message - The success message to display.
+         * @param {object} [options={}] - Custom options, including an onAction callback.
+         */
+        showSuccessAlert: function (message, options = {}) {
+            const defaultOptions = {
+                icon: 'success',
+                title: 'สำเร็จ',
+                html: message,
+            };
+            Swal.fire({ ...defaultOptions, ...options }).then((result) => {
+                if (result.isConfirmed && typeof options.onAction === 'function') {
+                    options.onAction();
+                }
+            });
+        },
+
+        /**
+         * Shows a success toast notification for non-blocking feedback.
+         * @param {string} message - The success message to display.
+         */
+        showSuccessToast: function (message) {
+            toastr.success(message, 'สำเร็จ');
+        },
+    };
+
+    // Expose the app object to the global window scope
+    window.app = app;
+
+    // Initialize the application once the DOM is ready
+    $(document).ready(function () {
+        app.init();
+
+        // --- SYSTEM-WIDE CONFIRMATION EVENT LISTENERS ---
+
+        $(document).on('submit', 'form[data-confirm="true"]', function (e) {
+            e.preventDefault();
+            const form = this;
+            const isEdit = $('input[name="Id"]', form).val() > 0;
+            app.showConfirmDialog({
+                title: 'ยืนยันการบันทึกข้อมูล?',
+                text: isEdit ? 'คุณต้องการบันทึกการเปลี่ยนแปลงใช่หรือไม่?' : 'คุณต้องการสร้างรายการใหม่นี้ใช่หรือไม่?',
+                icon: 'question',
+                confirmButtonText: 'ยืนยัน',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if ($(form).data('ajax') === true) {
+                        app.handleAjaxForm(form);
+                    } else {
+                        form.submit();
+                    }
+                }
+            });
         });
-}
+
+        $(document).on('click', '.delete-btn', function (e) {
+            e.preventDefault();
+            const $button = $(this);
+            const url = $button.data('url');
+            const id = $button.data('id');
+            const redirectUrl = $button.data('redirect');
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            app.showConfirmDialog({
+                title: 'ยืนยันการลบข้อมูล?',
+                text: 'ข้อมูลที่ถูกลบจะไม่สามารถกู้คืนได้!',
+                icon: 'warning',
+                confirmButtonText: 'ใช่, ลบเลย',
+                confirmButtonColor: '#d33',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: { id: id, __RequestVerificationToken: token },
+                        success: (response) => {
+                            if (response.success) {
+                                app.showSuccessAlert(response.message || 'ลบข้อมูลสำเร็จ', {
+                                    onAction: () => {
+                                        if (redirectUrl) {
+                                            window.location.href = redirectUrl;
+                                        } else {
+                                            window.location.reload();
+                                        }
+                                    }
+                                });
+                            } else {
+                                app.showErrorAlert(response.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+                            }
+                        },
+                        error: (xhr) => app.showErrorAlert(`เกิดข้อผิดพลาด: ${xhr.statusText}`)
+                    });
+                }
+            });
+        });
+    });
+
+})(jQuery);

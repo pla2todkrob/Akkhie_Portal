@@ -47,12 +47,10 @@
                                 <td class="align-middle text-center fit-content">
                                     @if (item.TotalBranch > 0)
                                     {
-                                        <button type="button" class="btn btn-info btn-sm"
-                                                onclick="showGlobalModal({
-                                                       url: '@Url.Action("Branches", "Company", new { id = item.Id })',
-                                                       title: 'รายการสาขา - @item.Name',
-                                                       size: 'lg'
-                                                   })">
+                                        <button type="button" class="btn btn-info btn-sm view-details-btn"
+                                                data-url="@Url.Action("Branches", "Company", new { id = item.Id })"
+                                                data-title="รายการสาขา - @item.Name"
+                                                data-size="lg">
                                             <i class="bi bi-diagram-2 me-1"></i>@Html.DisplayFor(modelItem => item.TotalBranch)
                                         </button>
                                     }
@@ -64,13 +62,10 @@
                                 <td class="align-middle text-center fit-content">
                                     @if (item.TotalDivision > 0)
                                     {
-                                        @* หมายเหตุ: คุณจะต้องสร้าง Action "Divisions" ใน CompanyController เพื่อให้ปุ่มนี้ทำงาน *@
-                                        <button type="button" class="btn btn-success btn-sm"
-                                                onclick="showGlobalModal({
-                                                       url: '@Url.Action("Divisions", "Company", new { id = item.Id })',
-                                                       title: 'รายการสายงาน - @item.Name',
-                                                       size: 'lg'
-                                                   })">
+                                        <button type="button" class="btn btn-success btn-sm view-details-btn"
+                                                data-url="@Url.Action("Divisions", "Company", new { id = item.Id })"
+                                                data-title="รายการสายงาน - @item.Name"
+                                                data-size="lg">
                                             <i class="bi bi-collection me-1"></i>@Html.DisplayFor(modelItem => item.TotalDivision)
                                         </button>
                                     }
@@ -101,22 +96,23 @@
         $(document).ready(function() {
             const table = app.setupDataTable('#viewTable', {
                 columnDefs: [
-                    {
-                        orderable: false, targets: [2, 3, 4]
-                    },
-                    {
-                        responsivePriority: 1,
-                        targets: 0
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: 4
-                    }
+                    { orderable: false, targets: [2, 3, 4] },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 4 }
                 ],
                 fixedColumns:{
                     left:1,
                     right:1
                 }
+            });
+
+            $('#viewTable').on('click', '.view-details-btn', function() {
+                const button = $(this);
+                app.showGlobalModal({
+                    url: button.data('url'),
+                    title: button.data('title'),
+                    size: button.data('size')
+                });
             });
         });
     </script>

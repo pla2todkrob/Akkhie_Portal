@@ -1,6 +1,6 @@
 ﻿@model Portal.Shared.Models.ViewModel.CompanyViewModel
 
-<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" class="needs-validation" data-ajax="true" data-success-url="@Url.Action("Index","Company")" novalidate>
+<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" class="needs-validation" data-ajax="true" data-confirm="true" data-success-url="@Url.Action("Index","Company")" novalidate>
     <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible fade show mb-4">
         @Html.AntiForgeryToken()
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -36,16 +36,16 @@
         </div>
     </div>
 
-    <!-- ===== ส่วนจัดการฝ่าย (Divisions) - เพิ่มใหม่ ===== -->
+    <!-- ===== ส่วนจัดการสายงาน (Divisions) - เพิ่มใหม่ ===== -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-collection text-primary me-2"></i>
-                    <span>รายการฝ่าย (Divisions)</span>
+                    <span>รายการสายงาน (Divisions)</span>
                 </h5>
                 <button type="button" class="btn btn-sm btn-primary add-child-item" data-container="#divisionContainer" data-template="#divisionTemplate">
-                    <i class="bi bi-plus-circle me-1"></i>เพิ่มฝ่าย
+                    <i class="bi bi-plus-circle me-1"></i>เพิ่มสายงาน
                 </button>
             </div>
         </div>
@@ -59,7 +59,7 @@
                             <input type="hidden" asp-for="DivisionViewModels[i].Id" />
                             <input type="hidden" asp-for="DivisionViewModels[i].CompanyName" />
                             <div class="form-floating flex-grow-1">
-                                <input asp-for="DivisionViewModels[i].Name" class="form-control" placeholder="ชื่อฝ่าย" required />
+                                <input asp-for="DivisionViewModels[i].Name" class="form-control" placeholder="ชื่อสายงาน" required />
                                 <label asp-for="DivisionViewModels[i].Name"></label>
                             </div>
                             <button type="button" class="btn btn-outline-danger remove-child-item"><i class="bi bi-trash"></i></button>
@@ -134,8 +134,8 @@
         <input type="hidden" name="DivisionViewModels[--i--].Id" value="0" />
         <input type="hidden" name="DivisionViewModels[--i--].CompanyName" value="0" />
         <div class="form-floating flex-grow-1">
-            <input type="text" name="DivisionViewModels[--i--].Name" class="form-control" placeholder="ชื่อฝ่าย" required />
-            <label>ชื่อฝ่าย</label>
+            <input type="text" name="DivisionViewModels[--i--].Name" class="form-control" placeholder="ชื่อสายงาน" required />
+            <label>ชื่อสายงาน</label>
         </div>
         <button type="button" class="btn btn-outline-danger remove-child-item"><i class="bi bi-trash"></i></button>
     </div>

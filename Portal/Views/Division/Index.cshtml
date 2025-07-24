@@ -46,12 +46,10 @@
                                 <td class="align-middle text-center fit-content">
                                     @if (item.TotalDepartment > 0)
                                     {
-                                        <button type="button" class="btn btn-info btn-sm"
-                                                onclick="showGlobalModal({
-                                                           url: '@Url.Action("Departments", "Division", new { id = item.Id })',
-                                                           title: 'รายการฝ่าย - @item.Name',
-                                                           size: 'lg'
-                                                       })">
+                                        <button type="button" class="btn btn-info btn-sm view-details-btn"
+                                                data-url="@Url.Action("Departments", "Division", new { id = item.Id })"
+                                                data-title="รายการฝ่าย - @item.Name"
+                                                data-size="lg">
                                             <i class="bi bi-diagram-2 me-1"></i>@Html.DisplayFor(modelItem => item.TotalDepartment)
                                         </button>
                                     }
@@ -75,19 +73,24 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function() {
-            const table = app.setupDataTable('#viewTable', {
+            app.setupDataTable('#viewTable', {
                 columnDefs: [
                     { orderable: false, targets: [2, 3] },
                     { responsivePriority: 1, targets: 0 },
                     { responsivePriority: 2, targets: 3 }
-                ],
-                fixedColumns: {
-                    left: 1,
-                    right: 1
-                }
+                ]
+            });
+
+            // Standardized event listener for modal buttons
+            $('#viewTable').on('click', '.view-details-btn', function() {
+                const button = $(this);
+                app.showGlobalModal({
+                    url: button.data('url'),
+                    title: button.data('title'),
+                    size: button.data('size')
+                });
             });
         });
     </script>

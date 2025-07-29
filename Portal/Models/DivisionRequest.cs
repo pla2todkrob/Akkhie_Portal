@@ -42,7 +42,7 @@ namespace Portal.Models
 
         public async Task<ApiResponse<object>> UpdateAsync(int id, DivisionViewModel viewModel)
         {
-            var endpoint = string.Format(_apiSettings.DivisionEdit, id);
+            var endpoint = string.Format(_apiSettings.DivisionUpdate, id);
             var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<ApiResponse>();

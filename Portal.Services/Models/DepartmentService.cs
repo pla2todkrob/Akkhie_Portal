@@ -15,12 +15,17 @@ namespace Portal.Services.Models
         public async Task<IEnumerable<DepartmentViewModel>> GetAllAsync()
         {
             return await context.Departments
+                .AsNoTracking()
+                .Include(d => d.Division)
+                    .ThenInclude(div => div.Company)
                 .Select(d => new DepartmentViewModel
                 {
                     Id = d.Id,
                     Name = d.Name,
                     DivisionId = d.DivisionId,
                     DivisionName = d.Division.Name,
+                    CompanyId = d.Division.CompanyId,
+                    CompanyName = d.Division.Company.Name,
                     TotalSection = d.Sections.Count()
                 }).ToListAsync();
         }
@@ -28,11 +33,14 @@ namespace Portal.Services.Models
         public async Task<DepartmentViewModel> GetByIdAsync(int id)
         {
             return await context.Departments
+                .AsNoTracking()
                 .Where(d => d.Id == id)
+                .Include(d => d.Division)
                 .Select(d => new DepartmentViewModel
                 {
                     Id = d.Id,
                     Name = d.Name,
+                    CompanyId = d.Division.CompanyId,
                     DivisionId = d.DivisionId,
                     SectionViewModels = d.Sections.Select(s => new SectionViewModel { Id = s.Id, Name = s.Name }).ToList()
                 }).FirstOrDefaultAsync();
@@ -58,17 +66,20 @@ namespace Portal.Services.Models
                 DivisionId = viewModel.DivisionId
             };
 
-            foreach (var sectionVm in viewModel.SectionViewModels)
+            if (viewModel.SectionViewModels != null)
             {
-                if (!string.IsNullOrWhiteSpace(sectionVm.Name))
+                foreach (var sectionVm in viewModel.SectionViewModels)
                 {
-                    department.Sections.Add(new Section { Name = sectionVm.Name });
+                    if (!string.IsNullOrWhiteSpace(sectionVm.Name))
+                    {
+                        department.Sections.Add(new Section { Name = sectionVm.Name });
+                    }
                 }
             }
 
             context.Departments.Add(department);
             await context.SaveChangesAsync();
-            return new ApiResponse<Department> { Success = true, Data = department };
+            return new ApiResponse<Department> { Success = true, Data = department, Message = "สร้างข้อมูลฝ่ายสำเร็จ" };
         }
 
         public async Task<ApiResponse<Department>> UpdateAsync(int id, DepartmentViewModel viewModel)
@@ -76,23 +87,26 @@ namespace Portal.Services.Models
             var department = await context.Departments.Include(d => d.Sections).FirstOrDefaultAsync(d => d.Id == id);
             if (department == null)
             {
-                return new ApiResponse<Department> { Success = false, Message = "Department not found." };
+                return new ApiResponse<Department> { Success = false, Message = "ไม่พบข้อมูลฝ่าย" };
             }
 
             department.Name = viewModel.Name;
             department.DivisionId = viewModel.DivisionId;
 
-            department.Sections.Clear();
-            foreach (var sectionVm in viewModel.SectionViewModels)
-            {
-                if (!string.IsNullOrWhiteSpace(sectionVm.Name))
-                {
-                    department.Sections.Add(new Section { Name = sectionVm.Name });
-                }
-            }
+            // ใช้ Helper Method เพื่อจัดการข้อมูลลูก (Sections)
+            UpdateChildCollection(
+                department.Sections,
+                viewModel.SectionViewModels,
+                (section, vm) => { // Logic สำหรับ Update
+                    section.Name = vm.Name;
+                },
+                vm => new Section
+                { // Logic สำหรับ Add
+                    Name = vm.Name
+                });
 
             await context.SaveChangesAsync();
-            return new ApiResponse<Department> { Success = true, Data = department };
+            return new ApiResponse<Department> { Success = true, Data = department, Message = "อัปเดตข้อมูลฝ่ายสำเร็จ" };
         }
 
         public async Task<ApiResponse> DeleteAsync(int id)
@@ -100,12 +114,49 @@ namespace Portal.Services.Models
             var department = await context.Departments.FindAsync(id);
             if (department == null)
             {
-                return new ApiResponse { Success = false, Message = "Department not found." };
+                return new ApiResponse { Success = false, Message = "ไม่พบข้อมูลฝ่าย" };
             }
 
             context.Departments.Remove(department);
             await context.SaveChangesAsync();
-            return new ApiResponse { Success = true };
+            return new ApiResponse { Success = true, Message = "ลบข้อมูลสำเร็จ" };
+        }
+
+        // Helper Method สำหรับจัดการ Collection ลูก (Child Collection)
+        private void UpdateChildCollection<TEntity, TViewModel>(
+            ICollection<TEntity> dbCollection,
+            ICollection<TViewModel> viewModelCollection,
+            Action<TEntity, TViewModel> updateAction,
+            Func<TViewModel, TEntity> addAction)
+            where TEntity : class, new()
+            where TViewModel : class
+        {
+            viewModelCollection ??= new List<TViewModel>();
+
+            var itemsToDelete = dbCollection
+                .Where(dbItem => !viewModelCollection.Any(vmItem => (int)vmItem.GetType().GetProperty("Id").GetValue(vmItem) == (int)dbItem.GetType().GetProperty("Id").GetValue(dbItem)))
+                .ToList();
+
+            foreach (var item in itemsToDelete)
+            {
+                context.Remove(item);
+            }
+
+            foreach (var vmItem in viewModelCollection)
+            {
+                var vmId = (int)vmItem.GetType().GetProperty("Id").GetValue(vmItem);
+                var dbItem = dbCollection.FirstOrDefault(db => (int)db.GetType().GetProperty("Id").GetValue(db) == vmId);
+
+                if (dbItem != null)
+                {
+                    updateAction(dbItem, vmItem);
+                }
+                else
+                {
+                    var newItem = addAction(vmItem);
+                    dbCollection.Add(newItem);
+                }
+            }
         }
     }
 }

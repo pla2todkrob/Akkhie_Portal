@@ -47,7 +47,7 @@ namespace Portal.Models
 
         public async Task<ApiResponse> UpdateAsync(int id, CompanyViewModel viewModel)
         {
-            var endpoint = string.Format(_apiSettings.CompanyEdit, id);
+            var endpoint = string.Format(_apiSettings.CompanyUpdate, id);
             var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
             return await response.Content.ReadFromJsonAsync<ApiResponse>();
         }

@@ -33,7 +33,10 @@
                             <a asp-action="Index" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>ยกเลิก
                             </a>
-                            <button type="button" class="btn btn-danger" id="DeleteButton" data-id="@Model.Id">
+                            <button type="button" class="btn btn-danger delete-btn"
+                                    data-url="@Url.Action("Delete", "Department")"
+                                    data-id="@Model.Id"
+                                    data-redirect="@Url.Action("Index", "Department")">
                                 <i class="bi bi-trash me-2"></i>ลบรายการ
                             </button>
                         </div>
@@ -50,7 +53,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/Department/handleChild.js" asp-append-version="true"></script>
-    <script src="~/js/Department/formEvent.js" asp-append-version="true"></script>
-
+    <script src="~/js/department-form.js" asp-append-version="true"></script>
 }

@@ -1,5 +1,4 @@
-﻿<!-- FileName: Portal/Views/Department/_DepartmentForm.cshtml -->
-@model Portal.Shared.Models.ViewModel.DepartmentViewModel
+﻿@model Portal.Shared.Models.ViewModel.DepartmentViewModel
 
 <form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" data-ajax="true" data-success-url="@Url.Action("Index","Department")">
     @Html.AntiForgeryToken()
@@ -12,23 +11,29 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="CompanyId" class="form-label"></label>
-                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-select" required>
-                        <option value="">-- เลือกบริษัท --</option>
-                    </select>
-                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                    <div class="form-floating">
+                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-select" required>
+                            <option value="">-- เลือกบริษัท --</option>
+                        </select>
+                        <label asp-for="CompanyId"></label>
+                        <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                    </div>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="DivisionId" class="form-label"></label>
-                    <select asp-for="DivisionId" asp-items="@ViewBag.Divisions" class="form-select" required>
-                        <option value="">-- เลือกสายงาน --</option>
-                    </select>
-                    <span asp-validation-for="DivisionId" class="text-danger"></span>
+                    <div class="form-floating">
+                        <select asp-for="DivisionId" asp-items="@ViewBag.Divisions" class="form-select" required>
+                            <option value="">-- เลือกสายงาน --</option>
+                        </select>
+                        <label asp-for="DivisionId"></label>
+                        <span asp-validation-for="DivisionId" class="text-danger small"></span>
+                    </div>
                 </div>
                 <div class="col-12">
-                    <label asp-for="Name" class="form-label"></label>
-                    <input asp-for="Name" class="form-control" required />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="form-floating">
+                        <input asp-for="Name" class="form-control" placeholder=" " required />
+                        <label asp-for="Name"></label>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -38,7 +43,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0">รายการหน่วยงาน (Sections)</h5>
-            <button type="button" class="btn btn-sm btn-success" id="add-section"><i class="bi bi-plus-circle"></i> เพิ่มหน่วยงาน</button>
+            <button type="button" class="btn btn-sm btn-success" id="add-section-btn"><i class="bi bi-plus-circle"></i> เพิ่มหน่วยงาน</button>
         </div>
         <div class="card-body">
             <div id="sectionContainer" class="d-flex flex-column gap-3">
@@ -48,8 +53,11 @@
                     {
                         <div class="child-item input-group">
                             <input type="hidden" asp-for="SectionViewModels[i].Id" />
-                            <input asp-for="SectionViewModels[i].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required />
-                            <button type="button" class="btn btn-outline-danger remove-section"><i class="bi bi-trash"></i></button>
+                            <div class="form-floating flex-grow-1">
+                                <input asp-for="SectionViewModels[i].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required />
+                                <label asp-for="SectionViewModels[i].Name"></label>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger remove-section-btn"><i class="bi bi-trash"></i></button>
                             <span asp-validation-for="SectionViewModels[i].Name" class="text-danger w-100 d-block small mt-1"></span>
                         </div>
                     }
@@ -62,9 +70,13 @@
 <!-- Template สำหรับเพิ่ม Section ด้วย JavaScript -->
 <div id="sectionTemplate" class="d-none">
     <div class="child-item input-group">
-        <input type="hidden" name="SectionViewModels.Index" value="__i__" />
-        <input type="hidden" name="SectionViewModels[__i__].Id" value="0" />
-        <input name="SectionViewModels[__i__].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required />
-        <button type="button" class="btn btn-outline-danger remove-section"><i class="bi bi-trash"></i></button>
+        <!-- [FIX] Removed the problematic hidden input for 'Index' -->
+        <input type="hidden" name="SectionViewModels[{index}].Id" value="0" />
+        <div class="form-floating flex-grow-1">
+            <input name="SectionViewModels[{index}].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required data-val="true" data-val-required="กรุณากรอกชื่อหน่วยงาน" />
+            <label>ชื่อหน่วยงาน</label>
+        </div>
+        <button type="button" class="btn btn-outline-danger remove-section-btn"><i class="bi bi-trash"></i></button>
+        <span class="text-danger small w-100" data-valmsg-for="SectionViewModels[{index}].Name" data-valmsg-replace="true"></span>
     </div>
 </div>

@@ -32,13 +32,14 @@ namespace Portal.Models
 
         public async Task<ApiResponse<object>> CreateAsync(SectionViewModel viewModel)
         {
-            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SectionSave, viewModel);
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SectionCreate, viewModel);
             return await HandleResponse<object>(response);
         }
 
         public async Task<ApiResponse<object>> UpdateAsync(int id, SectionViewModel viewModel)
         {
-            var response = await _httpClient.PutAsJsonAsync(_apiSettings.SectionSave, viewModel);
+            var endpoint = string.Format(_apiSettings.SectionUpdate, id);
+            var response = await _httpClient.PutAsJsonAsync(endpoint, viewModel);
             return await HandleResponse<object>(response);
         }
 

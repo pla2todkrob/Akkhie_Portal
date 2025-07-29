@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <!-- ===== ส่วนจัดการสายงาน (Divisions) - เพิ่มใหม่ ===== -->
+    <!-- ===== ส่วนจัดการสายงาน (Divisions) ===== -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <!-- ===== ส่วนจัดการสาขา (Branches) - ปรับปรุงเล็กน้อย ===== -->
+    <!-- ===== ส่วนจัดการสาขา (Branches) ===== -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -130,7 +130,7 @@
 <!-- ===== Templates สำหรับ JavaScript (ซ่อนไว้) ===== -->
 <div id="divisionTemplate" class="d-none">
     <div class="child-item input-group">
-        <input type="hidden" name="DivisionViewModels.Index" value="--i--" />
+        <!-- [FIX] Removed the problematic hidden input for 'Index' -->
         <input type="hidden" name="DivisionViewModels[--i--].Id" value="0" />
         <input type="hidden" name="DivisionViewModels[--i--].CompanyName" value="0" />
         <div class="form-floating flex-grow-1">
@@ -152,7 +152,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <input type="hidden" name="CompanyBranchViewModels.Index" value="--i--" />
+                <!-- [FIX] Removed the problematic hidden input for 'Index' -->
                 <input type="hidden" name="CompanyBranchViewModels[--i--].Id" value="0" />
                 <div class="row g-3">
                     <div class="col-md-9 col-lg-8">

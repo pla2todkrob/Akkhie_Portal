@@ -98,7 +98,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <input type="hidden" name="DepartmentViewModels.Index" value="{index}" />
+                <!-- [FIX] Removed the problematic hidden input for 'Index' -->
                 <input type="hidden" name="DepartmentViewModels[{index}].Id" value="0" />
                 <div class="form-floating">
                     <input name="DepartmentViewModels[{index}].Name" class="form-control" placeholder=" " required data-val="true" data-val-required="กรุณากรอกชื่อฝ่าย">

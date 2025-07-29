@@ -14,14 +14,14 @@
         public string CompanyAll { get; set; } = string.Empty;
         public string CompanySearch { get; set; } = string.Empty;
         public string CompanyCreate { get; set; } = string.Empty;
-        public string CompanyEdit { get; set; } = string.Empty;
+        public string CompanyUpdate { get; set; } = string.Empty;
         public string CompanyDelete { get; set; } = string.Empty;
         public string BranchesByCompany { get; set; } = string.Empty;
         public string DivisionsByCompany { get; set; } = string.Empty;
         public string DivisionAll { get; set; } = string.Empty;
         public string DivisionSearch { get; set; } = string.Empty;
         public string DivisionCreate { get; set; } = string.Empty;
-        public string DivisionEdit { get; set; } = string.Empty;
+        public string DivisionUpdate { get; set; } = string.Empty;
         public string DivisionDelete { get; set; } = string.Empty;
         public string DepartmentAll { get; set; } = string.Empty;
         public string DepartmentSearch { get; set; } = string.Empty;
@@ -32,7 +32,8 @@
         public string SectionAll { get; set; } = string.Empty;
         public string SectionSearch { get; set; } = string.Empty;
         public string SectionsByDepartment { get; set; } = string.Empty;
-        public string SectionSave { get; set; } = string.Empty;
+        public string SectionCreate { get; set; } = string.Empty;
+        public string SectionUpdate { get; set; } = string.Empty;
         public string SectionDelete { get; set; } = string.Empty;
         public string SupportTicketCreate { get; set; } = string.Empty;
         public string SupportTicketGetCategories { get; set; } = string.Empty;

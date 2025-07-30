@@ -25,7 +25,7 @@ namespace Portal.Shared.Models.ViewModel
         [Display(Name = "บริษัท")]
         public string? CompanyName { get; set; }
 
-        [Display(Name = "จำนวนหน่วยงาน")]
+        [Display(Name = "จำนวนแผนก")]
         public int TotalSection { get; set; }
 
         public List<SectionViewModel> SectionViewModels { get; set; } = new();

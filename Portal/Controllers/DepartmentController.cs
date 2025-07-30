@@ -16,24 +16,17 @@ namespace Portal.Controllers
             return View(departments);
         }
 
-        // Helper method สำหรับจัดการ Dropdowns ทั้งหมด
-        private async Task PopulateDropdowns(DepartmentViewModel model = null)
+        private async Task PopulateDropdowns(DepartmentViewModel? model = null)
         {
             var companies = await companyRequest.GetAllAsync();
             ViewBag.Companies = new SelectList(companies, "Id", "Name", model?.CompanyId);
 
+            IEnumerable<DivisionViewModel> divisionsForCompany = new List<DivisionViewModel>();
             if (model?.CompanyId > 0)
             {
-                // ถ้ามี CompanyId, ให้ดึง Division ที่เกี่ยวข้องมาแสดง
-                var allDivisions = await divisionRequest.GetAllAsync(); // หมายเหตุ: ควรมี API ที่กรองได้ดีกว่านี้
-                var filteredDivisions = allDivisions.Where(d => d.CompanyId == model.CompanyId);
-                ViewBag.Divisions = new SelectList(filteredDivisions, "Id", "Name", model?.DivisionId);
+                divisionsForCompany = await companyRequest.GetDivisionsByCompanyIdAsync(model.CompanyId);
             }
-            else
-            {
-                // ถ้ายังไม่ได้เลือก Company, ให้ Dropdown ของ Division เป็นค่าว่าง
-                ViewBag.Divisions = new SelectList(Enumerable.Empty<SelectListItem>(), "Id", "Name");
-            }
+            ViewBag.Divisions = new SelectList(divisionsForCompany, "Id", "Name", model?.DivisionId);
         }
 
         public async Task<IActionResult> Create()
@@ -52,11 +45,11 @@ namespace Portal.Controllers
                 var response = await departmentRequest.CreateAsync(model);
                 if (response.Success)
                 {
-                    return Ok(new { success = true });
+                    return Ok(response);
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            await PopulateDropdowns(model); // ส่ง Dropdown กลับไปอีกครั้งเมื่อเกิด Error
+            await PopulateDropdowns(model);
             return BadRequest(ModelState);
         }
 
@@ -80,11 +73,11 @@ namespace Portal.Controllers
                 var response = await departmentRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
-                    return Ok(new { success = true });
+                    return Ok(response);
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
-            await PopulateDropdowns(model); // ส่ง Dropdown กลับไปอีกครั้งเมื่อเกิด Error
+            await PopulateDropdowns(model);
             return BadRequest(ModelState);
         }
 
@@ -93,7 +86,11 @@ namespace Portal.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var response = await departmentRequest.DeleteAsync(id);
-            return Ok(response);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
         public async Task<IActionResult> Sections(int id)

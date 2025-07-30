@@ -5,6 +5,7 @@ namespace Portal.Shared.Models.DTOs.Auth
 {
     public class RegisterRequest : IValidatableObject
     {
+        public Guid Id { get; set; }
         public bool IsAdUser { get; set; } = false;
 
         [Display(Name = "ชื่อผู้ใช้")]
@@ -70,7 +71,7 @@ namespace Portal.Shared.Models.DTOs.Auth
         [Display(Name = "บทบาท")]
         public int? RoleId { get; set; }
 
-        [Display(Name = "สิทธิ์ระดับระบบ")]
+        [Display(Name = "สิทธิ์ผู้ดูแลระบบ")]
         public bool IsSystemRole { get; set; } = false;
 
         public string? ReturnUrl { get; set; }
@@ -83,29 +84,13 @@ namespace Portal.Shared.Models.DTOs.Auth
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!IsAdUser)
+            if (!IsAdUser && Id == Guid.Empty)
             {
                 if (string.IsNullOrWhiteSpace(Password))
                 {
                     yield return new ValidationResult(
                         "กรุณากรอกรหัสผ่าน",
-                        [nameof(Password)]);
-                }
-
-                if (string.IsNullOrWhiteSpace(ConfirmPassword))
-                {
-                    yield return new ValidationResult(
-                        "กรุณายืนยันรหัสผ่าน",
-                        [nameof(ConfirmPassword)]);
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrWhiteSpace(Password) || !string.IsNullOrWhiteSpace(ConfirmPassword))
-                {
-                    yield return new ValidationResult(
-                        "ผู้ใช้ AD ไม่จำเป็นต้องกำหนดรหัสผ่านในการลงทะเบียน",
-                        [nameof(Password), nameof(ConfirmPassword)]);
+                        new[] { nameof(Password) });
                 }
             }
         }

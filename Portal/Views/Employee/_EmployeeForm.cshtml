@@ -1,0 +1,100 @@
+﻿@model Portal.Shared.Models.DTOs.Auth.RegisterRequest
+
+@{
+    bool isCreate = Model.Id == Guid.Empty;
+}
+
+<form id="employeeForm" asp-action="@(isCreate ? "Create" : "Edit")" asp-route-id="@Model.Id" method="post" class="needs-validation"
+      data-ajax="true"
+      data-success-url="@Url.Action("Index","Employee")"
+      data-confirm="true"
+novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-4"></div>
+
+    <fieldset class="mb-4">
+        <legend class="h5 mb-3 fw-normal border-bottom pb-2"><i class="bi bi-person-badge me-2"></i>ข้อมูลบัญชีผู้ใช้</legend>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input asp-for="Username" class="form-control" placeholder=" " required>
+                    <label asp-for="Username"></label>
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input asp-for="EmployeeCode" class="form-control" placeholder=" " required>
+                    <label asp-for="EmployeeCode"></label>
+                    <span asp-validation-for="EmployeeCode" class="text-danger small"></span>
+                </div>
+            </div>
+
+            @if (isCreate && !Model.IsAdUser)
+            {
+                <div class="col-md-6">
+                    <div class="form-floating input-group">
+                        <input asp-for="Password" type="password" class="form-control border-end-0" placeholder=" ">
+                        <label asp-for="Password"></label>
+                        <button type="button" class="btn btn-outline-secondary border-start-0" id="togglePassword"><i class="bi bi-eye-slash"></i></button>
+                        <span asp-validation-for="Password" class="text-danger small w-100"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating input-group">
+                        <input asp-for="ConfirmPassword" type="password" class="form-control border-end-0" placeholder=" ">
+                        <label asp-for="ConfirmPassword"></label>
+                        <button type="button" class="btn btn-outline-secondary border-start-0" id="toggleConfirmPassword"><i class="bi bi-eye-slash"></i></button>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small w-100"></span>
+                    </div>
+                </div>
+            }
+        </div>
+    </fieldset>
+
+    <fieldset class="mb-4">
+        <legend class="h5 mb-3 fw-normal border-bottom pb-2"><i class="bi bi-person me-2"></i>ข้อมูลส่วนตัว</legend>
+        <div class="row g-3">
+            <div class="col-md-6"><div class="form-floating"><input asp-for="FirstName" class="form-control" placeholder=" " required><label asp-for="FirstName"></label><span asp-validation-for="FirstName" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><input asp-for="LastName" class="form-control" placeholder=" " required><label asp-for="LastName"></label><span asp-validation-for="LastName" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><input asp-for="LocalFirstName" class="form-control" placeholder=" " required><label asp-for="LocalFirstName"></label><span asp-validation-for="LocalFirstName" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><input asp-for="LocalLastName" class="form-control" placeholder=" " required><label asp-for="LocalLastName"></label><span asp-validation-for="LocalLastName" class="text-danger small"></span></div></div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mb-4">
+        <legend class="h5 mb-3 fw-normal border-bottom pb-2"><i class="bi bi-envelope me-2"></i>ข้อมูลการติดต่อ</legend>
+        <div class="row g-3">
+            <div class="col-md-6"><div class="form-floating"><input asp-for="Email" type="email" class="form-control" placeholder=" " required><label asp-for="Email"></label><span asp-validation-for="Email" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><input asp-for="PhoneNumber" class="form-control" placeholder=" "><label asp-for="PhoneNumber"></label><span asp-validation-for="PhoneNumber" class="text-danger small"></span></div></div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend class="h5 mb-3 fw-normal border-bottom pb-2"><i class="bi bi-diagram-3 me-2"></i>ข้อมูลหน่วยงานและสิทธิ์</legend>
+        <div class="row g-3">
+            <div class="col-md-6"><div class="form-floating"><select asp-for="CompanyId" asp-items="ViewBag.Companies" class="form-select" required><option value="">-- เลือกบริษัท --</option></select><label asp-for="CompanyId"></label><span asp-validation-for="CompanyId" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><select asp-for="RoleId" asp-items="ViewBag.Roles" class="form-select" required><option value="">-- เลือกระดับผู้ใช้ --</option></select><label asp-for="RoleId"></label><span asp-validation-for="RoleId" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><select asp-for="DivisionId" asp-items="ViewBag.Divisions" class="form-select"><option value="">-- เลือกสายงาน --</option></select><label asp-for="DivisionId"></label><span asp-validation-for="DivisionId" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select"><option value="">-- เลือกฝ่าย --</option></select><label asp-for="DepartmentId"></label><span asp-validation-for="DepartmentId" class="text-danger small"></span></div></div>
+            <div class="col-md-6"><div class="form-floating"><select asp-for="SectionId" asp-items="ViewBag.Sections" class="form-select"><option value="">-- เลือกแผนก --</option></select><label asp-for="SectionId"></label><span asp-validation-for="SectionId" class="text-danger small"></span></div></div>
+
+            <div class="col-12 mt-4">
+                <div class="form-check form-switch p-0">
+                    <div class="d-flex align-items-center">
+                        <input class="form-check-input ms-0 me-3" type="checkbox" role="switch" asp-for="IsSystemRole" style="transform: scale(1.4);">
+                        <div>
+                            <label class="form-check-label h6 mb-0" asp-for="IsSystemRole">
+                                <i class="bi bi-shield-lock-fill text-primary me-1"></i> สิทธิ์ผู้ดูแลระบบ
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                ผู้ใช้ที่มีสิทธิ์นี้จะสามารถเข้าถึงเมนูข้อมูลหลักและจัดการผู้ใช้ทั้งหมดได้
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</form>

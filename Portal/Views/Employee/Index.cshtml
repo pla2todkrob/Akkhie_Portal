@@ -1,0 +1,160 @@
+﻿@model IEnumerable<Portal.Shared.Models.ViewModel.EmployeeViewModel>
+@using Portal.Shared.Constants
+@using Portal.Shared.Enums
+
+@{
+    ViewData["Title"] = "จัดการข้อมูลพนักงาน";
+    Layout = "_Layout";
+    var breadcrumbs = new List<Tuple<string, string>>
+    {
+        new("หน้าแรก", Url.Action("Index","Home") ?? ""),
+        new("ข้อมูลพนักงาน", "")
+    };
+}
+
+<div class="container py-4">
+    <partial name="_Breadcrumb" model="breadcrumbs" />
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
+            <p class="text-muted mb-0"><i class="bi bi-people-fill me-2"></i>รายการพนักงานทั้งหมดในระบบ</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill me-2"></i>เพิ่มพนักงาน
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="employeeTable" class="table table-hover table-striped" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().EmployeeCode)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().FullName)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().DepartmentName)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().SectionName)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().RoleName)</th>
+                            <th class="text-center">@Html.DisplayNameFor(model => model.First().EmployeeStatus)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CompanyName)</th>
+                            <th class="text-center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr id="row-@item.Id">
+                                <td class="align-middle">@item.EmployeeCode</td>
+                                <td class="align-middle">@item.FullName</td>
+                                <td class="align-middle">@item.DepartmentName</td>
+                                <td class="align-middle">@item.SectionName</td>
+                                <td class="align-middle">@item.RoleName</td>
+                                <td class="align-middle text-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm dropdown-toggle @GetStatusClass(item.EmployeeStatus)" data-bs-toggle="dropdown" aria-expanded="false">
+                                            @item.EmployeeStatus.GetDisplayName()
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @foreach (EmployeeStatus status in Enum.GetValues(typeof(EmployeeStatus)))
+                                            {
+                                                if (status != item.EmployeeStatus)
+                                                {
+                                                    <li>
+                                                        <a class="dropdown-item status-change-btn" href="#" data-id="@item.Id" data-status="@status" data-status-name="@status.GetDisplayName()">
+                                                            เปลี่ยนเป็น "@status.GetDisplayName()"
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td class="align-middle">@item.CompanyName</td>
+                                <td class="align-middle text-center fit-content">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square me-1"></i>แก้ไข
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusClass(Portal.Shared.Enums.EmployeeStatus status)
+    {
+        return status switch
+        {
+            Portal.Shared.Enums.EmployeeStatus.Active => "btn-outline-success",
+            Portal.Shared.Enums.EmployeeStatus.Inactive => "btn-outline-secondary",
+            Portal.Shared.Enums.EmployeeStatus.Suspended => "btn-outline-warning",
+            Portal.Shared.Enums.EmployeeStatus.Cancelled => "btn-outline-danger",
+            _ => "btn-outline-dark",
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            app.setupDataTable('#employeeTable', {
+                orderFixed: [[5, 'asc']],
+                order: [[0, 'asc']],
+                columnDefs: [
+                    { orderable: false, targets: [7] },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 7 },
+                    { visible: false, targets: 6 }
+                ],
+                rowGroup: {
+                    dataSrc: 6
+                }
+            });
+
+            $('#employeeTable').on('click', '.status-change-btn', function(e) {
+                e.preventDefault();
+                const button = $(this);
+                const employeeId = button.data('id');
+                const newStatus = button.data('status');
+                const newStatusName = button.data('status-name');
+
+                app.showConfirmDialog({
+                    title: 'ยืนยันการเปลี่ยนสถานะ',
+                    html: `คุณต้องการเปลี่ยนสถานะเป็น "<b>${newStatusName}</b>" ใช่หรือไม่?`,
+                    icon: 'warning',
+                    confirmButtonText: 'ยืนยัน'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("UpdateStatus", "Employee")',
+                            type: 'POST',
+                            headers: { 'RequestVerificationToken': token },
+                            data: {
+                                id: employeeId,
+                                status: newStatus
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    app.showSuccessToast(response.message);
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    app.showErrorAlert(response.message || 'เกิดข้อผิดพลาด');
+                                }
+                            },
+                            error: function() {
+                                app.showErrorAlert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

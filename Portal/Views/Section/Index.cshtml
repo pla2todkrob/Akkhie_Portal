@@ -13,7 +13,6 @@
 <div class="container py-4">
     <partial name="_Breadcrumb" model="breadcrumbs" />
 
-    <!-- Header with create button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
@@ -24,30 +23,31 @@
         </a>
     </div>
 
-    <!-- DataTable Card -->
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
-                <table id="viewTable" class="table table-hover table-striped mb-0">
+                <table id="viewTable" class="table table-hover table-striped mb-0" style="width:100%">
                     <thead class="table-light">
                         <tr>
                             <th class="text-nowrap">@Html.DisplayNameFor(model => model.Name)</th>
                             <th class="text-nowrap">@Html.DisplayNameFor(model => model.DepartmentName)</th>
-                            <th class="text-nowrap text-center">จัดการ</th>
+                            <th class="text-nowrap">@Html.DisplayNameFor(model => model.DivisionName)</th>
+                            <th class="text-nowrap">@Html.DisplayNameFor(model => model.CompanyName)</th>
+                            <th class="text-center">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="align-middle text-nowrap">@Html.DisplayFor(modelItem => item.Name)</td>
-                                <td class="align-middle text-nowrap">@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                                <td class="align-middle">@item.Name</td>
+                                <td class="align-middle">@item.DepartmentName</td>
+                                <td class="align-middle">@item.DivisionName</td>
+                                <td class="align-middle">@item.CompanyName</td>
                                 <td class="align-middle text-center fit-content">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
-                                            <i class="bi bi-pencil-square me-1"></i>แก้ไข
-                                        </a>
-                                    </div>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square me-1"></i>แก้ไข
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -62,23 +62,17 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function() {
-            const table = app.setupDataTable('#viewTable', {
+            app.setupDataTable('#viewTable', {
+                orderFixed: [[3, 'asc']],
+                order: [[2, 'asc'], [1, 'asc']],
                 columnDefs: [
-                    {
-                        orderable: false, targets: [2]
-                    },
-                    {
-                        responsivePriority: 1,
-                        targets: 0
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: 2
-                    }
+                    { orderable: false, targets: [4] },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 4 },
+                    { "visible": false, "targets": 3 }
                 ],
-                fixedColumns:{
-                    left:1,
-                    right:1
+                rowGroup: {
+                    dataSrc: 3
                 }
             });
         });

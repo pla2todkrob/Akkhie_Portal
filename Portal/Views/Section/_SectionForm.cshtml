@@ -17,16 +17,24 @@
             </h5>
         </div>
         <div class="card-body">
+            <!-- [NEW] Company Dropdown -->
+            <div class="form-floating mb-3">
+                <select asp-for="CompanyId" asp-items="ViewBag.Companies" class="form-select" required>
+                    <option value="">-- กรุณาเลือกบริษัท --</option>
+                </select>
+                <label asp-for="CompanyId" class="text-muted"></label>
+                <span asp-validation-for="CompanyId" class="text-danger small"></span>
+            </div>
             <div class="form-floating mb-3">
                 <select asp-for="DivisionId" asp-items="ViewBag.Divisions" class="form-select" required>
-                    <option value="">กรุณาเลือก</option>
+                    <option value="">-- กรุณาเลือกสายงาน --</option>
                 </select>
                 <label asp-for="DivisionId" class="text-muted"></label>
                 <span asp-validation-for="DivisionId" class="text-danger small"></span>
             </div>
             <div class="form-floating mb-3">
                 <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select" required>
-                    <option value="">กรุณาเลือก</option>
+                    <option value="">-- กรุณาเลือกฝ่าย --</option>
                 </select>
                 <label asp-for="DepartmentId" class="text-muted"></label>
                 <span asp-validation-for="DepartmentId" class="text-danger small"></span>

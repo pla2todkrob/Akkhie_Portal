@@ -16,7 +16,6 @@ namespace Portal.Controllers
         ISupportCategoryRequest categoryRequest,
         ILogger<SupportController> logger) : Controller
     {
-        // GET: Support/Index
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "จัดการ Support Ticket";
@@ -29,7 +28,6 @@ namespace Portal.Controllers
             return View(response.Data);
         }
 
-        // POST: Support/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTicketRequest model)
@@ -52,8 +50,6 @@ namespace Portal.Controllers
             }
         }
 
-
-        // GET: Support/Details/5
         public async Task<IActionResult> Details(int id)
         {
             ViewData["Title"] = "รายละเอียด Ticket";
@@ -70,7 +66,6 @@ namespace Portal.Controllers
             return View(response.Data);
         }
 
-        // POST: Support/Accept
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(TicketActionRequest request)
@@ -83,7 +78,6 @@ namespace Portal.Controllers
             return Json(response);
         }
 
-        // POST: Support/Resolve
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Resolve(TicketActionRequest request)
@@ -96,7 +90,6 @@ namespace Portal.Controllers
             return Json(response);
         }
 
-        // POST: Support/CreateWithdrawal
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateWithdrawal([FromBody] CreateWithdrawalRequest model)
@@ -119,7 +112,6 @@ namespace Portal.Controllers
             }
         }
 
-        // POST: Support/CreatePurchase
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePurchase([FromBody] CreatePurchaseRequest model)
@@ -142,8 +134,6 @@ namespace Portal.Controllers
             }
         }
 
-
-        // --- Helper Method ---
         private async Task PopulateDropdowns()
         {
             // ดึงข้อมูลพนักงานแผนก IT (Section "สารสนเทศ" Id = 2)

@@ -22,7 +22,6 @@ namespace Portal.Controllers
 
         public async Task<IActionResult> Create()
         {
-            // ดึงข้อมูลบริษัททั้งหมด
             var companies = await companyRequest.GetAllAsync();
             ViewBag.Companies = new SelectList(companies, "Id", "Name");
             var model = new DivisionViewModel
@@ -41,7 +40,7 @@ namespace Portal.Controllers
                 var response = await divisionRequest.CreateAsync(model);
                 if (response.Success)
                 {
-                    return Ok(new { success = true });
+                    return Ok(response);
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
@@ -74,7 +73,7 @@ namespace Portal.Controllers
                 var response = await divisionRequest.UpdateAsync(id, model);
                 if (response.Success)
                 {
-                    return Ok(new { success = true });
+                    return Ok(response);
                 }
                 ModelState.AddModelError(string.Empty, response.Message ?? "An unknown error occurred.");
             }
@@ -88,9 +87,9 @@ namespace Portal.Controllers
             var response = await divisionRequest.DeleteAsync(id);
             if (response.Success)
             {
-                return Ok(new { success = true, message = "ลบข้อมูลสำเร็จ" });
+                return Ok(response);
             }
-            return BadRequest(new { success = false, message = response.Message ?? "เกิดข้อผิดพลาดในการลบข้อมูล" });
+            return BadRequest(response);
         }
     }
 }

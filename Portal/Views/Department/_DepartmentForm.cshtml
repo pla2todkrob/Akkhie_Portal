@@ -1,6 +1,10 @@
 ﻿@model Portal.Shared.Models.ViewModel.DepartmentViewModel
 
-<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" data-ajax="true" data-success-url="@Url.Action("Index","Department")">
+<form asp-action="@ViewContext.RouteData.Values["action"]" id="SaveForm" name="SaveForm" method="post" class="needs-validation"
+      data-ajax="true"
+      data-success-url="@Url.Action("Index","Department")"
+      data-confirm="true"
+      novalidate>
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
     <input type="hidden" asp-for="Id" />
@@ -42,8 +46,8 @@
     <!-- Sections Card -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">รายการหน่วยงาน (Sections)</h5>
-            <button type="button" class="btn btn-sm btn-success" id="add-section-btn"><i class="bi bi-plus-circle"></i> เพิ่มหน่วยงาน</button>
+            <h5 class="mb-0">รายการแผนก (Sections)</h5>
+            <button type="button" class="btn btn-sm btn-success" id="add-section-btn"><i class="bi bi-plus-circle"></i> เพิ่มแผนก</button>
         </div>
         <div class="card-body">
             <div id="sectionContainer" class="d-flex flex-column gap-3">
@@ -54,7 +58,7 @@
                         <div class="child-item input-group">
                             <input type="hidden" asp-for="SectionViewModels[i].Id" />
                             <div class="form-floating flex-grow-1">
-                                <input asp-for="SectionViewModels[i].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required />
+                                <input asp-for="SectionViewModels[i].Name" class="form-control" placeholder="ชื่อแผนก" required />
                                 <label asp-for="SectionViewModels[i].Name"></label>
                             </div>
                             <button type="button" class="btn btn-outline-danger remove-section-btn"><i class="bi bi-trash"></i></button>
@@ -70,11 +74,10 @@
 <!-- Template สำหรับเพิ่ม Section ด้วย JavaScript -->
 <div id="sectionTemplate" class="d-none">
     <div class="child-item input-group">
-        <!-- [FIX] Removed the problematic hidden input for 'Index' -->
         <input type="hidden" name="SectionViewModels[{index}].Id" value="0" />
         <div class="form-floating flex-grow-1">
-            <input name="SectionViewModels[{index}].Name" class="form-control" placeholder="ชื่อหน่วยงาน" required data-val="true" data-val-required="กรุณากรอกชื่อหน่วยงาน" />
-            <label>ชื่อหน่วยงาน</label>
+            <input name="SectionViewModels[{index}].Name" class="form-control" placeholder="ชื่อแผนก" required data-val="true" data-val-required="กรุณากรอกชื่อแผนก" />
+            <label>ชื่อแผนก</label>
         </div>
         <button type="button" class="btn btn-outline-danger remove-section-btn"><i class="bi bi-trash"></i></button>
         <span class="text-danger small w-100" data-valmsg-for="SectionViewModels[{index}].Name" data-valmsg-replace="true"></span>

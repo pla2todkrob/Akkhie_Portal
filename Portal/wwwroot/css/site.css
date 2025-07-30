@@ -13,3 +13,6 @@ td.fit-content {
     white-space: nowrap;
     width: 1%;
 }
+.setStickyBottom{
+    backdrop-filter:blur(5px);
+}

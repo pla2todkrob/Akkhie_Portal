@@ -1,7 +1,8 @@
-﻿@model Portal.Shared.Models.ViewModel.SectionViewModel
+﻿@model Portal.Shared.Models.DTOs.Auth.RegisterRequest
 
 @{
-    ViewData["Title"] = "สร้างแผนกใหม่";
+    bool isCreate = string.IsNullOrEmpty(Model.Username);
+    ViewData["Title"] = isCreate ? "สร้างข้อมูลพนักงานใหม่" : $"แก้ไขข้อมูล: {Model.Username}";
     Layout = "_Layout";
 }
 
@@ -15,25 +16,17 @@
                 <h2 class="mb-0 text-primary">@ViewData["Title"]</h2>
             </div>
 
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body">
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                        กรุณากรอกข้อมูลให้ครบถ้วน
-                    </p>
-                </div>
-            </div>
-
             <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <partial name="_SectionForm" model="Model" />
+                <div class="card-body p-4">
+                    @* We will create the _EmployeeForm partial next *@
+                    <partial name="_EmployeeForm" model="Model" />
                 </div>
                 <div class="card-footer setStickyBottom py-3">
                     <div class="d-flex justify-content-between">
                         <a asp-action="Index" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left me-2"></i>ยกเลิก
                         </a>
-                        <button type="submit" form="SaveForm" class="btn btn-primary">
+                        <button type="submit" form="employeeForm" class="btn btn-primary">
                             <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
                             <i class="bi bi-check-circle me-2"></i>บันทึกข้อมูล
                         </button>
@@ -46,5 +39,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/section-form.js" asp-append-version="true"></script>
+    @* We will create this JS file next *@
+    <script src="~/js/employee-form.js" asp-append-version="true"></script>
 }

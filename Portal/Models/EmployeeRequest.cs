@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Portal.Interfaces;
+using Portal.Shared.Enums;
 using Portal.Shared.Models.DTOs.Auth;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
@@ -108,5 +109,35 @@ namespace Portal.Models
             }
         }
 
+        public async Task<ApiResponse> UpdateStatusAsync(Guid employeeId, EmployeeStatus newStatus)
+        {
+            try
+            {
+                var endpoint = string.Format(_apiSettings.EmployeeUpdateStatus, employeeId);
+                var requestDto = new UpdateStatusRequestDto { NewStatus = newStatus };
+                var response = await _httpClient.PutAsJsonAsync(endpoint, requestDto);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<ApiResponse>();
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.ErrorResponse($"Error updating employee status: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse> CreateAsync(RegisterRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.EmployeeCreate, request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
+        }
+
+        public async Task<ApiResponse> UpdateAsync(Guid employeeId, RegisterRequest request)
+        {
+            var endpoint = string.Format(_apiSettings.EmployeeUpdate, employeeId);
+            var response = await _httpClient.PutAsJsonAsync(endpoint, request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ApiResponse>();
+        }
     }
 }

@@ -15,25 +15,29 @@ namespace Portal.Services.Models
         public async Task<IEnumerable<SectionViewModel>> GetAllAsync()
         {
             return await context.Sections
+                .AsNoTracking()
                 .Select(s => new SectionViewModel
                 {
                     Id = s.Id,
                     Name = s.Name,
-                    DepartmentId = s.DepartmentId,
-                    DepartmentName = s.Department.Name
+                    DepartmentName = s.Department.Name,
+                    DivisionName = s.Department.Division.Name,
+                    CompanyName = s.Department.Division.Company.Name
                 }).ToListAsync();
         }
 
         public async Task<SectionViewModel> GetByIdAsync(int id)
         {
             return await context.Sections
+                .AsNoTracking()
                 .Where(s => s.Id == id)
                 .Select(s => new SectionViewModel
                 {
                     Id = s.Id,
                     Name = s.Name,
                     DepartmentId = s.DepartmentId,
-                    DivisionId = s.Department.DivisionId
+                    DivisionId = s.Department.DivisionId,
+                    CompanyId = s.Department.Division.CompanyId
                 }).FirstOrDefaultAsync();
         }
 
@@ -57,7 +61,7 @@ namespace Portal.Services.Models
             };
             context.Sections.Add(section);
             await context.SaveChangesAsync();
-            return new ApiResponse<Section> { Success = true, Data = section };
+            return new ApiResponse<Section> { Success = true, Data = section, Message = "สร้างข้อมูลแผนกสำเร็จ" };
         }
 
         public async Task<ApiResponse<Section>> UpdateAsync(int id, SectionViewModel viewModel)
@@ -65,14 +69,14 @@ namespace Portal.Services.Models
             var section = await context.Sections.FindAsync(id);
             if (section == null)
             {
-                return new ApiResponse<Section> { Success = false, Message = "Section not found." };
+                return new ApiResponse<Section> { Success = false, Message = "ไม่พบข้อมูลแผนก" };
             }
 
             section.Name = viewModel.Name;
             section.DepartmentId = viewModel.DepartmentId;
 
             await context.SaveChangesAsync();
-            return new ApiResponse<Section> { Success = true, Data = section };
+            return new ApiResponse<Section> { Success = true, Data = section, Message = "อัปเดตข้อมูลแผนกสำเร็จ" };
         }
 
         public async Task<ApiResponse> DeleteAsync(int id)
@@ -80,12 +84,12 @@ namespace Portal.Services.Models
             var section = await context.Sections.FindAsync(id);
             if (section == null)
             {
-                return new ApiResponse { Success = false, Message = "Section not found." };
+                return new ApiResponse { Success = false, Message = "ไม่พบข้อมูลแผนก" };
             }
 
             context.Sections.Remove(section);
             await context.SaveChangesAsync();
-            return new ApiResponse { Success = true };
+            return new ApiResponse { Success = true, Message = "ลบข้อมูลสำเร็จ" };
         }
     }
 }

@@ -29,5 +29,10 @@ namespace Portal.Shared.Models.ViewModel
 
         [Display(Name = "สายงาน")]
         public string DivisionName { get; set; } = string.Empty;
+        [Display(Name = "บริษัท")]
+        [Required(ErrorMessage = "กรุณาเลือกบริษัท")]
+        public int CompanyId { get; set; }
+        [Display(Name = "บริษัท")]
+        public string CompanyName { get; set; } = string.Empty;
     }
 }

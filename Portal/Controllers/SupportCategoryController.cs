@@ -8,40 +8,34 @@ namespace Portal.Controllers
     [Authorize]
     public class SupportCategoryController(ISupportCategoryRequest categoryRequest, ILogger<SupportCategoryController> logger) : Controller
     {
-        // GET: SupportCategory
         public async Task<IActionResult> Index()
         {
             var response = await categoryRequest.GetAllAsync();
             if (!response.Success)
             {
-                // Handle error appropriately, maybe show an error page or a message
                 TempData["ErrorMessage"] = response.Message;
                 return View(new List<SupportCategoryViewModel>());
             }
             return View(response.Data);
         }
 
-        // GET: SupportCategory/_CreateOrEdit/{id?}
         public async Task<IActionResult> _CreateOrEdit(int id = 0)
         {
             if (id == 0)
             {
-                // This is for creating a new category
                 return PartialView("_SupportCategoryModal", new SupportCategoryViewModel());
             }
             else
             {
-                // This is for editing an existing category
                 var response = await categoryRequest.GetByIdAsync(id);
                 if (!response.Success || response.Data == null)
                 {
-                    return NotFound(); // Or handle the error as you see fit
+                    return NotFound();
                 }
                 return PartialView("_SupportCategoryModal", response.Data);
             }
         }
 
-        // POST: SupportCategory/Save
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Save(SupportCategoryViewModel model)
@@ -73,7 +67,6 @@ namespace Portal.Controllers
             }
         }
 
-        // POST: SupportCategory/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)

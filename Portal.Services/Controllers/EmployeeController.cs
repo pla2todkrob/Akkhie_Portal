@@ -158,5 +158,61 @@ namespace Portal.Services.Controllers
             }
         }
 
+        [HttpPut("{employeeId:guid}/status")]
+        public async Task<IActionResult> UpdateEmployeeStatus(Guid employeeId, [FromBody] UpdateStatusRequestDto request)
+        {
+            try
+            {
+                var result = await employeeService.UpdateStatusAsync(employeeId, request.NewStatus);
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error updating employee status for ID {EmployeeId}", employeeId);
+                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.GetBaseException().Message}"));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateEmployee([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                var result = await employeeService.CreateAsync(request);
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error creating employee.");
+                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
+            }
+        }
+
+        [HttpPut("{employeeId:guid}")]
+        public async Task<IActionResult> UpdateEmployee(Guid employeeId, [FromBody] RegisterRequest request)
+        {
+            try
+            {
+                var result = await employeeService.UpdateAsync(employeeId, request);
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error updating employee with ID {EmployeeId}", employeeId);
+                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาด: {ex.Message}"));
+            }
+        }
     }
 }

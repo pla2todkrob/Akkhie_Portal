@@ -10,6 +10,9 @@
         public string EmployeeSearchByUsername { get; set; } = string.Empty;
         public string EmployeeSearchByEmail { get; set; } = string.Empty;
         public string EmployeeAll { get; set; } = string.Empty;
+        public string EmployeeUpdateStatus { get; set; } = string.Empty;
+        public string EmployeeCreate { get; set; } = string.Empty;
+        public string EmployeeUpdate { get; set; } = string.Empty;
         public string RoleAll { get; set; } = string.Empty;
         public string CompanyAll { get; set; } = string.Empty;
         public string CompanySearch { get; set; } = string.Empty;

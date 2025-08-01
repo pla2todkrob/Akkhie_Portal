@@ -5,6 +5,7 @@ using Portal.Shared.Constants;
 using Portal.Shared.Enums;
 using Portal.Shared.Enums.Support;
 using Portal.Shared.Models.DTOs.Support;
+using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.Entities.Support;
 using Portal.Shared.Models.ViewModel.Support;
 using System;
@@ -47,7 +48,7 @@ namespace Portal.Services.Models
             await context.SaveChangesAsync();
 
             await AssociateFilesToTicket(newTicket.Id, request.UploadedFileIds);
-            await CreateHistoryEntry(newTicket.Id, userId, "สร้าง Ticket ใหม่", "ระบบสร้าง Ticket อัตโนมัติ");
+            CreateHistoryEntry(newTicket.Id, userId, "สร้าง Ticket ใหม่", "ระบบสร้าง Ticket อัตโนมัติ");
             await context.SaveChangesAsync();
 
             _ = emailService.SendNewTicketNotificationAsync(newTicket);
@@ -114,7 +115,7 @@ namespace Portal.Services.Models
                 ? (await context.Employees.AsNoTracking().Include(e => e.EmployeeDetail).FirstOrDefaultAsync(e => e.Id == request.AssignedToEmployeeId.Value))?.EmployeeDetail?.FullName
                 : currentUser.EmployeeDetail?.FullName;
 
-            await CreateHistoryEntry(ticket.Id, currentUser.Id, "รับงาน", $"กำหนดความสำคัญเป็น: {ticket.Priority.GetDisplayName()}. มอบหมายให้: {assignedToName}");
+            CreateHistoryEntry(ticket.Id, currentUser.Id, "รับงาน", $"กำหนดความสำคัญเป็น: {ticket.Priority.GetDisplayName()}. มอบหมายให้: {assignedToName}");
 
             return await context.SaveChangesAsync() > 0;
         }
@@ -137,17 +138,36 @@ namespace Portal.Services.Models
             ticket.UpdatedAt = DateTime.UtcNow;
 
             await AssociateFilesToTicket(ticket.Id, request.UploadedFileIds);
-            await CreateHistoryEntry(ticket.Id, currentUser, "ดำเนินการแก้ไขเสร็จสิ้น", $"เปลี่ยนหมวดหมู่เป็น: '{category.Name}'. บันทึก: {request.Comment}");
+            CreateHistoryEntry(ticket.Id, currentUser, "ดำเนินการแก้ไขเสร็จสิ้น", $"เปลี่ยนหมวดหมู่เป็น: '{category.Name}'. บันทึก: {request.Comment}");
 
             return await context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync()
+        public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var userId = currentUserService.UserId;
-            return await context.SupportTickets
-                .AsNoTracking()
-                .Where(t => t.ReportedByEmployeeId == userId)
+            var employeeId = currentUserService.UserId;
+            if (employeeId == Guid.Empty)
+            {
+                return new List<TicketListViewModel>();
+            }
+
+            var query = context.SupportTickets
+                                .AsNoTracking()
+                                .Where(t => t.ReportedByEmployeeId == employeeId);
+
+            // If no parameters are sent, default to the last 6 months.
+            DateTime sDate = startDate ?? DateTime.UtcNow.AddMonths(-6);
+
+            // If only startDate is sent, filter from that date to the present.
+            // If both are sent, use the specified range.
+            DateTime eDate = endDate ?? DateTime.UtcNow;
+
+            // Ensure the end of the day is included in the filter
+            eDate = eDate.Date.AddDays(1).AddTicks(-1);
+
+            query = query.Where(t => t.CreatedAt >= sDate && t.CreatedAt <= eDate);
+
+            return await query
                 .OrderByDescending(t => t.CreatedAt)
                 .Select(t => new TicketListViewModel
                 {
@@ -155,16 +175,30 @@ namespace Portal.Services.Models
                     TicketNumber = t.TicketNumber,
                     Title = t.Title,
                     Status = t.Status,
-                    StatusName = t.Status.GetDisplayName(),
-                    CreatedAt = t.CreatedAt,
+                    // Map other necessary properties
+                    CreatedAt = t.CreatedAt
                 })
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<TicketListViewModel>> GetAllTicketsAsync()
+        public async Task<IEnumerable<TicketListViewModel>> GetAllTicketsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            return await context.SupportTickets
-                .AsNoTracking()
+            var query = context.SupportTickets
+                                .AsNoTracking();
+
+            // If no parameters are sent, default to the last 6 months.
+            DateTime sDate = startDate ?? DateTime.UtcNow.AddMonths(-6);
+
+            // If only startDate is sent, filter from that date to the present.
+            // If both are sent, use the specified range.
+            DateTime eDate = endDate ?? DateTime.UtcNow;
+
+            // Ensure the end of the day is included in the filter
+            eDate = eDate.Date.AddDays(1).AddTicks(-1);
+
+            query = query.Where(t => t.CreatedAt >= sDate && t.CreatedAt <= eDate);
+
+            return await query
                 .Include(t => t.ReportedByEmployee).ThenInclude(e => e.EmployeeDetail)
                 .Include(t => t.ReportedByEmployee).ThenInclude(e => e.Department)
                 .OrderByDescending(t => t.CreatedAt)
@@ -274,7 +308,7 @@ namespace Portal.Services.Models
 
         // --- Helper Methods ---
 
-        private async Task CreateHistoryEntry(int ticketId, Guid employeeId, string action, string? comment)
+        private void CreateHistoryEntry(int ticketId, Guid employeeId, string action, string? comment)
         {
             context.SupportTicketHistories.Add(new SupportTicketHistory
             {

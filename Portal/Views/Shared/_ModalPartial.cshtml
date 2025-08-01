@@ -7,7 +7,7 @@
     </div>
 </div>
 
-@* --- Redesigned Support Modal --- *@
+@* --- Redesigned and Expanded Support Modal --- *@
 <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -19,49 +19,72 @@
             </div>
             <div class="modal-body p-4">
                 <div class="row">
-                    <!-- Vertical Navigation -->
+                    <!-- Vertical Navigation (Reordered and New Tabs Added) -->
                     <div class="col-md-3">
                         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+
+                            <!-- 1. แจ้งปัญหา (Most Common) -->
                             <button class="nav-link active text-start" id="v-pills-problem-tab" data-bs-toggle="pill" data-bs-target="#v-pills-problem" type="button" role="tab">
                                 <i class="bi bi-exclamation-octagon-fill me-2"></i>แจ้งปัญหา
                             </button>
+
+                            <!-- 2. เบิก/ขออุปกรณ์ -->
                             <button class="nav-link text-start" id="v-pills-request-tab" data-bs-toggle="pill" data-bs-target="#v-pills-request" type="button" role="tab">
                                 <i class="bi bi-box-seam-fill me-2"></i>เบิก/ขออุปกรณ์
                             </button>
+
+                            <!-- 3. ขอยืมอุปกรณ์ (NEW) -->
+                            <button class="nav-link text-start" id="v-pills-loan-tab" data-bs-toggle="pill" data-bs-target="#v-pills-loan" type="button" role="tab">
+                                <i class="bi bi-handbag-fill me-2"></i>ขอยืมอุปกรณ์
+                            </button>
+
+                            <!-- 4. เพิ่ม/ถอน สิทธิ์ (NEW) -->
+                            <button class="nav-link text-start" id="v-pills-permission-tab" data-bs-toggle="pill" data-bs-target="#v-pills-permission" type="button" role="tab">
+                                <i class="bi bi-person-lock me-2"></i>เพิ่ม/ถอน สิทธิ์
+                            </button>
+
+                            <!-- 5. พัฒนาโปรแกรม (NEW) -->
+                            <button class="nav-link text-start" id="v-pills-develop-tab" data-bs-toggle="pill" data-bs-target="#v-pills-develop" type="button" role="tab">
+                                <i class="bi bi-code-slash me-2"></i>พัฒนาโปรแกรม
+                            </button>
+
+                            <!-- 6. ประวัติของฉัน (Last) -->
                             <button class="nav-link text-start" id="v-pills-history-tab" data-bs-toggle="pill" data-bs-target="#v-pills-history" type="button" role="tab">
                                 <i class="bi bi-clock-history me-2"></i>ประวัติของฉัน
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tab Content -->
+                    <!-- Tab Content (Reordered and New Panes Added) -->
                     <div class="col-md-9">
                         <div class="tab-content" id="v-pills-tabContent">
 
-                            <!-- 1. Problem Tab -->
                             <div class="tab-pane fade show active" id="v-pills-problem" role="tabpanel">
                                 <div class="card border-0">
                                     <div class="card-body">
                                         <h5 class="card-title mb-3">แจ้งปัญหาการใช้งาน</h5>
+                                        <p class="text-muted small mb-4">กรุณากรอกข้อมูลปัญหาที่พบให้ละเอียดที่สุด เพื่อให้ทีมงานสามารถช่วยเหลือท่านได้อย่างรวดเร็ว</p>
                                         <form id="createTicketForm" novalidate>
                                             @Html.AntiForgeryToken()
 
-                                            <!-- อ้างอิง Ticket เก่า -->
-                                            <div class="form-floating mb-3">
-                                                <select id="relatedTicketId" name="RelatedTicketId" class="form-select" data-live-search="true" title="ค้นหา Ticket เก่า..."></select>
-                                                <label for="relatedTicketId">อ้างอิง Ticket เก่า (ถ้ามี)</label>
+                                            <!-- อ้างอิง Ticket เก่า (FIXED) -->
+                                            <div class="mb-3">
+                                                <label for="relatedTicketId" class="form-label">อ้างอิง Ticket เก่า (ถ้ามี)</label>
+                                                <select id="relatedTicketId" name="RelatedTicketId" class="form-control"></select>
                                             </div>
 
                                             <!-- หัวข้อปัญหา -->
                                             <div class="form-floating mb-3">
                                                 <input type="text" class="form-control" id="ticketTitle" name="Title" placeholder="หัวข้อปัญหา" required>
                                                 <label for="ticketTitle">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
+                                                <div class="invalid-feedback">กรุณากรอกหัวข้อปัญหา</div>
                                             </div>
 
                                             <!-- รายละเอียด -->
                                             <div class="form-floating mb-3">
                                                 <textarea class="form-control" placeholder="รายละเอียด" id="ticketDescription" name="Description" style="height: 150px" required></textarea>
                                                 <label for="ticketDescription">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
+                                                <div class="invalid-feedback">กรุณากรอกรายละเอียดของปัญหา</div>
                                             </div>
 
                                             <!-- ส่วนแนบไฟล์ -->
@@ -86,7 +109,7 @@
                                 </div>
                             </div>
 
-                            <!-- 2. Request Tab -->
+                            <!-- 2. Request Tab Content -->
                             <div class="tab-pane fade" id="v-pills-request" role="tabpanel">
                                 <div id="stock-withdrawal-section">
                                     <div class="row g-3">
@@ -145,7 +168,40 @@
                                 </div>
                             </div>
 
-                            <!-- 3. History Tab -->
+                            <!-- 3. Loan Tab Content (NEW - Placeholder) -->
+                            <div class="tab-pane fade" id="v-pills-loan" role="tabpanel">
+                                <div class="card border-0">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">ขอยืมอุปกรณ์</h5>
+                                        <p class="text-muted">ฟอร์มสำหรับขอยืมอุปกรณ์จะถูกพัฒนาในขั้นต่อไป</p>
+                                        <!-- TODO: Add form for equipment loan requests here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Permission Tab Content (NEW - Placeholder) -->
+                            <div class="tab-pane fade" id="v-pills-permission" role="tabpanel">
+                                <div class="card border-0">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">ขอเพิ่ม/ถอน สิทธิ์การเข้าถึงโปรแกรม</h5>
+                                        <p class="text-muted">ฟอร์มสำหรับขอสิทธิ์จะถูกพัฒนาในขั้นต่อไป</p>
+                                        <!-- TODO: Add form for permission requests here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. Development Tab Content (NEW - Placeholder) -->
+                            <div class="tab-pane fade" id="v-pills-develop" role="tabpanel">
+                                <div class="card border-0">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">ขอพัฒนาระบบ/โปรแกรม</h5>
+                                        <p class="text-muted">ฟอร์มสำหรับขอพัฒนาระบบจะถูกพัฒนาในขั้นต่อไป</p>
+                                        <!-- TODO: Add form for development requests here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 6. History Tab Content -->
                             <div class="tab-pane fade" id="v-pills-history" role="tabpanel">
                                 <div id="history-list-view">
                                     <h5 class="mb-3">ประวัติการแจ้งปัญหาและคำขอ</h5>

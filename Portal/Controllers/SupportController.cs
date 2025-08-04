@@ -20,12 +20,7 @@ namespace Portal.Controllers
         {
             ViewData["Title"] = "จัดการ Support Ticket";
             var response = await supportTicketRequest.GetAllTicketsAsync();
-            if (!response.Success)
-            {
-                TempData["ErrorMessage"] = response.Message;
-                return View(new List<TicketListViewModel>());
-            }
-            return View(response.Data);
+            return View(response);
         }
 
         [HttpPost]
@@ -55,15 +50,9 @@ namespace Portal.Controllers
             ViewData["Title"] = "รายละเอียด Ticket";
             var response = await supportTicketRequest.GetTicketDetailsAsync(id);
 
-            if (!response.Success || response.Data == null)
-            {
-                TempData["ErrorMessage"] = response.Message ?? "ไม่พบข้อมูล Ticket ที่ระบุ";
-                return RedirectToAction(nameof(Index));
-            }
-
             await PopulateDropdowns();
 
-            return View(response.Data);
+            return View(response);
         }
 
         [HttpPost]

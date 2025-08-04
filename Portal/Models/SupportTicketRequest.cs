@@ -20,36 +20,22 @@ namespace Portal.Models
             }
             catch (Exception ex)
             {
-                // Log the exception (using a proper logger in a real app)
                 return ApiResponse<SupportTicket>.ErrorResponse($"Error creating ticket: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<SupportTicketCategory>>> GetCategoriesAsync(string categoryType)
+        public async Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(string categoryType)
         {
-            try
-            {
-                var endpoint = $"{_apiSettings.SupportTicketGetCategories}?categoryType={categoryType}";
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<IEnumerable<SupportTicketCategory>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<SupportTicketCategory>>.ErrorResponse($"Error fetching categories: {ex.Message}");
-            }
+            var endpoint = $"{_apiSettings.SupportTicketGetCategories}?categoryType={categoryType}";
+            var response = await _httpClient.GetAsync(endpoint);
+            return await response.Content.ReadFromJsonAsync<IEnumerable<SupportTicketCategory>>()
+                   ?? throw new Exception("Failed to deserialize response");
         }
 
-        public async Task<ApiResponse<IEnumerable<TicketListViewModel>>> GetMyTicketsAsync()
+        public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.SupportTicketGetMyTickets);
-                return await HandleResponse<IEnumerable<TicketListViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<TicketListViewModel>>.ErrorResponse($"Error fetching my tickets: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.SupportTicketGetMyTickets);
+            return await response.Content.ReadFromJsonAsync<IEnumerable<TicketListViewModel>>() ?? throw new Exception("Failed to deserialize response");
         }
 
         public async Task<ApiResponse<SupportTicket>> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request)
@@ -80,31 +66,18 @@ namespace Portal.Models
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<TicketListViewModel>>> GetAllTicketsAsync()
+        public async Task<IEnumerable<TicketListViewModel>> GetAllTicketsAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(_apiSettings.SupportTicketGetAll);
-                return await HandleResponse<IEnumerable<TicketListViewModel>>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<TicketListViewModel>>.ErrorResponse($"Error fetching all tickets: {ex.Message}");
-            }
+            var response = await _httpClient.GetAsync(_apiSettings.SupportTicketGetAll);
+            return await response.Content.ReadFromJsonAsync<IEnumerable<TicketListViewModel>>()
+                   ?? throw new Exception("Failed to deserialize response");
         }
 
-        public async Task<ApiResponse<TicketDetailViewModel>> GetTicketDetailsAsync(int ticketId)
+        public async Task<TicketDetailViewModel> GetTicketDetailsAsync(int ticketId)
         {
-            try
-            {
-                var endpoint = string.Format(_apiSettings.SupportTicketGetDetails, ticketId);
-                var response = await _httpClient.GetAsync(endpoint);
-                return await HandleResponse<TicketDetailViewModel>(response);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<TicketDetailViewModel>.ErrorResponse($"Error fetching ticket details: {ex.Message}");
-            }
+            var endpoint = string.Format(_apiSettings.SupportTicketGetDetails, ticketId);
+            var response = await _httpClient.GetAsync(endpoint);
+            return await response.Content.ReadFromJsonAsync<TicketDetailViewModel>() ?? throw new Exception("Failed to deserialize response");
         }
         public async Task<ApiResponse<bool>> AcceptTicketAsync(TicketActionRequest request)
         {

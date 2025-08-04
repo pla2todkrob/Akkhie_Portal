@@ -11,7 +11,9 @@ namespace Portal.Controllers
         IDivisionRequest divisionRequest,
         IDepartmentRequest departmentRequest,
         ISectionRequest sectionRequest,
-        IRoleRequest roleRequest) : Controller
+        IRoleRequest roleRequest,
+        ISupportTicketRequest support
+        ) : Controller
     {
         [HttpGet]
         public async Task<JsonResult> GetCompanies()
@@ -58,6 +60,18 @@ namespace Portal.Controllers
         {
             var roles = await roleRequest.GetAllAsync();
             var selectList = roles.Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name });
+            return Json(selectList);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetMyTickets()
+        {
+            var tickets = await support.GetMyTicketsAsync();
+            var selectList = tickets.Select(t => new SelectListItem 
+            { 
+                Value = t.Id.ToString(), 
+                Text = $"{t.Title} - {t.Status}" 
+            });
             return Json(selectList);
         }
     }

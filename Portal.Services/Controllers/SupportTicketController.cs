@@ -52,14 +52,14 @@ namespace Portal.Services.Controllers
                 var ticket = await _supportTicketService.GetTicketByIdAsync(id);
                 if (ticket == null)
                 {
-                    return NotFound(ApiResponse.ErrorResponse("ไม่พบ Ticket ที่ระบุ"));
+                    return NotFound("ไม่พบ Ticket ที่ระบุ");
                 }
-                return Ok(ApiResponse<object>.SuccessResponse(ticket));
+                return Ok(ticket);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving ticket with ID {TicketId}", id);
-                return StatusCode(500, ApiResponse.ErrorResponse($"เกิดข้อผิดพลาดในการดึงข้อมูล Ticket: {ex.GetBaseException().Message}"));
+                return StatusCode(500, $"เกิดข้อผิดพลาดในการดึงข้อมูล Ticket: {ex.GetBaseException().Message}");
             }
         }
 
@@ -102,12 +102,12 @@ namespace Portal.Services.Controllers
             try
             {
                 var tickets = await _supportTicketService.GetMyTicketsAsync();
-                return Ok(ApiResponse<object>.SuccessResponse(tickets));
+                return Ok(tickets);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving current user's tickets.");
-                return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ของคุณ"));
+                return StatusCode(500, "เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ของคุณ");
             }
         }
 
@@ -117,12 +117,16 @@ namespace Portal.Services.Controllers
             try
             {
                 var categories = await _supportTicketService.GetCategoriesAsync(categoryType);
-                return Ok(ApiResponse<object>.SuccessResponse(categories));
+                if (categories == null || !categories.Any())
+                {
+                    return NotFound($"ไม่พบหมวดหมู่สำหรับประเภท {categoryType}");
+                }
+                return Ok(categories);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving support categories for type {CategoryType}", categoryType);
-                return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่"));
+                return StatusCode(500, "เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่");
             }
         }
         [HttpPost("withdrawal")]
@@ -182,12 +186,13 @@ namespace Portal.Services.Controllers
             try
             {
                 var tickets = await _supportTicketService.GetAllTicketsAsync();
-                return Ok(ApiResponse<object>.SuccessResponse(tickets));
+
+                return Ok(tickets);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving all support tickets.");
-                return StatusCode(500, ApiResponse.ErrorResponse("เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ทั้งหมด"));
+                return StatusCode(500, "เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ทั้งหมด");
             }
         }
     }

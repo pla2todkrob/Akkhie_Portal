@@ -82,6 +82,16 @@
             document.body.removeChild(link);
         },
 
+        getTicketStatusClass: function (status) {
+            switch (status) {
+                case 'Open': return 'bg-primary-subtle text-primary-emphasis';
+                case 'InProgress': return 'bg-warning-subtle text-warning-emphasis';
+                case 'Resolved': return 'bg-success-subtle text-success-emphasis';
+                case 'Closed': return 'bg-secondary-subtle text-secondary-emphasis';
+                default: return 'bg-light text-dark';
+            }
+        },
+
         // =========================================================================
         // B. Form & AJAX Handling (Alphabetical Order)
         // =========================================================================
@@ -216,6 +226,18 @@
         // =========================================================================
         // D. UI Components (Modals, Alerts, Toasts) (Alphabetical Order)
         // =========================================================================
+
+        showLoading: function (buttonElement) {
+            const $btn = $(buttonElement);
+            $btn.prop('disabled', true);
+            $btn.find('.spinner-border').removeClass('d-none');
+        },
+
+        hideLoading: function (buttonElement) {
+            const $btn = $(buttonElement);
+            $btn.prop('disabled', false);
+            $btn.find('.spinner-border').addClass('d-none');
+        },
 
         /**
          * Initializes a DataTable with standardized settings for the project.

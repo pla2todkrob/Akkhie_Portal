@@ -1,0 +1,60 @@
+﻿
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+<div id="stock-withdrawal-section">
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <h5 class="mb-3">รายการเบิกจากสต็อก</h5>
+            <div class="input-group mb-3">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="stock-item-search" placeholder="ค้นหาอุปกรณ์...">
+            </div>
+            <div id="stock-items-container" class="overflow-auto" style="max-height: 50vh; min-height: 40vh;"></div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card bg-light h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title d-flex justify-content-between">
+                        <span><i class="bi bi-cart3 me-2"></i>ตะกร้า</span>
+                        <span id="cart-item-count" class="badge bg-primary rounded-pill">0</span>
+                    </h5>
+                    <hr>
+                    <div id="cart-items-container" class="flex-grow-1 overflow-auto"></div>
+                    <div class="mt-auto pt-3">
+                        <button id="submit-request-btn" class="btn btn-success w-100" disabled>
+                            <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+                            <i class="bi bi-check-circle-fill me-2"></i>ส่งคำขอเบิก
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="my-4">
+<div class="text-center">
+    <a class="btn btn-link text-decoration-none" data-bs-toggle="collapse" href="#purchase-request-form-collapse">
+        <i class="bi bi-cart-plus me-2"></i>ไม่พบอุปกรณ์ที่ต้องการ? คลิกเพื่อขอจัดซื้อ
+    </a>
+</div>
+<div class="collapse mt-3" id="purchase-request-form-collapse">
+    <div class="card card-body bg-light border-dashed">
+        <h5 class="mb-3">ฟอร์มขอจัดซื้ออุปกรณ์ใหม่</h5>
+        <form id="purchaseRequestForm" novalidate>
+            <div class="row g-3">
+                <div class="col-md-8"><div class="form-floating"><input type="text" class="form-control" name="ItemName" placeholder=" " required><label>ชื่ออุปกรณ์</label></div></div>
+                <div class="col-md-4"><div class="form-floating"><input type="number" class="form-control" name="Quantity" value="1" min="1" placeholder=" " required><label>จำนวน</label></div></div>
+                <div class="col-12"><div class="form-floating"><input type="text" class="form-control" name="Specification" placeholder=" "><label>สเปค/รายละเอียด (ถ้ามี)</label></div></div>
+                <div class="col-12"><div class="form-floating"><textarea class="form-control" placeholder=" " name="Reason" style="height: 100px" required></textarea><label>เหตุผลในการขอ</label></div></div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-info text-white" id="submit-purchase-request-btn">
+                        <span class="spinner-border spinner-border-sm me-2 d-none"></span>
+                        <i class="bi bi-send-fill me-2"></i>ส่งคำขอจัดซื้อ
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

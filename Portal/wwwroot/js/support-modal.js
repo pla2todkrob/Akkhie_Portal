@@ -151,10 +151,11 @@
                 Description: selectors.descriptionInput.val(),
                 UploadedFileIds: uploadedFileIds
             };
+
             $.ajax({
-                url: '/api/SupportTicket/CreateTicket', type: 'POST', contentType: 'application/json',
+                url: '/api/SupportTicket', type: 'POST', contentType: 'application/json',
                 data: JSON.stringify(formData),
-                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                headers: { 'RequestVerificationToken': $('#createTicketForm input[name="__RequestVerificationToken"]').val() },
                 success: function (response) {
                     if (response.success) {
                         app.showSuccessToast('แจ้งปัญหาสำเร็จแล้ว');

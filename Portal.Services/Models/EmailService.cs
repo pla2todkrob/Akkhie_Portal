@@ -16,9 +16,10 @@ using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class EmailService(IOptions<SmtpSettings> smtpSettings, PortalDbContext context, ILogger<EmailService> logger) : IEmailService
+    public class EmailService(IOptions<SmtpSettings> smtpSettings, PortalDbContext context, ILogger<EmailService> logger, IOptions<PortalPathUrlSettings> portalPathUrlSettings) : IEmailService
     {
         private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
+        private readonly PortalPathUrlSettings _portalPathUrlSettings = portalPathUrlSettings.Value;
 
         public async Task SendNewTicketNotificationAsync(SupportTicket ticket)
         {
@@ -26,9 +27,8 @@ namespace Portal.Services.Models
             {
                 // 1. ดึงข้อมูลผู้ที่เกี่ยวข้อง (Reporter) โดยดึงข้อมูล Detail และ Role มาด้วย
                 var reporter = await context.Employees
-                                             .Include(e => e.EmployeeDetail) // <-- Include EmployeeDetail
-                                             .Include(e => e.Role)
-                                             .FirstOrDefaultAsync(e => e.Id == ticket.ReportedByEmployeeId); // <-- แก้ไขเป็น ReportedByEmployeeId
+                                             .Include(e => e.EmployeeDetail)
+                                             .FirstOrDefaultAsync(e => e.Id == ticket.ReportedByEmployeeId);
 
                 if (reporter?.EmployeeDetail == null)
                 {
@@ -38,12 +38,18 @@ namespace Portal.Services.Models
 
                 // 2. ค้นหาผู้รับอีเมลตามเงื่อนไข
                 // To: ทีม IT (Section ID = 2)
-                var toEmails = await context.Employees
-                                             .Include(e => e.EmployeeDetail) // <-- Include EmployeeDetail
-                                             .Where(e => e.SectionId == 2 && e.EmployeeDetail != null && !string.IsNullOrEmpty(e.EmployeeDetail.Email))
-                                             .Select(e => e.EmployeeDetail.Email)
-                                             .Distinct()
+                var toEmails = new List<string>();
+                var supportTeams = await context.Employees
+                                             .Include(e => e.EmployeeDetail)
+                                             .Where(e => e.SectionId == 2)
                                              .ToListAsync();
+                if (supportTeams.Any())
+                {
+                    toEmails = [.. supportTeams.Where(e => e.EmployeeDetail != null && !string.IsNullOrEmpty(e.EmployeeDetail.Email))
+                                           .Select(e => e.EmployeeDetail.Email)
+                                           .Distinct()];
+                }
+
 
                 if (!toEmails.Any())
                 {
@@ -107,7 +113,7 @@ namespace Portal.Services.Models
 
         private string BuildEmailBody(SupportTicket ticket, string reporterName)
         {
-            var ticketUrl = string.Format(_smtpSettings.TicketUrlTemplate, ticket.Id);
+            var ticketUrl = string.Format(_portalPathUrlSettings.SupportDetails, ticket.Id);
             var body = $@"
                 <html>
                 <body style='font-family: tahoma, sans-serif; font-size: 14px;'>

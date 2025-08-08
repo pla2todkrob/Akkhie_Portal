@@ -11,13 +11,8 @@
         // Problem Tab
         problemForm: $('#createTicketForm'),
         problemSubmitBtn: $('#submit-problem-btn'),
-        relatedTicketDropdown: $('#relatedTicketId'),
-        titleInput: $('#ticketTitle'),
-        descriptionInput: $('#ticketDescription'),
+        relatedTicketDropdown: $('#RelatedTicketId'), // Note: The ID in your CSHTML is 'relatedTicketId', but DTO is 'RelatedTicketId'. Let's use the one from DTO.
         fileInput: $('#ticketFiles'),
-        progressBar: $('#upload-progress-bar'),
-        progressBarInner: $('#upload-progress-bar .progress-bar'),
-        fileListContainer: $('#file-upload-list'),
         // Request Tab
         stockSearchInput: $('#stock-item-search'),
         stockItemsContainer: $('#stock-items-container'),
@@ -34,7 +29,6 @@
     // =========================================================================
     // STATE VARIABLES
     // =========================================================================
-    let uploadedFileIds = [];
     let cart = {}; // Object to store cart items { itemId: { name, quantity, stock }, ... }
 
     // =========================================================================
@@ -48,6 +42,7 @@
      * @param {string} placeholder The placeholder text.
      */
     const initSearchableDropdown = (element, url, placeholder) => {
+        if (!element.length) return; // Exit if element doesn't exist
         element.selectpicker({
             liveSearch: true,
             title: placeholder,
@@ -57,6 +52,8 @@
 
         $.getJSON(url, function (data) {
             element.empty();
+            // Add a default empty/placeholder option
+            element.append($('<option></option>').val('').text(placeholder));
             if (data && data.length > 0) {
                 $.each(data, function (index, item) {
                     element.append($('<option></option>').val(item.value).text(item.text));
@@ -65,112 +62,71 @@
             element.selectpicker('refresh');
         }).fail(function () {
             console.error(`Failed to load data for searchable dropdown from ${url}`);
-            element.selectpicker('refresh');
+            element.selectpicker('refresh'); // Refresh to show placeholder
         });
     };
 
     // =========================================================================
-    // PROBLEM TAB LOGIC
+    // PROBLEM TAB LOGIC (*** REVISED AND SIMPLIFIED ***)
     // =========================================================================
-
-    /**
-     * Handles the file upload process via AJAX for the problem tab.
-     * @param {FileList} files The files to upload.
-     */
-    const handleFileUpload = (files) => {
-        // (Existing file upload logic from previous version)
-        if (!files || files.length === 0) return;
-        selectors.progressBar.show();
-        Array.from(files).forEach(file => {
-            const formData = new FormData();
-            formData.append('file', file);
-            const fileId = `file-${Date.now()}`;
-            const fileElement = $(`
-                <div id="${fileId}" class="alert alert-light p-2 d-flex align-items-center justify-content-between mb-2">
-                    <div><i class="bi bi-file-earmark-arrow-up me-2"></i><span class="file-name">${file.name}</span><small class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</small></div>
-                    <div class="upload-status"><span class="spinner-border spinner-border-sm" role="status"></span></div>
-                </div>`);
-            selectors.fileListContainer.append(fileElement);
-            $.ajax({
-                url: '/api/FileUpload/Upload', type: 'POST', data: formData, processData: false, contentType: false,
-                xhr: function () {
-                    const xhr = new window.XMLHttpRequest();
-                    xhr.upload.addEventListener('progress', function (evt) {
-                        if (evt.lengthComputable) {
-                            const percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                            selectors.progressBarInner.width(percentComplete + '%').attr('aria-valuenow', percentComplete);
-                        }
-                    }, false);
-                    return xhr;
-                },
-                success: function (response) {
-                    if (response.success && response.data) {
-                        uploadedFileIds.push(response.data.id);
-                        fileElement.find('.upload-status').html('<i class="bi bi-check-circle-fill text-success"></i>');
-                        const removeBtn = $('<button type="button" class="btn btn-sm btn-outline-danger ms-2"><i class="bi bi-x"></i></button>');
-                        removeBtn.on('click', function () {
-                            fileElement.remove();
-                            uploadedFileIds = uploadedFileIds.filter(id => id !== response.data.id);
-                        });
-                        fileElement.find('.upload-status').append(removeBtn);
-                    } else {
-                        fileElement.find('.upload-status').html(`<i class="bi bi-exclamation-triangle-fill text-danger" title="${response.message || 'Upload failed'}"></i>`);
-                    }
-                },
-                error: function () { fileElement.find('.upload-status').html('<i class="bi bi-exclamation-triangle-fill text-danger" title="Upload error"></i>'); },
-                complete: function () { selectors.progressBar.hide(); selectors.progressBarInner.width('0%'); }
-            });
-        });
-        selectors.fileInput.val('');
-    };
 
     /** Resets the "Report a Problem" form. */
     const resetProblemForm = () => {
-        selectors.problemForm[0].reset();
-        selectors.problemForm.removeClass('was-validated');
-        selectors.relatedTicketDropdown.selectpicker('val', '');
-        uploadedFileIds = [];
-        selectors.fileListContainer.empty();
+        if (selectors.problemForm.length) {
+            selectors.problemForm[0].reset();
+            selectors.problemForm.removeClass('was-validated');
+            // Use the correct selector for the dropdown
+            $('#RelatedTicketId').selectpicker('val', '');
+        }
     };
 
     /** Initializes the "Report a Problem" tab. */
     const initProblemTab = () => {
-        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetMyTickets', 'ค้นหา Ticket เก่า...');
-        selectors.fileInput.off('change').on('change', function () { handleFileUpload(this.files); });
+        // Use the correct selector for the dropdown
+        initSearchableDropdown($('#RelatedTicketId'), '/Lookup/GetMyTickets', 'ค้นหา Ticket เก่า...');
+
         selectors.problemForm.off('submit').on('submit', function (event) {
             event.preventDefault();
             event.stopPropagation();
+
             if (!this.checkValidity()) {
                 $(this).addClass('was-validated');
                 return;
             }
+
             app.showLoading(selectors.problemSubmitBtn);
-            const formData = {
-                RelatedTicketId: selectors.relatedTicketDropdown.val(),
-                Title: selectors.titleInput.val(),
-                Description: selectors.descriptionInput.val(),
-                UploadedFileIds: uploadedFileIds
-            };
+
+            // FormData will correctly capture all form fields and files
+            const formData = new FormData(this);
 
             $.ajax({
-                url: '/api/SupportTicket', type: 'POST', contentType: 'application/json',
-                data: JSON.stringify(formData),
-                headers: { 'RequestVerificationToken': $('#createTicketForm input[name="__RequestVerificationToken"]').val() },
+                url: $(this).attr('action'), // Submits to /Support/Create
+                type: 'POST',
+                data: formData,
+                processData: false,  // Crucial for FormData
+                contentType: false, // Crucial for FormData
                 success: function (response) {
                     if (response.success) {
-                        app.showSuccessToast('แจ้งปัญหาสำเร็จแล้ว');
+                        app.showSuccessToast(response.message || 'แจ้งปัญหาสำเร็จแล้ว');
                         resetProblemForm();
                         selectors.supportModal.modal('hide');
-                    } else { app.showErrorAlert(response.message || 'เกิดข้อผิดพลาด'); }
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        app.showErrorAlert(response.message || 'เกิดข้อผิดพลาด');
+                    }
                 },
-                error: function () { app.showErrorAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'); },
-                complete: function () { app.hideLoading(selectors.problemSubmitBtn); }
+                error: function () {
+                    app.showErrorAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+                },
+                complete: function () {
+                    app.hideLoading(selectors.problemSubmitBtn);
+                }
             });
         });
     };
 
     // =========================================================================
-    // REQUEST TAB LOGIC
+    // REQUEST TAB LOGIC (FROM YOUR ORIGINAL FILE)
     // =========================================================================
 
     /** Renders a single stock item card. */
@@ -235,14 +191,15 @@
     /** Handles adding/removing items from the cart. */
     const updateCart = (itemId, change) => {
         if (!cart[itemId]) return;
-
         let newQuantity = cart[itemId].quantity + change;
         if (newQuantity <= 0) {
             delete cart[itemId];
         } else if (newQuantity > cart[itemId].stock) {
-            newQuantity = cart[itemId].stock; // Cap at max stock
+            newQuantity = cart[itemId].stock;
         }
-        cart[itemId].quantity = newQuantity;
+        if (cart[itemId]) {
+            cart[itemId].quantity = newQuantity;
+        }
         updateCartView();
     };
 
@@ -250,17 +207,18 @@
     const resetRequestForm = () => {
         cart = {};
         updateCartView();
-        selectors.purchaseRequestForm[0].reset();
-        selectors.purchaseRequestForm.removeClass('was-validated');
+        if (selectors.purchaseRequestForm.length) {
+            selectors.purchaseRequestForm[0].reset();
+            selectors.purchaseRequestForm.removeClass('was-validated');
+        }
         selectors.stockSearchInput.val('');
-        $('.stock-item').show(); // Show all items
+        $('.stock-item').show();
     };
 
     /** Initializes the "Request Equipment" tab. */
     const initRequestTab = () => {
         loadStockItems();
 
-        // Search functionality
         selectors.stockSearchInput.on('keyup', function () {
             const searchTerm = $(this).val().toLowerCase();
             $('.stock-item').each(function () {
@@ -269,46 +227,36 @@
             });
         });
 
-        // Add to cart
         selectors.stockItemsContainer.on('click', '.add-to-cart-btn', function () {
             const itemCard = $(this).closest('.stock-item');
             const itemId = itemCard.data('id');
             if (!cart[itemId]) {
-                cart[itemId] = {
-                    name: itemCard.data('name'),
-                    quantity: 1,
-                    stock: itemCard.data('stock')
-                };
+                cart[itemId] = { name: itemCard.data('name'), quantity: 1, stock: itemCard.data('stock') };
             } else {
-                if (cart[itemId].quantity < cart[itemId].stock) {
-                    cart[itemId].quantity++;
-                }
+                if (cart[itemId].quantity < cart[itemId].stock) cart[itemId].quantity++;
             }
             updateCartView();
         });
 
-        // Change quantity in cart
         selectors.cartItemsContainer.on('click', '.cart-qty-btn', function () {
             const itemId = $(this).data('id');
             const change = parseInt($(this).data('change'));
             updateCart(itemId, change);
         });
 
-        // Submit withdrawal request
         selectors.submitRequestBtn.on('click', function () {
             const items = Object.keys(cart).map(id => ({ itemId: id, quantity: cart[id].quantity }));
             if (items.length === 0) return;
-
             app.showLoading(this);
             $.ajax({
-                url: '/api/SupportTicket/CreateWithdrawalRequest',
-                type: 'POST', contentType: 'application/json', data: JSON.stringify({ items }),
+                url: '/Support/CreateWithdrawal', type: 'POST', contentType: 'application/json', data: JSON.stringify({ items }),
                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
                 success: (res) => {
                     if (res.success) {
                         app.showSuccessToast('ส่งคำขอเบิกสำเร็จ');
                         resetRequestForm();
                         selectors.supportModal.modal('hide');
+                        setTimeout(() => location.reload(), 1500);
                     } else { app.showErrorAlert(res.message); }
                 },
                 error: () => app.showErrorAlert('เกิดข้อผิดพลาด'),
@@ -316,7 +264,6 @@
             });
         });
 
-        // Submit purchase request
         selectors.purchaseRequestForm.on('submit', function (e) {
             e.preventDefault();
             if (!this.checkValidity()) {
@@ -331,14 +278,14 @@
                 Reason: $(this).find('[name="Reason"]').val(),
             };
             $.ajax({
-                url: '/api/SupportTicket/CreatePurchaseRequest',
-                type: 'POST', contentType: 'application/json', data: JSON.stringify(formData),
+                url: '/Support/CreatePurchase', type: 'POST', contentType: 'application/json', data: JSON.stringify(formData),
                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
                 success: (res) => {
                     if (res.success) {
                         app.showSuccessToast('ส่งคำขอจัดซื้อสำเร็จ');
                         resetRequestForm();
                         selectors.supportModal.modal('hide');
+                        setTimeout(() => location.reload(), 1500);
                     } else { app.showErrorAlert(res.message); }
                 },
                 error: () => app.showErrorAlert('เกิดข้อผิดพลาด'),
@@ -348,7 +295,7 @@
     };
 
     // =========================================================================
-    // HISTORY TAB LOGIC
+    // HISTORY TAB LOGIC (FROM YOUR ORIGINAL FILE)
     // =========================================================================
 
     /** Renders the ticket history list. */
@@ -380,7 +327,6 @@
 
     /** Initializes the "My History" tab. */
     const initHistoryTab = () => {
-        // Load history only when the tab is shown to save resources
         selectors.historyTabBtn.on('shown.bs.tab', function () {
             loadHistory();
         });
@@ -390,18 +336,15 @@
     // MAIN MODAL INITIALIZATION
     // =========================================================================
     $(function () {
-        // Initialize all tabs when the modal is shown for the first time
         selectors.supportModal.one('show.bs.modal', function () {
             initProblemTab();
             initRequestTab();
             initHistoryTab();
         });
 
-        // Reset all forms when the modal is hidden
         selectors.supportModal.on('hidden.bs.modal', function () {
             resetProblemForm();
             resetRequestForm();
-            // History tab doesn't need resetting as it reloads on show
         });
     });
 

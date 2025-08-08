@@ -11,6 +11,7 @@ namespace Portal.Services.Models
         {
             return await context.SupportTicketCategories
                 .AsNoTracking()
+                .Where(w => w.IsNotCategory == false)
                 .Select(c => ToViewModel(c))
                 .ToListAsync();
         }

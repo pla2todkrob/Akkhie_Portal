@@ -5,6 +5,7 @@ using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.DTOs.Support;
 using Portal.Shared.Models.Entities.Support;
 using Portal.Shared.Models.ViewModel.Support;
+using System.Net.Http.Headers;
 
 namespace Portal.Models
 {
@@ -15,7 +16,35 @@ namespace Portal.Models
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketCreate, model);
+                // ใช้ MultipartFormDataContent เพื่อส่งฟอร์มที่มีทั้งข้อมูลและไฟล์
+                using var multipartContent = new MultipartFormDataContent();
+
+                // เพิ่มข้อมูล Text ธรรมดาลงไปในฟอร์ม
+                multipartContent.Add(new StringContent(model.Title ?? string.Empty), nameof(model.Title));
+                multipartContent.Add(new StringContent(model.Description ?? string.Empty), nameof(model.Description));
+                if (model.RelatedTicketId.HasValue)
+                {
+                    multipartContent.Add(new StringContent(model.RelatedTicketId.Value.ToString()), nameof(model.RelatedTicketId));
+                }
+
+                // เพิ่มไฟล์ทั้งหมดที่แนบมา
+                if (model.UploadedFiles != null)
+                {
+                    foreach (var file in model.UploadedFiles)
+                    {
+                        if (file.Length > 0)
+                        {
+                            var streamContent = new StreamContent(file.OpenReadStream());
+                            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                            // ชื่อ "UploadedFiles" ต้องตรงกับชื่อ property ใน DTO ที่ API Controller รอรับ
+                            multipartContent.Add(streamContent, nameof(model.UploadedFiles), file.FileName);
+                        }
+                    }
+                }
+
+                // ส่ง Request ไปยัง API
+                var response = await _httpClient.PostAsync(_apiSettings.SupportTicketCreate, multipartContent);
+
                 return await HandleResponse<SupportTicket>(response);
             }
             catch (Exception ex)

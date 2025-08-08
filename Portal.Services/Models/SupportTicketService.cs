@@ -20,6 +20,7 @@ namespace Portal.Services.Models
         PortalDbContext context,
         ICurrentUserService currentUserService,
         IEmailService emailService,
+        IFileService fileService,
         ILogger<SupportTicketService> logger) : ISupportTicketService
     {
         public async Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request)
@@ -27,7 +28,7 @@ namespace Portal.Services.Models
             var userId = currentUserService.UserId!.Value;
             var defaultCategory = await context.SupportTicketCategories
                                       .AsNoTracking()
-                                      .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue)
+                                      .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue && c.IsNotCategory)
                                   ?? throw new InvalidOperationException("ไม่พบหมวดหมู่เริ่มต้นสำหรับแจ้งปัญหา (Issue)");
 
             var newTicket = new SupportTicket
@@ -45,9 +46,16 @@ namespace Portal.Services.Models
             };
 
             context.SupportTickets.Add(newTicket);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); 
 
-            await AssociateFilesToTicket(newTicket.Id, request.UploadedFileIds);
+            if (request.UploadedFiles != null && request.UploadedFiles.Any())
+            {
+                var uploadedFileIds = new List<int>();
+                var uploadResult = await fileService.UploadFilesAsync(request.UploadedFiles);
+
+                await AssociateFilesToTicket(newTicket.Id, uploadResult.Select(s => s.Id).ToList());
+            }
+
             CreateHistoryEntry(newTicket.Id, userId, "สร้าง Ticket ใหม่", "ระบบสร้าง Ticket อัตโนมัติ");
             await context.SaveChangesAsync();
 

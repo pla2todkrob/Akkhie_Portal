@@ -225,6 +225,7 @@ namespace Portal.Services.Models
             modelBuilder.Entity<SupportTicketCategory>(entity =>
             {
                 entity.Property(e => e.CategoryType).HasConversion<string>();
+                entity.HasIndex(e => new { e.Name, e.CategoryType }).IsUnique();
             });
 
             // --- IT_Asset Configuration ---
@@ -312,6 +313,11 @@ namespace Portal.Services.Models
                 new Section() { Id = 19, DepartmentId = 8, Name = "ตรวจรับและจัดเก็บของเสีย" },
                 new Section() { Id = 20, DepartmentId = 8, Name = "เตรียมของเสีย" },
                 new Section() { Id = 21, DepartmentId = 9, Name = "เผากาก" }
+                );
+
+            modelBuilder.Entity<SupportTicketCategory>().HasData(
+                new SupportTicketCategory() { Id = 1, CategoryType = Shared.Enums.Support.TicketCategoryType.Issue, Name = "รายการใหม่", IsNotCategory = true },
+                new SupportTicketCategory() { Id = 2, CategoryType = Shared.Enums.Support.TicketCategoryType.Request, Name = "รายการใหม่", IsNotCategory = true }
                 );
 
         }

@@ -1,9 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Portal.Shared.Models.DTOs.Support
 {
@@ -21,6 +18,6 @@ namespace Portal.Shared.Models.DTOs.Support
         [Display(Name = "อ้างอิง Ticket เก่า")]
         public int? RelatedTicketId { get; set; }
 
-        public List<int> UploadedFileIds { get; set; } = [];
+        public List<IFormFile> UploadedFiles { get; set; } = new();
     }
 }

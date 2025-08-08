@@ -38,6 +38,12 @@ builder.Services.Configure<FileSettings>(builder.Configuration.GetSection("FileS
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 builder.Services.Configure<ActiveDirectorySettings>(builder.Configuration.GetSection(ActiveDirectorySettings.SectionName));
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<PortalPathUrlSettings>(builder.Configuration.GetSection("PortalPathUrlSettings"));
+builder.Services.PostConfigure<PortalPathUrlSettings>(options =>
+{
+    options.SupportDetails = new Uri(new Uri(options.Url), options.SupportDetails).ToString();
+});
+
 
 builder.Services.AddHttpContextAccessor();
 

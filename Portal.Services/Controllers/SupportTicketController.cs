@@ -17,7 +17,7 @@ namespace Portal.Services.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
+        public async Task<IActionResult> CreateTicket([FromForm] CreateTicketRequest request)
         {
             if (!ModelState.IsValid)
             {

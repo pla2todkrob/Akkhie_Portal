@@ -890,11 +890,14 @@ namespace Portal.Services.Migrations
 
                     b.Property<string>("CategoryType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsNotCategory")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -903,7 +906,26 @@ namespace Portal.Services.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name", "CategoryType")
+                        .IsUnique();
+
                     b.ToTable("SupportTicketCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryType = "Issue",
+                            IsNotCategory = true,
+                            Name = "รายการใหม่"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryType = "Request",
+                            IsNotCategory = true,
+                            Name = "รายการใหม่"
+                        });
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Support.SupportTicketHistory", b =>

@@ -12,8 +12,8 @@ using Portal.Services.Models;
 namespace Portal.Services.Migrations
 {
     [DbContext(typeof(PortalDbContext))]
-    [Migration("20250717102302_InitialTable")]
-    partial class InitialTable
+    [Migration("20250808032027_Inital")]
+    partial class Inital
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -264,7 +264,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Name", "CompanyId")
                         .IsUnique();
 
                     b.ToTable("Divisions");
@@ -893,11 +893,14 @@ namespace Portal.Services.Migrations
 
                     b.Property<string>("CategoryType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsNotCategory")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -906,7 +909,26 @@ namespace Portal.Services.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name", "CategoryType")
+                        .IsUnique();
+
                     b.ToTable("SupportTicketCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryType = "Issue",
+                            IsNotCategory = true,
+                            Name = "รายการใหม่"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryType = "Request",
+                            IsNotCategory = true,
+                            Name = "รายการใหม่"
+                        });
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Support.SupportTicketHistory", b =>
@@ -1033,7 +1055,7 @@ namespace Portal.Services.Migrations
             modelBuilder.Entity("Portal.Shared.Models.Entities.Division", b =>
                 {
                     b.HasOne("Portal.Shared.Models.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Divisions")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1273,6 +1295,8 @@ namespace Portal.Services.Migrations
             modelBuilder.Entity("Portal.Shared.Models.Entities.Company", b =>
                 {
                     b.Navigation("Branches");
+
+                    b.Navigation("Divisions");
 
                     b.Navigation("EmployeeAccesses");
                 });

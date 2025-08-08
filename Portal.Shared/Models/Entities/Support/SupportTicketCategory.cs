@@ -24,5 +24,6 @@ namespace Portal.Shared.Models.Entities.Support
         [Display(Name = "คำอธิบาย")]
         [MaxLength(255)]
         public string? Description { get; set; }
+        public bool IsNotCategory { get; set; }
     }
 }

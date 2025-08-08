@@ -11,6 +11,5 @@
         public string SenderEmail { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        public string TicketUrlTemplate { get; set; }
     }
 }

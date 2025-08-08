@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Portal.Services.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialTable : Migration
+    public partial class Inital : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,9 +64,10 @@ namespace Portal.Services.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CategoryType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    IsNotCategory = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -503,6 +504,15 @@ namespace Portal.Services.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "SupportTicketCategories",
+                columns: new[] { "Id", "CategoryType", "Description", "IsNotCategory", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Issue", null, true, "รายการใหม่" },
+                    { 2, "Request", null, true, "รายการใหม่" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "CompanyBranches",
                 columns: new[] { "Id", "BranchCode", "CompanyId", "Name" },
                 values: new object[] { 1, "00", 1, "สำนักงานใหญ่" });
@@ -607,9 +617,9 @@ namespace Portal.Services.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Divisions_Name",
+                name: "IX_Divisions_Name_CompanyId",
                 table: "Divisions",
-                column: "Name",
+                columns: new[] { "Name", "CompanyId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -756,6 +766,12 @@ namespace Portal.Services.Migrations
                 name: "IX_Sections_DepartmentId_Name",
                 table: "Sections",
                 columns: new[] { "DepartmentId", "Name" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupportTicketCategories_Name_CategoryType",
+                table: "SupportTicketCategories",
+                columns: new[] { "Name", "CategoryType" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

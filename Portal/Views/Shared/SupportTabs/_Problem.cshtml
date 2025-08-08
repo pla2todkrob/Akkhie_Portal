@@ -10,27 +10,27 @@
         <h5 class="card-title mb-3">แจ้งปัญหาการใช้งาน</h5>
         <p class="text-muted small mb-4">กรุณากรอกข้อมูลปัญหาที่พบให้ละเอียดที่สุด เพื่อให้ทีมงานสามารถช่วยเหลือท่านได้อย่างรวดเร็ว</p>
 
-        <form id="createTicketForm" novalidate>
+        <form id="createTicketForm" asp-controller="Support" asp-action="Create" method="post" enctype="multipart/form-data" novalidate>
             @* Anti-forgery token is crucial for security *@
             @Html.AntiForgeryToken()
 
             @* Related Ticket Dropdown (to be initialized with bootstrap-select) *@
             <div class="mb-3">
                 <label asp-for="RelatedTicketId" class="form-label">อ้างอิง Ticket เก่า (ถ้ามี)</label>
-                <select asp-for="RelatedTicketId" id="relatedTicketId" class="form-control"></select>
+                <select asp-for="RelatedTicketId" class="form-control"></select>
                 @* Note: We use a standard select here and let JavaScript enhance it *@
             </div>
 
             @* Ticket Title *@
             <div class="form-floating mb-3">
-                <input asp-for="Title" class="form-control" id="ticketTitle" placeholder="หัวข้อปัญหา" required>
+                <input asp-for="Title" class="form-control" placeholder="หัวข้อปัญหา" required>
                 <label asp-for="Title">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
                 <span asp-validation-for="Title" class="text-danger small"></span>
             </div>
 
             @* Ticket Description *@
             <div class="form-floating mb-3">
-                <textarea asp-for="Description" class="form-control" id="ticketDescription" placeholder="รายละเอียด" style="height: 150px" required></textarea>
+                <textarea asp-for="Description" class="form-control" placeholder="รายละเอียด" style="height: 150px" required></textarea>
                 <label asp-for="Description">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
                 <span asp-validation-for="Description" class="text-danger small"></span>
             </div>
@@ -38,12 +38,11 @@
             @* File Attachment Section *@
             <div>
                 <label for="ticketFiles" class="form-label">แนบไฟล์ (รูปภาพ, เอกสาร)</label>
-                <input type="file" class="form-control" id="ticketFiles" multiple>
-                <div class="progress mt-2" id="upload-progress-bar" style="height: 5px; display: none;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
+                @* Added name="UploadedFiles" to match the expected parameter in the controller *@
+                <input type="file" class="form-control" id="ticketFiles" name="UploadedFiles" multiple>
+
+                @* Note: The progress bar and file list from the original JS are removed for this simpler submission method. *@
                 <div id="file-upload-list" class="mt-2 small">
-                    @* Uploaded file list will be dynamically inserted here by JavaScript *@
                 </div>
             </div>
         </form>

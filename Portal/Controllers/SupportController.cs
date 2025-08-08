@@ -25,7 +25,7 @@ namespace Portal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateTicketRequest model)
+        public async Task<IActionResult> Create([FromForm]CreateTicketRequest model)
         {
             if (!ModelState.IsValid)
             {

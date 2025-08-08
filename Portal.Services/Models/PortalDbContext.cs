@@ -31,6 +31,7 @@ namespace Portal.Services.Models
 
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<SupportTicketCategory> SupportTicketCategories { get; set; }
+        public DbSet<SupportTicketFiles> SupportTicketFiles { get; set; }
         public DbSet<SupportTicketHistory> SupportTicketHistories { get; set; }
 
         public DbSet<IT_Item> IT_Items { get; set; }

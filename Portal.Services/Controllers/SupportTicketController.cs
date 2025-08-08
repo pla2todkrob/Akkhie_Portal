@@ -49,7 +49,7 @@ namespace Portal.Services.Controllers
         {
             try
             {
-                var ticket = await _supportTicketService.GetTicketByIdAsync(id);
+                var ticket = await _supportTicketService.GetTicketDetailsAsync(id);
                 if (ticket == null)
                 {
                     return NotFound("ไม่พบ Ticket ที่ระบุ");

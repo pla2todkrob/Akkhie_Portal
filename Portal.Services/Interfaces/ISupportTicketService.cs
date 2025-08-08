@@ -13,9 +13,11 @@ namespace Portal.Services.Interfaces
     public interface ISupportTicketService
     {
         Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request);
-        Task<TicketDetailViewModel?> GetTicketByIdAsync(int ticketId);
+        Task<TicketDetailViewModel?> GetTicketDetailsAsync(int ticketId);
         Task<bool> AcceptTicketAsync(TicketActionRequest request);
         Task<bool> ResolveTicketAsync(TicketActionRequest request);
+        Task<bool> CloseTicketByUserAsync(TicketActionRequest request);
+        Task<bool> CancelTicketAsync(TicketActionRequest request);
         Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(TicketCategoryType categoryType);
         Task<SupportTicket> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request);

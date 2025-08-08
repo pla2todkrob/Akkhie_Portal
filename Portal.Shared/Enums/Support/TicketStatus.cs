@@ -19,6 +19,9 @@ namespace Portal.Shared.Enums.Support
         Resolved = 3,
 
         [Display(Name = "ปิด")]
-        Closed = 4
+        Closed = 4,
+
+        [Display(Name = "ยกเลิกแล้ว")]
+        Cancelled = 5,
     }
 }

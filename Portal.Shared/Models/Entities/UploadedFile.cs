@@ -35,12 +35,23 @@ namespace Portal.Shared.Models.Entities
 
         public Employee UploadedByUser { get; set; } = null!;
 
-        public int? SupportTicketId { get; set; }
-        public virtual SupportTicket? SupportTicket { get; set; }
 
         [NotMapped]
         public string FileSizeDisplay => FileSizeInKb > 1024
         ? $"{FileSizeInKb / 1024:N2} MB"
         : $"{FileSizeInKb:N2} KB";
+
+        [NotMapped]
+        public string FileUrl
+        {
+            get
+            {
+                
+            }
+            set
+            {
+                
+            }
+        }
     }
 }

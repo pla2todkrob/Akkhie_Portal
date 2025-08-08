@@ -75,6 +75,6 @@ namespace Portal.Shared.Models.Entities.Support
         public int? RelatedTicketId { get; set; }
         public virtual SupportTicket? RelatedTicket { get; set; }
 
-        public virtual ICollection<UploadedFile> UploadedFiles { get; set; } = [];
+        public virtual ICollection<SupportTicketFiles> SupportTicketFiles { get; set; } = [];
     }
 }

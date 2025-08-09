@@ -5,7 +5,7 @@ using Portal.Interfaces;
 using Portal.Shared.Constants;
 using Portal.Shared.Enums.Support;
 using Portal.Shared.Models.DTOs.Support;
-using Portal.Shared.Models.ViewModel.Support;
+using System.Security.Claims;
 
 namespace Portal.Controllers
 {
@@ -25,7 +25,7 @@ namespace Portal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromForm]CreateTicketRequest model)
+        public async Task<IActionResult> Create([FromForm] CreateTicketRequest model)
         {
             if (!ModelState.IsValid)
             {
@@ -49,9 +49,18 @@ namespace Portal.Controllers
         {
             ViewData["Title"] = "รายละเอียด Ticket";
             var response = await supportTicketRequest.GetTicketDetailsAsync(id);
+            if (response == null)
+            {
+                return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdString, out Guid currentUserId))
+            {
+                ViewBag.CurrentUserId = currentUserId;
+            }
 
             await PopulateDropdowns();
-
             return View(response);
         }
 
@@ -78,6 +87,31 @@ namespace Portal.Controllers
             var response = await supportTicketRequest.ResolveTicketAsync(request);
             return Json(response);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Close(TicketActionRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "ข้อมูลไม่ถูกต้อง" });
+            }
+            var response = await supportTicketRequest.CloseTicketAsync(request);
+            return Json(response);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(TicketActionRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "ข้อมูลไม่ถูกต้อง" });
+            }
+            var response = await supportTicketRequest.CancelTicketAsync(request);
+            return Json(response);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -125,7 +159,6 @@ namespace Portal.Controllers
 
         private async Task PopulateDropdowns()
         {
-            // ดึงข้อมูลพนักงานแผนก IT (Section "สารสนเทศ" Id = 2)
             var employeesResponse = await employeeRequest.GetAsync(sectionId: 2);
             if (employeesResponse.Success && employeesResponse.Data != null)
             {
@@ -134,7 +167,6 @@ namespace Portal.Controllers
                     .ToList();
             }
 
-            // ดึงข้อมูลหมวดหมู่ทั้งหมด
             var categoriesResponse = await categoryRequest.GetAllAsync();
             if (categoriesResponse.Success && categoriesResponse.Data != null)
             {
@@ -143,7 +175,6 @@ namespace Portal.Controllers
                     .ToList();
             }
 
-            // สร้าง SelectList สำหรับ Priority
             ViewBag.Priorities = new SelectList(Enum.GetValues<TicketPriority>()
                 .Cast<TicketPriority>()
                 .Select(p => new { Value = (int)p, Text = p.GetDisplayName() }), "Value", "Text");

@@ -53,5 +53,8 @@
         public string SupportCategoryDelete { get; set; } = string.Empty;
         public string SupportTicketAccept { get; set; } = string.Empty;
         public string SupportTicketResolve { get; set; } = string.Empty;
+        public string SupportTicketClose { get; set; } = string.Empty;
+        public string SupportTicketCancel { get; set; } = string.Empty;
+
     }
 }

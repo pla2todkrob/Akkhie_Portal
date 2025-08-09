@@ -32,7 +32,7 @@ namespace Portal.Controllers
         public async Task<IActionResult> Create()
         {
             await PopulateDropdowns();
-            var model = new DepartmentViewModel { SectionViewModels = new List<SectionViewModel> { new() } };
+            var model = new DepartmentViewModel { SectionViewModels = [new()] };
             return View(model);
         }
 

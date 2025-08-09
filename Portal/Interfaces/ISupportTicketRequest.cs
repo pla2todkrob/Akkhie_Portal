@@ -17,5 +17,7 @@ namespace Portal.Interfaces
         Task<TicketDetailViewModel> GetTicketDetailsAsync(int ticketId);
         Task<ApiResponse<bool>> AcceptTicketAsync(TicketActionRequest request);
         Task<ApiResponse<bool>> ResolveTicketAsync(TicketActionRequest request);
+        Task<ApiResponse<bool>> CloseTicketAsync(TicketActionRequest request);
+        Task<ApiResponse<bool>> CancelTicketAsync(TicketActionRequest request);
     }
 }

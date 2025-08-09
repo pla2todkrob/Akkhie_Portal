@@ -55,7 +55,7 @@ namespace Portal.Services.Models
                         OriginalFileName = originalFileName, // ชื่อไฟล์ดั้งเดิม
                         ContentType = file.ContentType,
                         FileSize = file.Length,
-                        UploadPath = Path.Combine(yearMonthFolder, uniqueFileName).Replace('\\', '/'), // ใช้ / เพื่อให้เป็น URL-friendly
+                        UploadPath = Path.Combine(yearMonthFolder, uniqueFileName).Replace('\\', '/'),
                         UploadDateTime = DateTime.UtcNow,
                         UploadedByUserId = currentUserService.UserId!.Value
                     };

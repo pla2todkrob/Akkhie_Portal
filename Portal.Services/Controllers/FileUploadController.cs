@@ -28,7 +28,7 @@ namespace Portal.Services.Controllers
             try
             {
                 var files = Request.Form.Files.ToList();
-                if (files == null || !files.Any())
+                if (files == null || files.Count == 0)
                 {
                     return BadRequest(new ApiResponse<object> { Success = false, Message = "No files uploaded." });
                 }

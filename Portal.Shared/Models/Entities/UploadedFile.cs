@@ -42,16 +42,6 @@ namespace Portal.Shared.Models.Entities
         : $"{FileSizeInKb:N2} KB";
 
         [NotMapped]
-        public string FileUrl
-        {
-            get
-            {
-                
-            }
-            set
-            {
-                
-            }
-        }
+        public string? FileUrl { get; set; }
     }
 }

@@ -17,11 +17,13 @@ namespace Portal.Models
             try
             {
                 // ใช้ MultipartFormDataContent เพื่อส่งฟอร์มที่มีทั้งข้อมูลและไฟล์
-                using var multipartContent = new MultipartFormDataContent();
-
-                // เพิ่มข้อมูล Text ธรรมดาลงไปในฟอร์ม
-                multipartContent.Add(new StringContent(model.Title ?? string.Empty), nameof(model.Title));
-                multipartContent.Add(new StringContent(model.Description ?? string.Empty), nameof(model.Description));
+                using var multipartContent = new MultipartFormDataContent
+                {
+                    // เพิ่มข้อมูล Text ธรรมดาลงไปในฟอร์ม
+                    // ชื่อของ Content (เช่น "Title") ต้องตรงกับชื่อ Property ใน DTO ที่ API Controller รอรับ
+                    { new StringContent(model.Title ?? string.Empty), nameof(model.Title) },
+                    { new StringContent(model.Description ?? string.Empty), nameof(model.Description) }
+                };
                 if (model.RelatedTicketId.HasValue)
                 {
                     multipartContent.Add(new StringContent(model.RelatedTicketId.Value.ToString()), nameof(model.RelatedTicketId));
@@ -42,14 +44,17 @@ namespace Portal.Models
                     }
                 }
 
-                // ส่ง Request ไปยัง API
+                // ส่ง Request ไปยัง API Endpoint ที่กำหนดไว้ใน appsettings.json
                 var response = await _httpClient.PostAsync(_apiSettings.SupportTicketCreate, multipartContent);
 
+                // ใช้ HandleResponse จาก BaseRequest เพื่อจัดการผลลัพธ์
                 return await HandleResponse<SupportTicket>(response);
             }
             catch (Exception ex)
             {
-                return ApiResponse<SupportTicket>.ErrorResponse($"Error creating ticket: {ex.Message}");
+                // ในกรณีที่เกิดข้อผิดพลาดก่อนที่จะส่ง Request (เช่น Network Error)
+                // ให้สร้าง ApiResponse ที่มีสถานะเป็น Error กลับไป
+                return ApiResponse<SupportTicket>.ErrorResponse($"An error occurred in SupportTicketRequest: {ex.Message}");
             }
         }
 
@@ -120,5 +125,16 @@ namespace Portal.Models
             return await HandleResponse<bool>(response);
         }
 
+        public async Task<ApiResponse<bool>> CloseTicketAsync(TicketActionRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketClose, request);
+            return await HandleResponse<bool>(response);
+        }
+
+        public async Task<ApiResponse<bool>> CancelTicketAsync(TicketActionRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync(_apiSettings.SupportTicketCancel, request);
+            return await HandleResponse<bool>(response);
+        }
     }
 }

@@ -1,74 +1,44 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Portal.Services.Interfaces;
 using Portal.Shared.Constants;
-using Portal.Shared.Enums;
 using Portal.Shared.Enums.Support;
 using Portal.Shared.Models.DTOs.Support;
-using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.Entities.Support;
 using Portal.Shared.Models.ViewModel.Support;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    public class SupportTicketService(
-        PortalDbContext context,
-        ICurrentUserService currentUserService,
-        IEmailService emailService,
-        IFileService fileService,
-        ILogger<SupportTicketService> logger) : ISupportTicketService
+    public class SupportTicketService : ISupportTicketService
     {
-        public async Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request)
+        private readonly PortalDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IEmailService _emailService;
+        private readonly IFileService _fileService;
+        private readonly ILogger<SupportTicketService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public SupportTicketService(
+            PortalDbContext context,
+            ICurrentUserService currentUserService,
+            IEmailService emailService,
+            IFileService fileService,
+            ILogger<SupportTicketService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
-            var userId = currentUserService.UserId!.Value;
-            var defaultCategory = await context.SupportTicketCategories
-                                      .AsNoTracking()
-                                      .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue && c.IsNotCategory)
-                                  ?? throw new InvalidOperationException("ไม่พบหมวดหมู่เริ่มต้นสำหรับแจ้งปัญหา (Issue)");
-
-            var newTicket = new SupportTicket
-            {
-                TicketNumber = await GenerateNewTicketNumberAsync(),
-                Title = request.Title,
-                Description = request.Description,
-                RequestType = TicketRequestType.Issue,
-                CategoryId = defaultCategory.Id,
-                Priority = TicketPriority.Medium,
-                Status = TicketStatus.Open,
-                ReportedByEmployeeId = userId,
-                CreatedAt = DateTime.UtcNow,
-                RelatedTicketId = request.RelatedTicketId
-            };
-
-            context.SupportTickets.Add(newTicket);
-            await context.SaveChangesAsync(); 
-
-            if (request.UploadedFiles != null && request.UploadedFiles.Any())
-            {
-                var uploadedFileIds = new List<int>();
-                var uploadResult = await fileService.UploadFilesAsync(request.UploadedFiles);
-            }
-
-            CreateHistoryEntry(newTicket.Id, userId, "สร้าง Ticket ใหม่", "ระบบสร้าง Ticket อัตโนมัติ");
-            await context.SaveChangesAsync();
-
-            _ = emailService.SendNewTicketNotificationAsync(newTicket);
-            logger.LogInformation("Successfully created Ticket #{TicketNumber} by user {UserId}", newTicket.TicketNumber, userId);
-
-            return newTicket;
+            _context = context;
+            _currentUserService = currentUserService;
+            _emailService = emailService;
+            _fileService = fileService;
+            _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<TicketDetailViewModel?> GetTicketDetailsAsync(int ticketId)
         {
-            // Implementation for GetTicketDetailsAsync...
-            // This should query the database and build the TicketDetailViewModel
-            // including related data like history, files, etc.
-            var ticket = await context.SupportTickets
+            var ticket = await _context.SupportTickets
                .AsNoTracking()
                .Where(t => t.Id == ticketId)
                .Include(t => t.Category)
@@ -80,6 +50,25 @@ namespace Portal.Services.Models
                .FirstOrDefaultAsync();
 
             if (ticket == null) return null;
+
+            var request = _httpContextAccessor.HttpContext!.Request;
+            var apiBaseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
+
+            var attachments = ticket.SupportTicketFiles.Select(fileRelation =>
+            {
+                var uploadedFile = fileRelation.UploadedFile;
+                return new TicketDetailViewModel.AttachmentItem
+                {
+                    FileName = uploadedFile.OriginalFileName,
+                    FileSizeDisplay = uploadedFile.FileSizeDisplay,
+                    FileUrl = $"{apiBaseUrl}/uploads/{uploadedFile.UploadPath.Replace('\\', '/')}"
+                };
+            }).ToList();
+
+            // --- [ปรับปรุง] ตรวจสอบความเป็นเจ้าของ Ticket ที่นี่ ---
+            var currentUserId = _currentUserService.UserId;
+            var isOwner = currentUserId.HasValue && ticket.ReportedByEmployeeId == currentUserId.Value;
+            // --- จบส่วนปรับปรุง ---
 
             return new TicketDetailViewModel
             {
@@ -95,49 +84,116 @@ namespace Portal.Services.Models
                 AssignedTo = ticket.AssignedToEmployee?.EmployeeDetail?.FullName,
                 CreatedAt = ticket.CreatedAt,
                 ResolvedAt = ticket.ResolvedAt,
-                History = [.. ticket.History.OrderBy(h => h.CreatedAt).Select(h => new TicketDetailViewModel.HistoryItem
+                History = ticket.History.OrderBy(h => h.CreatedAt).Select(h => new TicketDetailViewModel.HistoryItem
                 {
                     ActionDescription = h.ActionDescription,
                     Comment = h.Comment,
                     ActionBy = h.Employee.EmployeeDetail?.FullName ?? h.Employee.Username,
                     ActionDate = h.CreatedAt
-                })]
+                }).ToList(),
+                Attachments = attachments,
+                // --- [ปรับปรุง] กำหนดค่าให้กับ Properties ใหม่ ---
+                ReportedById = ticket.ReportedByEmployeeId,
+                IsOwner = isOwner
             };
+        }
+
+        // ... (โค้ดส่วนอื่นๆ ของ Service ทั้งหมดเหมือนเดิม) ...
+        #region Other Methods
+        public async Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var userId = _currentUserService.UserId!.Value;
+                var defaultCategory = await _context.SupportTicketCategories
+                                          .AsNoTracking()
+                                          .FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Issue && c.IsNotCategory)
+                                      ?? throw new InvalidOperationException("ไม่พบหมวดหมู่เริ่มต้นสำหรับแจ้งปัญหา (Issue)");
+
+                var newTicket = new SupportTicket
+                {
+                    TicketNumber = await GenerateNewTicketNumberAsync(),
+                    Title = request.Title,
+                    Description = request.Description,
+                    RequestType = TicketRequestType.Issue,
+                    CategoryId = defaultCategory.Id,
+                    Priority = TicketPriority.Medium,
+                    Status = TicketStatus.Open,
+                    ReportedByEmployeeId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedTicketId = request.RelatedTicketId
+                };
+
+                _context.SupportTickets.Add(newTicket);
+                await _context.SaveChangesAsync();
+
+                if (request.UploadedFiles != null && request.UploadedFiles.Any())
+                {
+                    var uploadedFileEntities = await _fileService.UploadFilesAsync(request.UploadedFiles);
+                    foreach (var fileEntity in uploadedFileEntities)
+                    {
+                        var supportTicketFile = new SupportTicketFiles
+                        {
+                            SupportTicketId = newTicket.Id,
+                            UploadedFileId = fileEntity.Id
+                        };
+                        _context.SupportTicketFiles.Add(supportTicketFile);
+                    }
+                }
+
+                CreateHistoryEntry(newTicket.Id, userId, "สร้าง Ticket ใหม่", "ระบบสร้าง Ticket อัตโนมัติ");
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await _emailService.SendNewTicketNotificationAsync(newTicket);
+
+                _logger.LogInformation("Successfully created Ticket #{TicketNumber} by user {UserId}", newTicket.TicketNumber, userId);
+
+                return newTicket;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to create ticket with attachments. Transaction rolled back.");
+                throw;
+            }
         }
 
         public async Task<bool> AcceptTicketAsync(TicketActionRequest request)
         {
-            var ticket = await context.SupportTickets.FindAsync(request.TicketId)
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
                          ?? throw new KeyNotFoundException("ไม่พบ Ticket");
 
             if (ticket.Status != TicketStatus.Open)
                 throw new InvalidOperationException("Ticket นี้ถูกรับงานไปแล้วหรือถูกปิดไปแล้ว");
 
-            var currentUserId = currentUserService.UserId!.Value;
+            var currentUserId = _currentUserService.UserId!.Value;
 
             ticket.Status = TicketStatus.InProgress;
             ticket.Priority = request.Priority ?? ticket.Priority;
             ticket.AssignedToEmployeeId = request.AssignedToEmployeeId ?? currentUserId;
             ticket.UpdatedAt = DateTime.UtcNow;
 
-            var assignedTo = await context.Employees.Include(e => e.EmployeeDetail)
+            var assignedTo = await _context.Employees.Include(e => e.EmployeeDetail)
                                 .FirstOrDefaultAsync(e => e.Id == ticket.AssignedToEmployeeId);
 
             CreateHistoryEntry(ticket.Id, currentUserId, "รับงาน", $"กำหนดความสำคัญเป็น: {ticket.Priority.GetDisplayName()}. มอบหมายให้: {assignedTo?.EmployeeDetail?.FullName}");
 
-            return await context.SaveChangesAsync() > 0;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> ResolveTicketAsync(TicketActionRequest request)
         {
-            var ticket = await context.SupportTickets.FindAsync(request.TicketId)
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
                          ?? throw new KeyNotFoundException("ไม่พบ Ticket");
 
             if (ticket.Status != TicketStatus.InProgress)
                 throw new InvalidOperationException("Ticket ต้องอยู่ในสถานะ InProgress เท่านั้น");
 
-            var currentUserId = currentUserService.UserId!.Value;
-            var category = await context.SupportTicketCategories.FindAsync(request.CategoryId)
+            var currentUserId = _currentUserService.UserId!.Value;
+            var category = await _context.SupportTicketCategories.FindAsync(request.CategoryId)
                            ?? throw new KeyNotFoundException("ไม่พบหมวดหมู่");
 
             ticket.Status = TicketStatus.Resolved;
@@ -147,21 +203,20 @@ namespace Portal.Services.Models
 
             CreateHistoryEntry(ticket.Id, currentUserId, "ดำเนินการแก้ไขเสร็จสิ้น", $"เปลี่ยนหมวดหมู่เป็น: '{category.Name}'.\nหมายเหตุ: {request.Comment}");
 
-            var result = await context.SaveChangesAsync() > 0;
+            var result = await _context.SaveChangesAsync() > 0;
             if (result)
             {
-                // ส่ง Email แจ้งผู้ใช้
-                await emailService.SendTicketResolvedNotificationAsync(ticket);
+                await _emailService.SendTicketResolvedNotificationAsync(ticket);
             }
             return result;
         }
 
         public async Task<bool> CloseTicketByUserAsync(TicketActionRequest request)
         {
-            var ticket = await context.SupportTickets.FindAsync(request.TicketId)
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
                          ?? throw new KeyNotFoundException("ไม่พบ Ticket");
 
-            var currentUserId = currentUserService.UserId!.Value;
+            var currentUserId = _currentUserService.UserId!.Value;
 
             if (ticket.ReportedByEmployeeId != currentUserId)
                 throw new UnauthorizedAccessException("คุณไม่ใช่เจ้าของ Ticket นี้");
@@ -174,15 +229,18 @@ namespace Portal.Services.Models
 
             CreateHistoryEntry(ticket.Id, currentUserId, "ผู้ใช้ปิดงาน", request.Comment ?? "ผู้ใช้ยืนยันการแก้ไขและปิดงาน");
 
-            return await context.SaveChangesAsync() > 0;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> CancelTicketAsync(TicketActionRequest request)
         {
-            var ticket = await context.SupportTickets.FindAsync(request.TicketId)
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
                          ?? throw new KeyNotFoundException("ไม่พบ Ticket");
 
-            var currentUserId = currentUserService.UserId!.Value;
+            var currentUserId = _currentUserService.UserId!.Value;
+
+            if (ticket.ReportedByEmployeeId != currentUserId)
+                throw new UnauthorizedAccessException("คุณไม่ใช่เจ้าของ Ticket นี้");
 
             if (ticket.Status != TicketStatus.Open && ticket.Status != TicketStatus.InProgress)
                 throw new InvalidOperationException("ไม่สามารถยกเลิก Ticket ที่ถูกแก้ไขหรือปิดไปแล้วได้");
@@ -192,29 +250,23 @@ namespace Portal.Services.Models
 
             CreateHistoryEntry(ticket.Id, currentUserId, "ยกเลิก Ticket", $"เหตุผล: {request.Comment}");
 
-            return await context.SaveChangesAsync() > 0;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var employeeId = currentUserService.UserId;
+            var employeeId = _currentUserService.UserId;
             if (employeeId == Guid.Empty)
             {
                 return new List<TicketListViewModel>();
             }
 
-            var query = context.SupportTickets
+            var query = _context.SupportTickets
                                 .AsNoTracking()
                                 .Where(t => t.ReportedByEmployeeId == employeeId);
 
-            // If no parameters are sent, default to the last 6 months.
             DateTime sDate = startDate ?? DateTime.UtcNow.AddMonths(-6);
-
-            // If only startDate is sent, filter from that date to the present.
-            // If both are sent, use the specified range.
             DateTime eDate = endDate ?? DateTime.UtcNow;
-
-            // Ensure the end of the day is included in the filter
             eDate = eDate.Date.AddDays(1).AddTicks(-1);
 
             query = query.Where(t => t.CreatedAt >= sDate && t.CreatedAt <= eDate);
@@ -227,7 +279,6 @@ namespace Portal.Services.Models
                     TicketNumber = t.TicketNumber,
                     Title = t.Title,
                     Status = t.Status,
-                    // Map other necessary properties
                     CreatedAt = t.CreatedAt
                 })
                 .ToListAsync();
@@ -235,17 +286,11 @@ namespace Portal.Services.Models
 
         public async Task<IEnumerable<TicketListViewModel>> GetAllTicketsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var query = context.SupportTickets
+            var query = _context.SupportTickets
                                 .AsNoTracking();
 
-            // If no parameters are sent, default to the last 6 months.
             DateTime sDate = startDate ?? DateTime.UtcNow.AddMonths(-6);
-
-            // If only startDate is sent, filter from that date to the present.
-            // If both are sent, use the specified range.
             DateTime eDate = endDate ?? DateTime.UtcNow;
-
-            // Ensure the end of the day is included in the filter
             eDate = eDate.Date.AddDays(1).AddTicks(-1);
 
             query = query.Where(t => t.CreatedAt >= sDate && t.CreatedAt <= eDate);
@@ -270,7 +315,7 @@ namespace Portal.Services.Models
 
         public async Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(TicketCategoryType categoryType)
         {
-            return await context.SupportTicketCategories
+            return await _context.SupportTicketCategories
                 .AsNoTracking()
                 .Where(c => c.CategoryType == categoryType)
                 .ToListAsync();
@@ -278,15 +323,15 @@ namespace Portal.Services.Models
 
         public async Task<SupportTicket> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request)
         {
-            var userId = currentUserService.UserId!.Value;
-            using var transaction = await context.Database.BeginTransactionAsync();
+            var userId = _currentUserService.UserId!.Value;
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
                 var descriptionBuilder = new StringBuilder("รายการเบิกอุปกรณ์:\n");
                 foreach (var item in request.Items)
                 {
-                    var stockItem = await context.IT_Stocks.Include(s => s.Item).FirstOrDefaultAsync(s => s.ItemId == item.ItemId);
+                    var stockItem = await _context.IT_Stocks.Include(s => s.Item).FirstOrDefaultAsync(s => s.ItemId == item.ItemId);
                     if (stockItem == null || stockItem.Quantity < item.Quantity)
                         throw new InvalidOperationException($"สินค้า '{stockItem?.Item.Name ?? "ID: " + item.ItemId}' มีไม่เพียงพอในสต็อก");
 
@@ -294,7 +339,7 @@ namespace Portal.Services.Models
                     descriptionBuilder.AppendLine($"- {stockItem.Item.Name}: {item.Quantity} {stockItem.Item.Unit}");
                 }
 
-                var category = await context.SupportTicketCategories.AsNoTracking().FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Request)
+                var category = await _context.SupportTicketCategories.AsNoTracking().FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Request)
                                ?? throw new InvalidOperationException("ไม่พบหมวดหมู่สำหรับการเบิก/ขออุปกรณ์");
 
                 var ticket = new SupportTicket
@@ -310,25 +355,25 @@ namespace Portal.Services.Models
                     CreatedAt = DateTime.UtcNow,
                 };
 
-                context.SupportTickets.Add(ticket);
-                await context.SaveChangesAsync();
+                _context.SupportTickets.Add(ticket);
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                _ = emailService.SendNewTicketNotificationAsync(ticket);
+                await _emailService.SendNewTicketNotificationAsync(ticket);
                 return ticket;
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                logger.LogError(ex, "Failed to create withdrawal ticket.");
+                _logger.LogError(ex, "Failed to create withdrawal ticket.");
                 throw;
             }
         }
 
         public async Task<SupportTicket> CreatePurchaseRequestTicketAsync(CreatePurchaseRequest request)
         {
-            var userId = currentUserService.UserId!.Value;
-            var category = await context.SupportTicketCategories.AsNoTracking().FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Request)
+            var userId = _currentUserService.UserId!.Value;
+            var category = await _context.SupportTicketCategories.AsNoTracking().FirstOrDefaultAsync(c => c.CategoryType == TicketCategoryType.Request)
                            ?? throw new InvalidOperationException("ไม่พบหมวดหมู่สำหรับการขอจัดซื้อ");
 
             var descriptionBuilder = new StringBuilder();
@@ -351,18 +396,16 @@ namespace Portal.Services.Models
                 CreatedAt = DateTime.UtcNow,
             };
 
-            context.SupportTickets.Add(ticket);
-            await context.SaveChangesAsync();
+            _context.SupportTickets.Add(ticket);
+            await _context.SaveChangesAsync();
 
-            _ = emailService.SendNewTicketNotificationAsync(ticket);
+            await _emailService.SendNewTicketNotificationAsync(ticket);
             return ticket;
         }
 
-        // --- Helper Methods ---
-
         private void CreateHistoryEntry(int ticketId, Guid employeeId, string action, string? comment)
         {
-            context.SupportTicketHistories.Add(new SupportTicketHistory
+            _context.SupportTicketHistories.Add(new SupportTicketHistory
             {
                 TicketId = ticketId,
                 EmployeeId = employeeId,
@@ -372,11 +415,10 @@ namespace Portal.Services.Models
             });
         }
 
-
         private async Task<string> GenerateNewTicketNumberAsync()
         {
             var yearMonthPrefix = DateTime.UtcNow.ToString("yyyyMM");
-            var lastTicket = await context.SupportTickets
+            var lastTicket = await _context.SupportTickets
                 .AsNoTracking()
                 .Where(t => t.TicketNumber.StartsWith(yearMonthPrefix))
                 .OrderByDescending(t => t.TicketNumber)
@@ -389,5 +431,6 @@ namespace Portal.Services.Models
             }
             return $"{yearMonthPrefix}-{nextSequence:D4}";
         }
+        #endregion
     }
 }

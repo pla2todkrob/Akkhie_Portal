@@ -28,7 +28,7 @@ namespace Portal.Services.Models
         public string? UserAgent { get; set; }
         public string? TraceId { get; set; }
 
-        public bool HasTemporaryProperties => TemporaryProperties.Any();
+        public bool HasTemporaryProperties => TemporaryProperties.Count != 0;
 
         /// <summary>
         /// แปลงจาก AuditEntry ไปเป็น AuditLog Entity เพื่อพร้อมบันทึกลง DB

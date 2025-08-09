@@ -95,6 +95,45 @@ namespace Portal.Services.Controllers
             }
         }
 
+        [HttpPost("close")]
+        public async Task<IActionResult> CloseTicket([FromBody] TicketActionRequest request)
+        {
+            try
+            {
+                var result = await _supportTicketService.CloseTicketByUserAsync(request);
+                return Ok(ApiResponse.SuccessResponse(result, "ปิด Ticket เรียบร้อยแล้ว"));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized attempt to close ticket {TicketId}", request.TicketId);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error closing ticket {TicketId}", request.TicketId);
+                return BadRequest(ApiResponse.ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpPost("cancel")]
+        public async Task<IActionResult> CancelTicket([FromBody] TicketActionRequest request)
+        {
+            try
+            {
+                var result = await _supportTicketService.CancelTicketAsync(request);
+                return Ok(ApiResponse.SuccessResponse(result, "ยกเลิก Ticket เรียบร้อยแล้ว"));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized attempt to cancel ticket {TicketId}", request.TicketId);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling ticket {TicketId}", request.TicketId);
+                return BadRequest(ApiResponse.ErrorResponse(ex.Message));
+            }
+        }
 
         [HttpGet("mytickets")]
         public async Task<IActionResult> GetMyTickets()

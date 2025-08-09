@@ -66,7 +66,7 @@ namespace Portal.Services.Models
                     Departments = viewModel.DepartmentViewModels?
                         .Where(d => !string.IsNullOrWhiteSpace(d.Name))
                         .Select(d => new Department { Name = d.Name })
-                        .ToList() ?? new List<Department>()
+                        .ToList() ?? []
                 };
 
                 context.Divisions.Add(division);
@@ -141,7 +141,7 @@ namespace Portal.Services.Models
             where TEntity : class, new()
             where TViewModel : class
         {
-            viewModelCollection ??= new List<TViewModel>();
+            viewModelCollection ??= [];
 
             // ลบรายการที่ไม่มีอยู่ใน ViewModel
             var itemsToDelete = dbCollection

@@ -16,7 +16,7 @@
 
             @* Related Ticket Dropdown (to be initialized with bootstrap-select) *@
             <div class="mb-3">
-                <label asp-for="RelatedTicketId" class="form-label">อ้างอิง Ticket เก่า (ถ้ามี)</label>
+                <label asp-for="RelatedTicketId" class="form-label"></label>
                 <select asp-for="RelatedTicketId" class="form-control"></select>
                 @* Note: We use a standard select here and let JavaScript enhance it *@
             </div>
@@ -24,14 +24,14 @@
             @* Ticket Title *@
             <div class="form-floating mb-3">
                 <input asp-for="Title" class="form-control" placeholder="หัวข้อปัญหา" required>
-                <label asp-for="Title">หัวข้อปัญหา (โปรดระบุให้ชัดเจน)</label>
+                <label asp-for="Title"></label>
                 <span asp-validation-for="Title" class="text-danger small"></span>
             </div>
 
             @* Ticket Description *@
             <div class="form-floating mb-3">
                 <textarea asp-for="Description" class="form-control" placeholder="รายละเอียด" style="height: 150px" required></textarea>
-                <label asp-for="Description">รายละเอียด (ระบุขั้นตอน, ข้อความ Error ที่พบ)</label>
+                <label asp-for="Description"></label>
                 <span asp-validation-for="Description" class="text-danger small"></span>
             </div>
 

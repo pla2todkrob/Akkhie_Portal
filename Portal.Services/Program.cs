@@ -151,7 +151,7 @@ if (Directory.Exists(fileUploadPath))
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(fileUploadPath),
-        RequestPath = "" 
+        RequestPath = "/uploads" 
     });
 }
 

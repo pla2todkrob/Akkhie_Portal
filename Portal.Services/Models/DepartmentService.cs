@@ -131,7 +131,7 @@ namespace Portal.Services.Models
             where TEntity : class, new()
             where TViewModel : class
         {
-            viewModelCollection ??= new List<TViewModel>();
+            viewModelCollection ??= [];
 
             var itemsToDelete = dbCollection
                 .Where(dbItem => !viewModelCollection.Any(vmItem => (int)vmItem.GetType().GetProperty("Id").GetValue(vmItem) == (int)dbItem.GetType().GetProperty("Id").GetValue(dbItem)))

@@ -28,6 +28,6 @@ namespace Portal.Shared.Models.ViewModel
         [Display(Name = "จำนวนแผนก")]
         public int TotalSection { get; set; }
 
-        public List<SectionViewModel> SectionViewModels { get; set; } = new();
+        public List<SectionViewModel> SectionViewModels { get; set; } = [];
     }
 }

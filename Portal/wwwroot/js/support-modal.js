@@ -11,7 +11,7 @@
         // Problem Tab
         problemForm: $('#createTicketForm'),
         problemSubmitBtn: $('#submit-problem-btn'),
-        relatedTicketDropdown: $('#RelatedTicketId'), // Note: The ID in your CSHTML is 'relatedTicketId', but DTO is 'RelatedTicketId'. Let's use the one from DTO.
+        relatedTicketDropdown: $('#RelatedTicketId'),
         fileInput: $('#ticketFiles'),
         // Request Tab
         stockSearchInput: $('#stock-item-search'),
@@ -42,7 +42,7 @@
      * @param {string} placeholder The placeholder text.
      */
     const initSearchableDropdown = (element, url, placeholder) => {
-        if (!element.length) return; // Exit if element doesn't exist
+        if (!element.length) return;
         element.selectpicker({
             liveSearch: true,
             title: placeholder,
@@ -52,7 +52,6 @@
 
         $.getJSON(url, function (data) {
             element.empty();
-            // Add a default empty/placeholder option
             element.append($('<option></option>').val('').text(placeholder));
             if (data && data.length > 0) {
                 $.each(data, function (index, item) {
@@ -62,12 +61,12 @@
             element.selectpicker('refresh');
         }).fail(function () {
             console.error(`Failed to load data for searchable dropdown from ${url}`);
-            element.selectpicker('refresh'); // Refresh to show placeholder
+            element.selectpicker('refresh');
         });
     };
 
     // =========================================================================
-    // PROBLEM TAB LOGIC (*** REVISED AND SIMPLIFIED ***)
+    // PROBLEM TAB LOGIC
     // =========================================================================
 
     /** Resets the "Report a Problem" form. */
@@ -75,15 +74,13 @@
         if (selectors.problemForm.length) {
             selectors.problemForm[0].reset();
             selectors.problemForm.removeClass('was-validated');
-            // Use the correct selector for the dropdown
-            $('#RelatedTicketId').selectpicker('val', '');
+            selectors.relatedTicketDropdown.selectpicker('val', '');
         }
     };
 
     /** Initializes the "Report a Problem" tab. */
     const initProblemTab = () => {
-        // Use the correct selector for the dropdown
-        initSearchableDropdown($('#RelatedTicketId'), '/Lookup/GetMyTickets', 'ค้นหา Ticket เก่า...');
+        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetMyTickets', 'ค้นหา Ticket เก่า...');
 
         selectors.problemForm.off('submit').on('submit', function (event) {
             event.preventDefault();
@@ -96,15 +93,17 @@
 
             app.showLoading(selectors.problemSubmitBtn);
 
-            // FormData will correctly capture all form fields and files
             const formData = new FormData(this);
 
             $.ajax({
-                url: $(this).attr('action'), // Submits to /Support/Create
+                url: $(this).attr('action'),
                 type: 'POST',
                 data: formData,
-                processData: false,  // Crucial for FormData
-                contentType: false, // Crucial for FormData
+                processData: false,
+                contentType: false,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
                 success: function (response) {
                     if (response.success) {
                         app.showSuccessToast(response.message || 'แจ้งปัญหาสำเร็จแล้ว');
@@ -126,10 +125,9 @@
     };
 
     // =========================================================================
-    // REQUEST TAB LOGIC (FROM YOUR ORIGINAL FILE)
+    // REQUEST TAB LOGIC
     // =========================================================================
 
-    /** Renders a single stock item card. */
     const renderStockItem = (item) => {
         const disabled = item.quantityInStock <= 0 ? 'disabled' : '';
         const badge = item.quantityInStock <= 0 ? '<span class="badge bg-danger">ของหมด</span>' : `<span class="badge bg-success">${item.quantityInStock} ชิ้น</span>`;
@@ -148,7 +146,6 @@
             </div>`;
     };
 
-    /** Loads and renders all stock items from the API. */
     const loadStockItems = () => {
         selectors.stockItemsContainer.html('<div class="text-center p-5"><span class="spinner-border"></span></div>');
         $.getJSON('/api/ITInventory/GetStockItemsForWithdrawal', function (items) {
@@ -161,7 +158,6 @@
         });
     };
 
-    /** Updates the view of the cart. */
     const updateCartView = () => {
         selectors.cartItemsContainer.empty();
         let totalItems = 0;
@@ -188,7 +184,6 @@
         selectors.cartItemCountBadge.text(totalItems);
     };
 
-    /** Handles adding/removing items from the cart. */
     const updateCart = (itemId, change) => {
         if (!cart[itemId]) return;
         let newQuantity = cart[itemId].quantity + change;
@@ -203,7 +198,6 @@
         updateCartView();
     };
 
-    /** Resets the request tab forms. */
     const resetRequestForm = () => {
         cart = {};
         updateCartView();
@@ -215,7 +209,6 @@
         $('.stock-item').show();
     };
 
-    /** Initializes the "Request Equipment" tab. */
     const initRequestTab = () => {
         loadStockItems();
 
@@ -295,10 +288,9 @@
     };
 
     // =========================================================================
-    // HISTORY TAB LOGIC (FROM YOUR ORIGINAL FILE)
+    // HISTORY TAB LOGIC
     // =========================================================================
 
-    /** Renders the ticket history list. */
     const renderHistory = (tickets) => {
         selectors.historyContainer.empty();
         if (tickets && tickets.length > 0) {
@@ -317,7 +309,6 @@
         }
     };
 
-    /** Loads the user's ticket history. */
     const loadHistory = () => {
         selectors.historyContainer.html('<div class="text-center p-5"><span class="spinner-border"></span></div>');
         $.getJSON('/api/SupportTicket/GetMyHistory', function (tickets) {
@@ -325,7 +316,6 @@
         });
     };
 
-    /** Initializes the "My History" tab. */
     const initHistoryTab = () => {
         selectors.historyTabBtn.on('shown.bs.tab', function () {
             loadHistory();

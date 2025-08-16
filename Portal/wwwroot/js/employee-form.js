@@ -18,7 +18,7 @@
 
             if (companyId) {
                 $division.empty().append('<option value="">-- กำลังโหลด... --</option>');
-                $.getJSON('/Lookup/GetDivisionsByCompany', { companyId: companyId }, function (data) {
+                $.getJSON('/Lookup/GetSelectListDivisionsByCompany', { companyId: companyId }, function (data) {
                     $division.empty().append('<option value="">-- เลือกสายงาน --</option>');
                     $.each(data, function (index, item) {
                         $division.append($('<option></option>').val(item.value).text(item.text));
@@ -42,7 +42,7 @@
 
             if (divisionId) {
                 $department.empty().append('<option value="">-- กำลังโหลด... --</option>');
-                $.getJSON('/Lookup/GetDepartmentsByDivision', { id: divisionId }, function (data) {
+                $.getJSON('/Lookup/GetSelectListDepartmentsByDivision', { id: divisionId }, function (data) {
                     $department.empty().append('<option value="">-- เลือกฝ่าย --</option>');
                     $.each(data, function (index, item) {
                         $department.append($('<option></option>').val(item.value).text(item.text));
@@ -65,7 +65,7 @@
 
             if (departmentId) {
                 $section.empty().append('<option value="">-- กำลังโหลด... --</option>');
-                $.getJSON('/Lookup/GetSectionsByDepartment', { id: departmentId }, function (data) {
+                $.getJSON('/Lookup/GetSelectListSectionsByDepartment', { id: departmentId }, function (data) {
                     $section.empty().append('<option value="">-- เลือกแผนก --</option>');
                     $.each(data, function (index, item) {
                         $section.append($('<option></option>').val(item.value).text(item.text));

@@ -74,7 +74,7 @@
             $divisionDropdown.empty().append('<option value="">-- กำลังโหลด... --</option>').prop('disabled', true);
 
             if (companyId) {
-                $.getJSON('/Lookup/GetDivisionsByCompany', { companyId: companyId }, function (data) {
+                $.getJSON('/Lookup/GetSelectListDivisionsByCompany', { companyId: companyId }, function (data) {
                     $divisionDropdown.empty().append('<option value="">-- เลือกสายงาน --</option>');
                     $.each(data, function (index, item) {
                         $divisionDropdown.append($('<option></option>').val(item.value).text(item.text));

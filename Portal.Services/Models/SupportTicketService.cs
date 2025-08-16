@@ -65,10 +65,8 @@ namespace Portal.Services.Models
                 };
             }).ToList();
 
-            // --- [ปรับปรุง] ตรวจสอบความเป็นเจ้าของ Ticket ที่นี่ ---
             var currentUserId = _currentUserService.UserId;
             var isOwner = currentUserId.HasValue && ticket.ReportedByEmployeeId == currentUserId.Value;
-            // --- จบส่วนปรับปรุง ---
 
             return new TicketDetailViewModel
             {
@@ -92,13 +90,11 @@ namespace Portal.Services.Models
                     ActionDate = h.CreatedAt
                 }).ToList(),
                 Attachments = attachments,
-                // --- [ปรับปรุง] กำหนดค่าให้กับ Properties ใหม่ ---
                 ReportedById = ticket.ReportedByEmployeeId,
                 IsOwner = isOwner
             };
         }
 
-        // ... (โค้ดส่วนอื่นๆ ของ Service ทั้งหมดเหมือนเดิม) ...
         #region Other Methods
         public async Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request)
         {
@@ -279,6 +275,10 @@ namespace Portal.Services.Models
                     TicketNumber = t.TicketNumber,
                     Title = t.Title,
                     Status = t.Status,
+                    StatusName = t.Status.GetDisplayName(),
+                    CategoryName = t.Category.Name,
+                    DepartmentName = t.ReportedByEmployee.Department != null ? t.ReportedByEmployee.Department.Name : "N/A",
+                    ReportedBy = t.ReportedByEmployee.EmployeeDetail != null ? t.ReportedByEmployee.EmployeeDetail.FullName : t.ReportedByEmployee.Username,
                     CreatedAt = t.CreatedAt
                 })
                 .ToListAsync();

@@ -20,11 +20,14 @@ namespace Portal.Shared.Models.ViewModel.Support
         public string StatusName { get; set; } = string.Empty;
 
         [Display(Name = "วันที่แจ้ง")]
+        [DisplayFormat(DataFormatString = "{0:g}")]
         public DateTime CreatedAt { get; set; }
         [Display(Name = "ผู้แจ้ง")]
         public string? ReportedBy { get; set; }
 
         [Display(Name = "ฝ่าย")]
         public string? DepartmentName { get; set; }
+        [Display(Name = "หมวดหมู่")]
+        public string CategoryName { get; set; }
     }
 }

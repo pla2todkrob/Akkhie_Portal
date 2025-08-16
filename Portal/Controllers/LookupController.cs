@@ -16,7 +16,7 @@ namespace Portal.Controllers
         ) : Controller
     {
         [HttpGet]
-        public async Task<JsonResult> GetCompanies()
+        public async Task<JsonResult> GetSelectListCompanies()
         {
             var companies = await companyRequest.GetAllAsync();
             var selectList = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
@@ -24,7 +24,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetBranchesByCompany(int id)
+        public async Task<JsonResult> GetSelectListBranchesByCompany(int id)
         {
             var branches = await companyRequest.GetBranchesByCompanyIdAsync(id);
             var selectList = branches.Select(b => new SelectListItem { Value = b.Id.ToString(), Text = b.Name });
@@ -32,7 +32,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetDivisionsByCompany(int companyId)
+        public async Task<JsonResult> GetSelectListDivisionsByCompany(int companyId)
         {
             var divisions = await companyRequest.GetDivisionsByCompanyIdAsync(companyId);
             var selectList = divisions.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
@@ -40,7 +40,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetDepartmentsByDivision(int id)
+        public async Task<JsonResult> GetSelectListDepartmentsByDivision(int id)
         {
             var departments = await divisionRequest.GetDepartmentsByDivisionIdAsync(id);
             var selectList = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = d.Name });
@@ -48,7 +48,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetSectionsByDepartment(int id)
+        public async Task<JsonResult> GetSelectListSectionsByDepartment(int id)
         {
             var sections = await departmentRequest.GetSectionsByDepartmentIdAsync(id);
             var selectList = sections.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name });
@@ -56,7 +56,7 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetRoles()
+        public async Task<JsonResult> GetSelectListRoles()
         {
             var roles = await roleRequest.GetAllAsync();
             var selectList = roles.Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Name });
@@ -65,6 +65,14 @@ namespace Portal.Controllers
 
         [HttpGet]
         public async Task<JsonResult> GetMyTickets()
+        {
+            var tickets = await support.GetMyTicketsAsync();
+
+            return Json(tickets);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetSelectListMyTickets()
         {
             var tickets = await support.GetMyTicketsAsync();
             var selectList = tickets.Select(t => new SelectListItem 

@@ -83,12 +83,25 @@
         },
 
         getTicketStatusClass: function (status) {
+            // ===== [ปรับปรุง] ให้รองรับชื่อสถานะที่เป็นข้อความเต็ม =====
             switch (status) {
-                case 'Open': return 'bg-primary-subtle text-primary-emphasis';
-                case 'InProgress': return 'bg-warning-subtle text-warning-emphasis';
-                case 'Resolved': return 'bg-success-subtle text-success-emphasis';
-                case 'Closed': return 'bg-secondary-subtle text-secondary-emphasis';
-                default: return 'bg-light text-dark';
+                case 'Open':
+                case 'เปิด':
+                    return 'bg-primary-subtle text-primary-emphasis';
+                case 'In Progress':
+                case 'กำลังดำเนินการ':
+                    return 'bg-warning-subtle text-warning-emphasis';
+                case 'Resolved':
+                case 'แก้ไขแล้ว':
+                    return 'bg-success-subtle text-success-emphasis';
+                case 'Closed':
+                case 'ปิดงาน':
+                    return 'bg-secondary-subtle text-secondary-emphasis';
+                case 'Cancelled':
+                case 'ยกเลิก':
+                    return 'bg-dark-subtle text-dark-emphasis';
+                default:
+                    return 'bg-light text-dark';
             }
         },
 

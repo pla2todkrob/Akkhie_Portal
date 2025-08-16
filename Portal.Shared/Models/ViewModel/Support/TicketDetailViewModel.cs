@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.Models.ViewModel.Support
 {
@@ -15,7 +16,9 @@ namespace Portal.Shared.Models.ViewModel.Support
         public string RequestType { get; set; }
         public string ReportedBy { get; set; }
         public string? AssignedTo { get; set; }
+        [DisplayFormat(DataFormatString = "{0:g}")]
         public DateTime CreatedAt { get; set; }
+        [DisplayFormat(DataFormatString = "{0:g}")]
         public DateTime? ResolvedAt { get; set; }
         public List<HistoryItem> History { get; set; } = new();
         public List<AttachmentItem> Attachments { get; set; } = new();
@@ -27,6 +30,7 @@ namespace Portal.Shared.Models.ViewModel.Support
             public string ActionDescription { get; set; }
             public string? Comment { get; set; }
             public string ActionBy { get; set; }
+            [DisplayFormat(DataFormatString = "{0:g}")]
             public DateTime ActionDate { get; set; }
         }
 

@@ -80,7 +80,7 @@
 
     /** Initializes the "Report a Problem" tab. */
     const initProblemTab = () => {
-        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetMyTickets', 'ค้นหา Ticket เก่า...');
+        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetSelectListMyTickets', 'ค้นหา Ticket เก่า...');
 
         selectors.problemForm.off('submit').on('submit', function (event) {
             event.preventDefault();
@@ -292,6 +292,7 @@
     // =========================================================================
 
     const renderHistory = (tickets) => {
+        console.log('Rendering history for tickets:', tickets);
         selectors.historyContainer.empty();
         if (tickets && tickets.length > 0) {
             const historyHtml = tickets.map(ticket => `
@@ -311,7 +312,7 @@
 
     const loadHistory = () => {
         selectors.historyContainer.html('<div class="text-center p-5"><span class="spinner-border"></span></div>');
-        $.getJSON('/api/SupportTicket/GetMyHistory', function (tickets) {
+        $.getJSON('/Lookup/GetMyTickets', function (tickets) {
             renderHistory(tickets);
         });
     };

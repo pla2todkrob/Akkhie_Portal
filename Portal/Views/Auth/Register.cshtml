@@ -140,10 +140,10 @@
                     );
 
                     if (companyId) {
-                        populateDropdown(selectors.branch, `@Url.Action("GetBranchesByCompany", "Lookup")?id=${companyId}`, '-- กรุณาเลือกสาขา --')
+                        populateDropdown(selectors.branch, `@Url.Action("GetSelectListBranchesByCompany", "Lookup")?id=${companyId}`, '-- กรุณาเลือกสาขา --')
                             .done(() => selectors.branch.prop('disabled', false));
 
-                        populateDropdown(selectors.division, `@Url.Action("GetDivisionsByCompany", "Lookup")?companyId=${companyId}`, '-- กรุณาเลือกสายงาน --')
+                        populateDropdown(selectors.division, `@Url.Action("GetSelectListDivisionsByCompany", "Lookup")?companyId=${companyId}`, '-- กรุณาเลือกสายงาน --')
                             .done(() => selectors.division.prop('disabled', false));
                     }
                 });
@@ -156,7 +156,7 @@
                     );
 
                     if (divisionId) {
-                        populateDropdown(selectors.department, `@Url.Action("GetDepartmentsByDivision", "Lookup")?id=${divisionId}`, '-- กรุณาเลือกฝ่าย --')
+                        populateDropdown(selectors.department, `@Url.Action("GetSelectListDepartmentsByDivision", "Lookup")?id=${divisionId}`, '-- กรุณาเลือกฝ่าย --')
                             .done(() => selectors.department.prop('disabled', false));
                     }
                 });
@@ -166,7 +166,7 @@
                     resetDropdowns([selectors.section], ['-- กรุณาเลือกแผนก --']);
 
                     if (departmentId) {
-                        populateDropdown(selectors.section, `@Url.Action("GetSectionsByDepartment", "Lookup")?id=${departmentId}`, '-- กรุณาเลือกแผนก --')
+                        populateDropdown(selectors.section, `@Url.Action("GetSelectListSectionsByDepartment", "Lookup")?id=${departmentId}`, '-- กรุณาเลือกแผนก --')
                             .done(() => selectors.section.prop('disabled', false));
                     }
                 });
@@ -183,8 +183,8 @@
 
                 setupCascadingDropdowns();
 
-                populateDropdown(selectors.company, '@Url.Action("GetCompanies", "Lookup")', '-- กรุณาเลือกบริษัท --');
-                populateDropdown(selectors.role, '@Url.Action("GetRoles", "Lookup")', '-- กรุณาเลือกระดับผู้ใช้ --');
+                populateDropdown(selectors.company, '@Url.Action("GetSelectListCompanies", "Lookup")', '-- กรุณาเลือกบริษัท --');
+                populateDropdown(selectors.role, '@Url.Action("GetSelectListRoles", "Lookup")', '-- กรุณาเลือกระดับผู้ใช้ --');
             });
 
         })(jQuery);

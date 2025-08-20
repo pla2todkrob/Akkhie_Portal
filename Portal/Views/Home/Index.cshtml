@@ -1,8 +1,120 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "หน้าแรก";
+    var fullName = User.FindFirstValue("FullName") ?? User.Identity?.Name;
+    var isSystemRole = (User.FindFirstValue("IsSystemRole") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <style>
+        .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            color: #fff;
+            border-radius: .75rem;
+        }
+
+        .card-link-stretch {
+            color: inherit;
+            text-decoration: none;
+        }
+
+            .card-link-stretch:hover .card {
+                transform: translateY(-5px);
+                box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+            }
+
+        .card {
+            transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+        }
+    </style>
+}
+
+@* --- ส่วนต้อนรับผู้ใช้ --- *@
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold">ยินดีต้อนรับ, @fullName!</h1>
+        <p class="col-md-8 fs-4 text-muted">
+            เข้าสู่ AKP Portal ศูนย์กลางการจัดการข้อมูลและบริการสำหรับพนักงาน
+        </p>
+        <p>วันที่ @DateTime.Now.ToString("d MMMM yyyy")</p>
+    </div>
+</div>
+
+@* --- ส่วนเมนูลัด (Quick Access) --- *@
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+
+    @* บัตร: ศูนย์ช่วยเหลือ *@
+    <div class="col">
+        <a href="#" class="card-link-stretch" data-bs-toggle="modal" data-bs-target="#supportModal">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-primary bg-gradient">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">ศูนย์ช่วยเหลือ</h5>
+                    <p class="card-text text-muted small">แจ้งปัญหา, ขอเบิก/ยืมอุปกรณ์, ขอสิทธิ์ หรือติดตามสถานะคำขอของคุณ</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    @* บัตร: จัดการ Ticket (สำหรับ IT และ Admin) *@
+    @if (isSystemRole || User.IsInRole("IT Support")) @* สมมติว่ามี Role "IT Support" *@
+    {
+        <div class="col">
+            <a asp-controller="Support" asp-action="Index" class="card-link-stretch">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-success bg-gradient">
+                            <i class="bi bi-ticket-detailed"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">จัดการ Support Ticket</h5>
+                        <p class="card-text text-muted small">ดูภาพรวม, รับงาน, และจัดการ Ticket ทั้งหมดในระบบ</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+
+    @* บัตร: จัดการข้อมูลหลัก (สำหรับ Admin) *@
+    @if (isSystemRole)
+    {
+        <div class="col">
+            <a asp-controller="Company" asp-action="Index" class="card-link-stretch">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-secondary bg-gradient">
+                            <i class="bi bi-gear-wide-connected"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">จัดการข้อมูลหลัก</h5>
+                        <p class="card-text text-muted small">จัดการข้อมูลโครงสร้างองค์กร, พนักงาน, และตั้งค่าระบบ</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+@* --- ส่วนแจ้งข่าวสารและฟีเจอร์ที่กำลังพัฒนา --- *@
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h4 class="card-title"><i class="bi bi-stars text-warning me-2"></i>เร็วๆ นี้</h4>
+                <p class="card-text text-muted">ทีมงานกำลังพัฒนาฟีเจอร์ใหม่ๆ เพื่อให้การทำงานของคุณง่ายขึ้น:</p>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>แดชบอร์ดสรุปข้อมูลภาพรวม</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>ระบบจัดการครุภัณฑ์ IT (IT Inventory)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>ระบบขออนุมัติออนไลน์ (E-Approval)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>

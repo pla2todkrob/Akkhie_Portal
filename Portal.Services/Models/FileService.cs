@@ -1,17 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.Entities;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
-    /// <summary>
-    /// Service สำหรับจัดการไฟล์
-    /// </summary>
     public class FileService(PortalDbContext context, IOptions<FileSettings> fileSettings, ICurrentUserService currentUserService) : IFileService
     {
         private readonly string _uploadPath = fileSettings.Value.UploadPath;
@@ -27,7 +19,6 @@ namespace Portal.Services.Models
             var yearMonthFolder = DateTime.UtcNow.ToString("yyyy\\MM");
             var physicalDirectory = Path.Combine(_uploadPath, yearMonthFolder);
 
-            // สร้าง Directory ถ้ายังไม่มี
             if (!Directory.Exists(physicalDirectory))
             {
                 Directory.CreateDirectory(physicalDirectory);
@@ -42,17 +33,15 @@ namespace Portal.Services.Models
                     var uniqueFileName = $"{Guid.NewGuid()}{extension}";
                     var physicalPath = Path.Combine(physicalDirectory, uniqueFileName);
 
-                    // บันทึกไฟล์ลง Server
                     using (var stream = new FileStream(physicalPath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
 
-                    // สร้าง Entity สำหรับบันทึกลง Database ให้ตรงกับ Model ที่ให้มา
                     var fileEntity = new UploadedFile
                     {
-                        FileName = uniqueFileName, // ชื่อไฟล์ที่เก็บใน Server
-                        OriginalFileName = originalFileName, // ชื่อไฟล์ดั้งเดิม
+                        FileName = uniqueFileName,
+                        OriginalFileName = originalFileName,
                         ContentType = file.ContentType,
                         FileSize = file.Length,
                         UploadPath = Path.Combine(yearMonthFolder, uniqueFileName).Replace('\\', '/'),

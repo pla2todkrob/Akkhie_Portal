@@ -1,13 +1,8 @@
-﻿// FileName: Portal.Services/Models/DivisionService.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
@@ -92,19 +87,17 @@ namespace Portal.Services.Models
                     return new ApiResponse { Success = false, Message = "ไม่พบข้อมูลสายงานที่ต้องการแก้ไข" };
                 }
 
-                // อัปเดตข้อมูลหลัก
                 divisionInDb.Name = viewModel.Name;
                 divisionInDb.CompanyId = viewModel.CompanyId;
 
-                // เรียกใช้ Helper Method เพื่อจัดการ Departments (เพิ่ม/ลบ/แก้ไข)
                 UpdateChildCollection(
                     divisionInDb.Departments,
                     viewModel.DepartmentViewModels,
-                    (department, vm) => { // Logic สำหรับ Update
+                    (department, vm) => {
                         department.Name = vm.Name;
                     },
                     vm => new Department
-                    { // Logic สำหรับ Add
+                    {
                         Name = vm.Name
                     });
 
@@ -130,9 +123,6 @@ namespace Portal.Services.Models
             return new ApiResponse { Success = true, Message = "ลบข้อมูลสำเร็จ" };
         }
 
-        /// <summary>
-        /// Helper Method สำหรับจัดการ Collection ลูก (Child Collection)
-        /// </summary>
         private void UpdateChildCollection<TEntity, TViewModel>(
             ICollection<TEntity> dbCollection,
             ICollection<TViewModel> viewModelCollection,
@@ -143,7 +133,6 @@ namespace Portal.Services.Models
         {
             viewModelCollection ??= [];
 
-            // ลบรายการที่ไม่มีอยู่ใน ViewModel
             var itemsToDelete = dbCollection
                 .Where(dbItem => !viewModelCollection.Any(vmItem => (int)vmItem.GetType().GetProperty("Id").GetValue(vmItem) == (int)dbItem.GetType().GetProperty("Id").GetValue(dbItem)))
                 .ToList();
@@ -153,7 +142,6 @@ namespace Portal.Services.Models
                 context.Remove(item);
             }
 
-            // อัปเดตและเพิ่มรายการใหม่
             foreach (var vmItem in viewModelCollection)
             {
                 var vmId = (int)vmItem.GetType().GetProperty("Id").GetValue(vmItem);
@@ -161,12 +149,10 @@ namespace Portal.Services.Models
 
                 if (dbItem != null)
                 {
-                    // อัปเดต
                     updateAction(dbItem, vmItem);
                 }
                 else
                 {
-                    // เพิ่ม
                     var newItem = addAction(vmItem);
                     dbCollection.Add(newItem);
                 }

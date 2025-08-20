@@ -16,6 +16,7 @@
     bool isResolved = Model.Status == TicketStatus.Resolved.GetDisplayName();
     bool isClosed = Model.Status == TicketStatus.Closed.GetDisplayName();
     bool isCancelled = Model.Status == TicketStatus.Cancelled.GetDisplayName();
+    bool isRejected = Model.Status == TicketStatus.Rejected.GetDisplayName();
 }
 
 <div class="container py-4">
@@ -39,6 +40,18 @@
                         <div class="col-md-6"><i class="bi bi-tag-fill me-2 text-primary"></i><strong>หมวดหมู่:</strong> @Model.Category</div>
                         <div class="col-md-6"><i class="bi bi-bar-chart-fill me-2 text-primary"></i><strong>ความสำคัญ:</strong> @Model.Priority</div>
                         <div class="col-md-6"><i class="bi bi-person-workspace me-2 text-primary"></i><strong>ผู้รับผิดชอบ:</strong> @(Model.AssignedTo ?? "ยังไม่มีผู้รับผิดชอบ")</div>
+                        @if (Model.QueuePosition > 0)
+                        {
+                            <div class="col-12 mt-3">
+                                <div class="alert alert-info d-flex align-items-center" role="alert">
+                                    <i class="bi bi-hourglass-split fs-4 me-3"></i>
+                                    <div>
+                                        <h6 class="alert-heading mb-0">คิวที่กำลังรอ: @Model.QueuePosition</h6>
+                                        <small>ลำดับคิวของท่านอาจมีการเปลี่ยนแปลงได้</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
 
                     <h5 class="mt-4">รายละเอียดปัญหา</h5>
@@ -71,7 +84,7 @@
                     @if (Model.History.Any())
                     {
                         <ul class="list-unstyled">
-                            @foreach (var history in Model.History)
+                            @foreach (var history in Model.History.OrderBy(h => h.ActionDate))
                             {
                                 <li class="mb-3">
                                     <div class="d-flex">
@@ -106,48 +119,53 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="TicketId" value="@Model.Id" />
 
-                        @if (isOpen)
+                        @* --- ส่วนของ IT --- *@
+                        @if (ViewBag.IsITSupportUser == true)
                         {
-                            <fieldset class="mb-3">
-                                <legend class="h6 fw-bold">ขั้นตอนรับงาน (สำหรับ IT)</legend>
-                                <div class="mb-3">
-                                    <label for="AssignedToEmployeeId" class="form-label">มอบหมายให้</label>
-                                    <select name="AssignedToEmployeeId" id="AssignedToEmployeeId" asp-items="@ViewBag.ITUsers" class="form-select">
-                                        <option value="">-- มอบหมายให้ตัวเอง --</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="Priority" class="form-label">กำหนดความสำคัญ</label>
-                                    <select name="Priority" id="Priority" asp-items="@ViewBag.Priorities" class="form-select" required></select>
-                                </div>
-                                <div class="d-grid">
-                                    <button type="button" id="acceptTicketBtn" class="btn btn-primary">
-                                        <i class="bi bi-check-circle-fill me-2"></i>รับงาน
-                                    </button>
-                                </div>
-                            </fieldset>
+                            @if (isOpen)
+                            {
+                                <fieldset class="mb-3">
+                                    <legend class="h6 fw-bold">ขั้นตอนรับงาน</legend>
+                                    <div class="mb-3">
+                                        <label for="AssignedToEmployeeId" class="form-label">มอบหมายให้</label>
+                                        <select name="AssignedToEmployeeId" id="AssignedToEmployeeId" asp-items="@ViewBag.ITUsers" class="form-select">
+                                            <option value="">-- มอบหมายให้ตัวเอง --</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Priority" class="form-label">กำหนดความสำคัญ</label>
+                                        <select name="Priority" id="Priority" asp-items="@ViewBag.Priorities" class="form-select" required></select>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" id="acceptTicketBtn" class="btn btn-primary"><i class="bi bi-check-circle-fill me-2"></i>รับงาน</button>
+                                        <button type="button" id="rejectTicketBtn" class="btn btn-outline-danger"><i class="bi bi-x-circle-fill me-2"></i>ปฏิเสธ Ticket</button>
+                                    </div>
+                                </fieldset>
+                            }
+
+                            @if (isInProgress)
+                            {
+                                <fieldset class="mb-3">
+                                    <legend class="h6 fw-bold">ขั้นตอนปิดงาน</legend>
+                                    <div class="mb-3">
+                                        <label for="CategoryId" class="form-label">หมวดหมู่ (หลังแก้ไข)</label>
+                                        <select name="CategoryId" id="CategoryId" asp-items="@ViewBag.Categories" class="form-select" required>
+                                            <option value="">-- กรุณาเลือก --</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="Comment" class="form-label">ความคิดเห็น / บันทึกการแก้ไข</label>
+                                        <textarea name="Comment" id="Comment" class="form-control" rows="3" placeholder="เช่น: ติดตั้งโปรแกรมใหม่ให้แล้ว..."></textarea>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" id="resolveTicketBtn" class="btn btn-success"><i class="bi bi-patch-check-fill me-2"></i>เสร็จสิ้นการแก้ไข</button>
+                                        <button type="button" id="rejectTicketBtn" class="btn btn-outline-danger"><i class="bi bi-x-circle-fill me-2"></i>ปฏิเสธ Ticket</button>
+                                    </div>
+                                </fieldset>
+                            }
                         }
 
-                        <fieldset class="mb-3" disabled="@(isOpen || isResolved || isClosed || isCancelled)">
-                            <legend class="h6 fw-bold">ขั้นตอนปิดงาน (สำหรับ IT)</legend>
-                            <div class="mb-3">
-                                <label for="CategoryId" class="form-label">หมวดหมู่ (หลังแก้ไข)</label>
-                                <select name="CategoryId" id="CategoryId" asp-items="@ViewBag.Categories" class="form-select" required>
-                                    <option value="">-- กรุณาเลือก --</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="Comment" class="form-label">ความคิดเห็น / บันทึกการแก้ไข</label>
-                                <textarea name="Comment" id="Comment" class="form-control" rows="3" placeholder="เช่น: ติดตั้งโปรแกรมใหม่ให้แล้ว..."></textarea>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="button" id="resolveTicketBtn" class="btn btn-success">
-                                    <i class="bi bi-patch-check-fill me-2"></i>เสร็จสิ้นการแก้ไข
-                                </button>
-                            </div>
-                        </fieldset>
-
+                        @* --- ส่วนของผู้แจ้งเรื่อง --- *@
                         @if (Model.IsOwner)
                         {
                             <hr>
@@ -156,18 +174,21 @@
                                 <div class="d-grid gap-2">
                                     @if (isResolved)
                                     {
-                                        <button type="button" id="closeTicketBtn" class="btn btn-info">
-                                            <i class="bi bi-check2-circle me-2"></i>ยืนยันและปิดงาน
-                                        </button>
+                                        <button type="button" id="closeTicketBtn" class="btn btn-info"><i class="bi bi-check2-circle me-2"></i>ยืนยันและปิดงาน</button>
                                     }
                                     @if (isOpen || isInProgress)
                                     {
-                                        <button type="button" id="cancelTicketBtn" class="btn btn-outline-danger">
-                                            <i class="bi bi-x-circle me-2"></i>ยกเลิก Ticket
-                                        </button>
+                                        <button type="button" id="cancelTicketBtn" class="btn btn-outline-danger"><i class="bi bi-x-circle me-2"></i>ยกเลิก Ticket</button>
                                     }
                                 </div>
                             </fieldset>
+                        }
+
+                        @if (isClosed || isCancelled || isRejected)
+                        {
+                            <div class="alert alert-info text-center" role="alert">
+                                <i class="bi bi-info-circle-fill me-2"></i> Ticket นี้ได้สิ้นสุดการดำเนินการแล้ว
+                            </div>
                         }
                     </form>
                 </div>
@@ -181,11 +202,12 @@
     {
         return status switch
         {
-            "Open" => "bg-primary-subtle text-primary-emphasis",
-            "In Progress" => "bg-warning-subtle text-warning-emphasis",
-            "Resolved" => "bg-success-subtle text-success-emphasis",
-            "Closed" => "bg-secondary-subtle text-secondary-emphasis",
-            "Cancelled" => "bg-dark-subtle text-dark-emphasis",
+            "เปิด" => "bg-primary-subtle text-primary-emphasis",
+            "กำลังดำเนินการ" => "bg-warning-subtle text-warning-emphasis",
+            "เสร็จสิ้น" => "bg-success-subtle text-success-emphasis",
+            "ปิด" => "bg-secondary-subtle text-secondary-emphasis",
+            "ยกเลิก" => "bg-dark-subtle text-dark-emphasis",
+            "ปฏิเสธ" => "bg-danger-subtle text-danger-emphasis", // เพิ่มสีสำหรับสถานะปฏิเสธ
             _ => "bg-light text-dark",
         };
     }

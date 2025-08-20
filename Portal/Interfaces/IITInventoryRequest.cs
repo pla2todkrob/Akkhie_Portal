@@ -5,9 +5,6 @@ namespace Portal.Interfaces
 {
     public interface IITInventoryRequest
     {
-        /// <summary>
-        /// Gets a list of all available stock items from the API.
-        /// </summary>
         Task<ApiResponse<IEnumerable<StockItemViewModel>>> GetAvailableStockItemsAsync();
     }
 }

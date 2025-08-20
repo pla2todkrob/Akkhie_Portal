@@ -1,5 +1,4 @@
-﻿// Portal.Services/Models/AuthService.cs
-using Portal.Shared.Models.DTOs.Auth;
+﻿using Portal.Shared.Models.DTOs.Auth;
 using Portal.Shared.Models.Entities;
 using Portal.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -7,12 +6,8 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using BCrypt.Net;
 using Microsoft.Extensions.Options;
 using Portal.Shared.Enums;
-using Portal.Shared.Models.DTOs.Shared;
-using System.Linq;
-using Portal.Shared.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Services.Models
@@ -30,34 +25,53 @@ namespace Portal.Services.Models
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request, string? ipAddress)
         {
-            var employee = await _context.Employees
+            var employees = await _context.Employees
                 .Include(i => i.Role)
                 .Include(i => i.EmployeeDetail)
-                .FirstOrDefaultAsync(e => e.Username == request.Username);
+                .Where(e => e.Username == request.Username)
+                .ToListAsync();
 
-            if (employee != null)
+            if (employees.Any())
             {
-                if (employee.EmployeeStatus != EmployeeStatus.Active)
+                Employee? validEmployee = null;
+
+                foreach (var employee in employees)
                 {
-                    return new LoginResponse
+                    if (employee.EmployeeStatus != EmployeeStatus.Active)
                     {
-                        Success = false,
-                        ErrorMessage = $"บัญชีผู้ใช้นี้ {employee.EmployeeStatus.GetDisplayName()} ไม่สามารถเข้าสู่ระบบได้"
-                    };
+                        continue;
+                    }
+
+                    bool isValid;
+                    if (employee.IsAdUser)
+                    {
+                        isValid = await _adService.ValidateCredentials(request.Username, request.Password);
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(employee.PasswordHash)) continue;
+                        isValid = BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash);
+                    }
+
+                    if (isValid)
+                    {
+                        validEmployee = employee;
+                        break;
+                    }
                 }
 
-                bool isValid;
-                if (employee.IsAdUser)
+                if (validEmployee == null)
                 {
-                    isValid = await _adService.ValidateCredentials(request.Username, request.Password);
-                }
-                else
-                {
-                    isValid = BCrypt.Net.BCrypt.Verify(request.Password, employee.PasswordHash);
-                }
+                    var hasActiveUser = employees.Any(e => e.EmployeeStatus == EmployeeStatus.Active);
+                    if (!hasActiveUser)
+                    {
+                        return new LoginResponse
+                        {
+                            Success = false,
+                            ErrorMessage = $"บัญชีผู้ใช้นี้ทั้งหมดไม่ Active ไม่สามารถเข้าสู่ระบบได้"
+                        };
+                    }
 
-                if (!isValid)
-                {
                     return new LoginResponse
                     {
                         Success = false,
@@ -65,13 +79,13 @@ namespace Portal.Services.Models
                     };
                 }
 
-                var token = GenerateJwtToken(employee);
+                var token = GenerateJwtToken(validEmployee);
                 return new LoginResponse
                 {
                     Success = true,
                     Token = token,
-                    EmployeeId = employee.Id,
-                    Username = employee.Username
+                    EmployeeId = validEmployee.Id,
+                    Username = validEmployee.Username
                 };
             }
             else
@@ -111,30 +125,24 @@ namespace Portal.Services.Models
                 };
             }
 
-            if (await _context.Employees.AnyAsync(e => e.Username == request.Username))
+            if (await _context.Employees.AnyAsync(e => e.Username == request.Username && e.CompanyId == request.CompanyId))
             {
                 return new RegisterResponse
                 {
                     Success = false,
-                    Errors = ["ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว"]
+                    Errors = ["ชื่อผู้ใช้นี้มีอยู่ในบริษัทนี้แล้ว"]
                 };
             }
 
-            if (await _context.EmployeeDetails.AnyAsync(ed => ed.Email == request.Email))
-            {
-                return new RegisterResponse
-                {
-                    Success = false,
-                    Errors = ["อีเมลนี้มีอยู่ในระบบแล้ว"]
-                };
-            }
+            var isEmployeeCodeExists = await _context.EmployeeDetails
+                .AnyAsync(ed => ed.EmployeeCode == request.EmployeeCode && ed.Employee.CompanyId == request.CompanyId);
 
-            if (await _context.EmployeeDetails.AnyAsync(ed => ed.EmployeeCode == request.EmployeeCode))
+            if (isEmployeeCodeExists)
             {
                 return new RegisterResponse
                 {
                     Success = false,
-                    Errors = ["รหัสพนักงานนี้มีอยู่ในระบบแล้ว"]
+                    Errors = ["รหัสพนักงานนี้มีอยู่ในบริษัทนี้แล้ว"]
                 };
             }
 

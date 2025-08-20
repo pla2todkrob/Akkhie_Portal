@@ -18,7 +18,9 @@ namespace Portal.Services.Interfaces
         Task<bool> ResolveTicketAsync(TicketActionRequest request);
         Task<bool> CloseTicketByUserAsync(TicketActionRequest request);
         Task<bool> CancelTicketAsync(TicketActionRequest request);
+        Task<bool> RejectTicketAsync(TicketActionRequest request);
         Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<IEnumerable<TicketListViewModel>> GetMyClosedTicketsAsync();
         Task<IEnumerable<SupportTicketCategory>> GetCategoriesAsync(TicketCategoryType categoryType);
         Task<SupportTicket> CreateWithdrawalTicketAsync(CreateWithdrawalRequest request);
         Task<SupportTicket> CreatePurchaseRequestTicketAsync(CreatePurchaseRequest request);

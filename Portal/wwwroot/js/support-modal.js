@@ -80,7 +80,39 @@
 
     /** Initializes the "Report a Problem" tab. */
     const initProblemTab = () => {
-        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetSelectListMyTickets', 'ค้นหา Ticket เก่า...');
+
+        initSearchableDropdown(selectors.relatedTicketDropdown, '/Lookup/GetSelectListMyClosedTickets', 'อ้างอิง Ticket ที่ปิดแล้ว (ถ้ามี)...');
+
+        selectors.relatedTicketDropdown.on('change', function () {
+            const selectedId = $(this).val();
+            if (selectedId) {
+                // แสดง Spinner ชั่วคราว
+                selectors.problemForm.find('input[name="Title"]').val('กำลังโหลดข้อมูล...');
+                selectors.problemForm.find('textarea[name="Description"]').val('กำลังโหลดข้อมูล...');
+
+                $.getJSON(`/Support/GetTicketJson?id=${selectedId}`, function (data) {
+                    if (data) {
+                        const titleInput = selectors.problemForm.find('input[name="Title"]');
+                        const descriptionTextarea = selectors.problemForm.find('textarea[name="Description"]');
+
+                        // ตั้งค่า Title
+                        titleInput.val(data.title);
+
+                        // สร้างข้อความอ้างอิงและใส่ไว้บนสุดของ Description
+                        const referenceText = `อ้างอิงจาก Ticket #${data.ticketNumber}\n------------------------------------\n`;
+                        descriptionTextarea.val(referenceText + data.description);
+
+                        // ทำให้ Label ของ Floating Input ขยับขึ้นถูกต้อง
+                        titleInput.trigger('change');
+                        descriptionTextarea.trigger('change');
+                    }
+                }).fail(function () {
+                    app.showErrorToast('ไม่สามารถดึงข้อมูล Ticket ที่อ้างอิงได้');
+                    selectors.problemForm.find('input[name="Title"]').val('');
+                    selectors.problemForm.find('textarea[name="Description"]').val('');
+                });
+            }
+        });
 
         selectors.problemForm.off('submit').on('submit', function (event) {
             event.preventDefault();

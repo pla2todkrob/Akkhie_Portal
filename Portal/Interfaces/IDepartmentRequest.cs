@@ -1,5 +1,4 @@
-﻿// FileName: Portal/Interfaces/IDepartmentRequest.cs
-using Portal.Shared.Models.DTOs.Shared;
+﻿using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.ViewModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;

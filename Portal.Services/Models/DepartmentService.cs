@@ -1,12 +1,8 @@
-﻿// FileName: Portal.Services/Models/DepartmentService.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.ViewModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Portal.Services.Models
 {
@@ -93,15 +89,14 @@ namespace Portal.Services.Models
             department.Name = viewModel.Name;
             department.DivisionId = viewModel.DivisionId;
 
-            // ใช้ Helper Method เพื่อจัดการข้อมูลลูก (Sections)
             UpdateChildCollection(
                 department.Sections,
                 viewModel.SectionViewModels,
-                (section, vm) => { // Logic สำหรับ Update
+                (section, vm) => {
                     section.Name = vm.Name;
                 },
                 vm => new Section
-                { // Logic สำหรับ Add
+                {
                     Name = vm.Name
                 });
 
@@ -122,7 +117,6 @@ namespace Portal.Services.Models
             return new ApiResponse { Success = true, Message = "ลบข้อมูลสำเร็จ" };
         }
 
-        // Helper Method สำหรับจัดการ Collection ลูก (Child Collection)
         private void UpdateChildCollection<TEntity, TViewModel>(
             ICollection<TEntity> dbCollection,
             ICollection<TViewModel> viewModelCollection,

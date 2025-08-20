@@ -13,7 +13,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Serilog configuration
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -24,6 +23,17 @@ builder.Host.UseSerilog((context, services, configuration) =>
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 7
         );
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        policy =>
+        {
+            policy.WithOrigins("http://192.168.1.8") // << ระบุ URL ของ Frontend ที่จะอนุญาต
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
 
 ConfigureJwtSettings(builder);
@@ -63,6 +73,7 @@ builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
 builder.Services.AddScoped<ILineMessagingService, LineMessagingService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -140,12 +151,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ทำให้สามารถเข้าถึงไฟล์ที่อัพโหลดผ่าน URL ได้
-// ดึงค่า Path จากการตั้งค่า
+app.UseCors("AllowSpecificOrigin");
+
 var fileSettings = app.Services.GetRequiredService<IOptions<FileSettings>>().Value;
 var fileUploadPath = fileSettings.UploadPath;
 
-// ตรวจสอบว่า Path มีอยู่จริงหรือไม่
 if (Directory.Exists(fileUploadPath))
 {
     app.UseStaticFiles(new StaticFileOptions

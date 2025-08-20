@@ -1,5 +1,4 @@
-﻿// FileName: Portal.Services/Models/SectionService.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.DTOs.Shared;
 using Portal.Shared.Models.Entities;

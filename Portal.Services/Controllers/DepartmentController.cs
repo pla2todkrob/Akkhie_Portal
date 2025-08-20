@@ -37,7 +37,7 @@ namespace Portal.Services.Controllers
         public async Task<IActionResult> Create(DepartmentViewModel viewModel)
         {
             var result = await departmentService.CreateAsync(viewModel);
-            if (!result.Success) return BadRequest(result);
+            if (!result.Success || result.Data == null) return BadRequest(result);
             return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
         }
 

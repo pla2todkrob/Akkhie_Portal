@@ -60,8 +60,22 @@ namespace Portal.Controllers
                 ViewBag.CurrentUserId = currentUserId;
             }
 
+            var sectionIdClaim = User.FindFirst("SectionId")?.Value;
+            ViewBag.IsITSupportUser = sectionIdClaim == "2";
+
             await PopulateDropdowns();
             return View(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTicketJson(int id)
+        {
+            var ticketDetails = await supportTicketRequest.GetTicketDetailsAsync(id);
+            if (ticketDetails == null)
+            {
+                return NotFound();
+            }
+            return Json(ticketDetails);
         }
 
         [HttpPost]

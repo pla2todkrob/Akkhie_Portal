@@ -135,6 +135,21 @@ namespace Portal.Services.Controllers
             }
         }
 
+        [HttpPost("reject")]
+        public async Task<IActionResult> RejectTicket([FromBody] TicketActionRequest request)
+        {
+            try
+            {
+                var result = await _supportTicketService.RejectTicketAsync(request);
+                return Ok(ApiResponse.SuccessResponse(result, "ปฏิเสธ Ticket เรียบร้อยแล้ว"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting ticket {TicketId}", request.TicketId);
+                return BadRequest(ApiResponse.ErrorResponse(ex.Message));
+            }
+        }
+
         [HttpGet("mytickets")]
         public async Task<IActionResult> GetMyTickets()
         {
@@ -148,6 +163,13 @@ namespace Portal.Services.Controllers
                 _logger.LogError(ex, "Error retrieving current user's tickets.");
                 return StatusCode(500, "เกิดข้อผิดพลาดในการดึงข้อมูล Ticket ของคุณ");
             }
+        }
+
+        [HttpGet("myclosedtickets")]
+        public async Task<IActionResult> GetMyClosedTickets()
+        {
+            var tickets = await _supportTicketService.GetMyClosedTicketsAsync();
+            return Ok(tickets);
         }
 
         [HttpGet("categories")]

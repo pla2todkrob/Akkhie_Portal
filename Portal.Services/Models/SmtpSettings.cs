@@ -1,8 +1,5 @@
 ﻿namespace Portal.Services.Models
 {
-    /// <summary>
-    /// Class สำหรับการตั้งค่า SMTP Server
-    /// </summary>
     public class SmtpSettings
     {
         public string Server { get; set; }

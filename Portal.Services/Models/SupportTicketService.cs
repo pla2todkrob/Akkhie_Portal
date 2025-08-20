@@ -51,6 +51,17 @@ namespace Portal.Services.Models
 
             if (ticket == null) return null;
 
+            int queuePosition = 0;
+            if (ticket.Status == TicketStatus.Open || ticket.Status == TicketStatus.InProgress)
+            {
+                queuePosition = await _context.SupportTickets
+                    .AsNoTracking()
+                    .CountAsync(t =>
+                        (t.Status == TicketStatus.Open || t.Status == TicketStatus.InProgress) &&
+                        t.CreatedAt < ticket.CreatedAt
+                    ) + 1;
+            }
+
             var request = _httpContextAccessor.HttpContext!.Request;
             var apiBaseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
 
@@ -91,11 +102,11 @@ namespace Portal.Services.Models
                 }).ToList(),
                 Attachments = attachments,
                 ReportedById = ticket.ReportedByEmployeeId,
-                IsOwner = isOwner
+                IsOwner = isOwner,
+                QueuePosition = queuePosition,
             };
         }
 
-        #region Other Methods
         public async Task<SupportTicket> CreateTicketAsync(CreateTicketRequest request)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -143,7 +154,14 @@ namespace Portal.Services.Models
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                await _emailService.SendNewTicketNotificationAsync(newTicket);
+                var queuePosition = await _context.SupportTickets
+                    .AsNoTracking()
+                    .CountAsync(t =>
+                        (t.Status == TicketStatus.Open || t.Status == TicketStatus.InProgress) &&
+                        t.CreatedAt < newTicket.CreatedAt
+                    ) + 1;
+
+                await _emailService.SendNewTicketNotificationAsync(newTicket, queuePosition);
 
                 _logger.LogInformation("Successfully created Ticket #{TicketNumber} by user {UserId}", newTicket.TicketNumber, userId);
 
@@ -249,6 +267,33 @@ namespace Portal.Services.Models
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> RejectTicketAsync(TicketActionRequest request)
+        {
+            var ticket = await _context.SupportTickets.FindAsync(request.TicketId)
+                         ?? throw new KeyNotFoundException("ไม่พบ Ticket");
+
+            if (ticket.Status == TicketStatus.Resolved || ticket.Status == TicketStatus.Closed || ticket.Status == TicketStatus.Cancelled)
+                throw new InvalidOperationException("ไม่สามารถปฏิเสธ Ticket ที่มีสถานะ Resolved, Closed, หรือ Cancelled ได้");
+
+            if (string.IsNullOrWhiteSpace(request.Comment))
+                throw new InvalidOperationException("กรุณาระบุเหตุผลในการปฏิเสธ");
+
+            var currentUserId = _currentUserService.UserId!.Value;
+
+            ticket.Status = TicketStatus.Rejected;
+            ticket.UpdatedAt = DateTime.UtcNow;
+            ticket.AssignedToEmployeeId = ticket.AssignedToEmployeeId ?? currentUserId;
+
+            CreateHistoryEntry(ticket.Id, currentUserId, "ปฏิเสธ Ticket", $"เหตุผล: {request.Comment}");
+
+            var result = await _context.SaveChangesAsync() > 0;
+            if (result)
+            {
+                _logger.LogInformation("Ticket #{TicketNumber} was rejected by user {UserId}", ticket.TicketNumber, currentUserId);
+            }
+            return result;
+        }
+
         public async Task<IEnumerable<TicketListViewModel>> GetMyTicketsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var employeeId = _currentUserService.UserId;
@@ -280,6 +325,28 @@ namespace Portal.Services.Models
                     DepartmentName = t.ReportedByEmployee.Department != null ? t.ReportedByEmployee.Department.Name : "N/A",
                     ReportedBy = t.ReportedByEmployee.EmployeeDetail != null ? t.ReportedByEmployee.EmployeeDetail.FullName : t.ReportedByEmployee.Username,
                     CreatedAt = t.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TicketListViewModel>> GetMyClosedTicketsAsync()
+        {
+            var employeeId = _currentUserService.UserId;
+            if (!employeeId.HasValue)
+            {
+                return Enumerable.Empty<TicketListViewModel>();
+            }
+
+            return await _context.SupportTickets
+                .AsNoTracking()
+                .Where(t => t.ReportedByEmployeeId == employeeId.Value && t.Status == TicketStatus.Closed)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new TicketListViewModel
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber,
+                    Title = t.Title,
+                    Status = t.Status,
                 })
                 .ToListAsync();
         }
@@ -359,7 +426,11 @@ namespace Portal.Services.Models
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                await _emailService.SendNewTicketNotificationAsync(ticket);
+                var queuePosition = await _context.SupportTickets
+                    .AsNoTracking()
+                    .CountAsync(t => (t.Status == TicketStatus.Open || t.Status == TicketStatus.InProgress) && t.CreatedAt < ticket.CreatedAt) + 1;
+
+                await _emailService.SendNewTicketNotificationAsync(ticket, queuePosition);
                 return ticket;
             }
             catch (Exception ex)
@@ -399,7 +470,10 @@ namespace Portal.Services.Models
             _context.SupportTickets.Add(ticket);
             await _context.SaveChangesAsync();
 
-            await _emailService.SendNewTicketNotificationAsync(ticket);
+            var queuePosition = await _context.SupportTickets
+                .AsNoTracking()
+                .CountAsync(t => (t.Status == TicketStatus.Open || t.Status == TicketStatus.InProgress) && t.CreatedAt < ticket.CreatedAt) + 1;
+            await _emailService.SendNewTicketNotificationAsync(ticket, queuePosition);
             return ticket;
         }
 
@@ -431,6 +505,5 @@ namespace Portal.Services.Models
             }
             return $"{yearMonthPrefix}-{nextSequence:D4}";
         }
-        #endregion
     }
 }

@@ -82,5 +82,17 @@ namespace Portal.Controllers
             });
             return Json(selectList);
         }
+
+        [HttpGet]
+        public async Task<JsonResult> GetSelectListMyClosedTickets()
+        {
+            var tickets = await support.GetMyClosedTicketsAsync();
+            var selectList = tickets.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = $"#{t.TicketNumber} - {t.Title}"
+            });
+            return Json(selectList);
+        }
     }
 }

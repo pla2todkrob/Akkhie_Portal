@@ -5,13 +5,9 @@ using Portal.Shared.Models.ViewModel.IT_Inventory;
 
 namespace Portal.Models
 {
-    /// <summary>
-    /// Implementation for making requests to the IT Inventory API endpoints.
-    /// </summary>
     public class ITInventoryRequest(HttpClient httpClient, IOptions<ApiSettings> apiSettings)
         : BaseRequest(httpClient, apiSettings), IITInventoryRequest
     {
-        /// <inheritdoc/>
         public async Task<ApiResponse<IEnumerable<StockItemViewModel>>> GetAvailableStockItemsAsync()
         {
             try

@@ -4,6 +4,7 @@
     {
         public static string SectionName => "ApiSettings";
         public string BaseUrl { get; set; } = string.Empty;
+        public string PermissionGetUserPermissions { get; set; } = string.Empty;
         public string EmployeeLogin { get; set; } = string.Empty;
         public string EmployeeRegister { get; set; } = string.Empty;
         public string EmployeeSearch { get; set; } = string.Empty;
@@ -41,6 +42,7 @@
         public string SupportTicketCreate { get; set; } = string.Empty;
         public string SupportTicketGetCategories { get; set; } = string.Empty;
         public string SupportTicketGetMyTickets { get; set; } = string.Empty;
+        public string SupportTicketGetMyClosed { get; set; } = string.Empty;
         public string ITStockItemsGetAvailable { get; set; } = string.Empty;
         public string SupportTicketCreateWithdrawal { get; set; } = string.Empty;
         public string SupportTicketCreatePurchase { get; set; } = string.Empty;
@@ -55,6 +57,6 @@
         public string SupportTicketResolve { get; set; } = string.Empty;
         public string SupportTicketClose { get; set; } = string.Empty;
         public string SupportTicketCancel { get; set; } = string.Empty;
-
+        public string SupportTicketReject { get; set; } = string.Empty;
     }
 }

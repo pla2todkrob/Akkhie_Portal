@@ -1,4 +1,4 @@
-﻿using Portal.Shared.Models.Entities; // Role อยู่ใน Entities
+﻿using Portal.Shared.Models.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

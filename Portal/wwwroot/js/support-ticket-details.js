@@ -10,6 +10,7 @@
         resolveBtn: $('#resolveTicketBtn'),
         closeBtn: $('#closeTicketBtn'),
         cancelBtn: $('#cancelTicketBtn'),
+        rejectBtn: $('#rejectTicketBtn'),
         ticketIdInput: $('input[name="TicketId"]'),
         assigneeDropdown: $('#AssignedToEmployeeId'),
         priorityDropdown: $('#Priority'),
@@ -173,6 +174,38 @@
             if (result.isConfirmed && result.value) {
                 submitAction({
                     url: '/Support/Cancel',
+                    data: {
+                        TicketId: ticketId,
+                        Comment: result.value
+                    },
+                    button: $(this)
+                });
+            }
+        });
+    });
+
+    selectors.rejectBtn.on('click', function () {
+        const ticketId = selectors.ticketIdInput.val();
+
+        app.showConfirmDialog({
+            title: 'ยืนยันการปฏิเสธ Ticket?',
+            text: 'กรุณาระบุเหตุผลในการปฏิเสธ Ticket นี้',
+            icon: 'warning',
+            input: 'textarea',
+            inputPlaceholder: 'ระบุเหตุผลที่นี่...',
+            confirmButtonText: 'ยืนยันการปฏิเสธ',
+            confirmButtonColor: '#d33',
+            showCancelButton: true,
+            cancelButtonText: 'กลับ',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'กรุณาระบุเหตุผลในการปฏิเสธ!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                submitAction({
+                    url: '/Support/Reject',
                     data: {
                         TicketId: ticketId,
                         Comment: result.value

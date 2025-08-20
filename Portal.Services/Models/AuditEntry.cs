@@ -1,14 +1,10 @@
-﻿// File: Portal.Services/Models/AuditEntry.cs
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 using Portal.Shared.Enums;
 using Portal.Shared.Models.Entities;
 
 namespace Portal.Services.Models
 {
-    /// <summary>
-    /// คลาสตัวกลางสำหรับเก็บข้อมูลการเปลี่ยนแปลงของ Entity หนึ่งๆ ก่อนแปลงเป็น AuditLog Entity (ปรับปรุงใหม่)
-    /// </summary>
     public class AuditEntry(EntityEntry entry, string tableName)
     {
         public EntityEntry Entry { get; } = entry;
@@ -29,10 +25,6 @@ namespace Portal.Services.Models
         public string? TraceId { get; set; }
 
         public bool HasTemporaryProperties => TemporaryProperties.Count != 0;
-
-        /// <summary>
-        /// แปลงจาก AuditEntry ไปเป็น AuditLog Entity เพื่อพร้อมบันทึกลง DB
-        /// </summary>
         public AuditLog ToAudit()
         {
             var audit = new AuditLog

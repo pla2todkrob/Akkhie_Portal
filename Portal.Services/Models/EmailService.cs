@@ -25,7 +25,7 @@ namespace Portal.Services.Models
         private readonly PortalDbContext _context = context;
         private readonly ILogger<EmailService> _logger = logger;
 
-        public async Task SendNewTicketNotificationAsync(SupportTicket ticket)
+        public async Task SendNewTicketNotificationAsync(SupportTicket ticket, int queuePosition)
         {
             try
             {
@@ -39,7 +39,6 @@ namespace Portal.Services.Models
                     return;
                 }
 
-                // To: ทีม IT (Section ID = 2)
                 var toEmails = await _context.Employees
                                              .Where(e => e.SectionId == 2 && e.EmployeeDetail != null && !string.IsNullOrEmpty(e.EmployeeDetail.Email))
                                              .Select(e => e.EmployeeDetail!.Email)
@@ -52,11 +51,10 @@ namespace Portal.Services.Models
                     return;
                 }
 
-                // CC: ผู้แจ้งเรื่อง
                 var ccEmails = new List<string> { reporter.EmployeeDetail.Email };
 
                 var subject = $"[Portal Ticket #{ticket.TicketNumber}] {ticket.Title}";
-                var body = BuildNewTicketEmailBody(ticket, reporter.EmployeeDetail.FullName);
+                var body = BuildNewTicketEmailBody(ticket, reporter.EmployeeDetail.FullName, queuePosition);
 
                 await SendEmailAsync(toEmails, subject, body, ccEmails);
             }
@@ -115,7 +113,7 @@ namespace Portal.Services.Models
             await smtp.DisconnectAsync(true);
         }
 
-        private string BuildNewTicketEmailBody(SupportTicket ticket, string reporterName)
+        private string BuildNewTicketEmailBody(SupportTicket ticket, string reporterName, int queuePosition)
         {
             var ticketUrl = string.Format(_portalPathUrlSettings.SupportDetails, ticket.Id);
             return $@"
@@ -127,6 +125,14 @@ namespace Portal.Services.Models
                     <p><strong>Ticket No:</strong> {ticket.TicketNumber}</p>
                     <p><strong>หัวข้อ:</strong> {ticket.Title}</p>
                     <p><strong>ผู้แจ้ง:</strong> {reporterName}</p>
+                    
+                    <!-- ส่วนที่เพิ่มเข้ามา -->
+                    <p><strong>ลำดับคิวปัจจุบัน:</strong></p>
+                    <div style='padding: 15px; background-color: #e9f7fe; border: 1px solid #b3e5fc; border-radius: 5px; text-align: center; margin-bottom: 15px;'>
+                        <h2 style='margin: 0; color: #0277bd;'>คิวที่ {queuePosition}</h2>
+                    </div>
+                    <!-- สิ้นสุดส่วนที่เพิ่มเข้ามา -->
+
                     <p><strong>รายละเอียด:</strong></p>
                     <div style='padding: 10px; background-color: #f5f5f5; border: 1px solid #eee; border-radius: 5px;'>
                         {ticket.Description?.Replace("\n", "<br>")}

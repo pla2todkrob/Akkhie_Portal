@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.Models.ViewModel.Support
 {
@@ -24,6 +22,9 @@ namespace Portal.Shared.Models.ViewModel.Support
         public List<AttachmentItem> Attachments { get; set; } = new();
         public Guid ReportedById { get; set; }
         public bool IsOwner { get; set; }
+        public int QueuePosition { get; set; }
+
+        public TicketDetailViewModel? RelatedTicket { get; set; }
 
         public class HistoryItem
         {

@@ -11,7 +11,6 @@ using Portal.Shared.Models.Entities.Support;
 
 namespace Portal.Services.Models
 {
-    // ปรับปรุง Constructor หลักให้รับ IHttpContextAccessor
     public class PortalDbContext(DbContextOptions<PortalDbContext> options, ICurrentUserService currentUserService, IHttpContextAccessor httpContextAccessor) : DbContext(options)
     {
         private readonly ICurrentUserService _currentUserService = currentUserService;
@@ -28,7 +27,9 @@ namespace Portal.Services.Models
         public DbSet<Section> Sections { get; set; }
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
-
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<EmployeePermission> EmployeePermissions { get; set; }
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<SupportTicketCategory> SupportTicketCategories { get; set; }
         public DbSet<SupportTicketFiles> SupportTicketFiles { get; set; }
@@ -82,7 +83,7 @@ namespace Portal.Services.Models
                 entity.Property(e => e.Username).HasMaxLength(255);
                 entity.Property(e => e.EmployeeStatus).HasConversion<int>();
 
-                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => new { e.Username, e.CompanyId }).IsUnique();
                 entity.HasIndex(e => e.DivisionId);
                 entity.HasIndex(e => e.DepartmentId);
                 entity.HasIndex(e => e.SectionId);
@@ -132,7 +133,7 @@ namespace Portal.Services.Models
                 entity.Property(e => e.LastName).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
 
-                entity.HasIndex(e => e.EmployeeCode).IsUnique();
+                entity.HasIndex(e => e.EmployeeCode);
                 entity.HasIndex(e => e.Email);
                 entity.HasIndex(e => e.FirstName);
                 entity.HasIndex(e => e.LastName);
@@ -163,6 +164,21 @@ namespace Portal.Services.Models
                 entity.HasIndex(e => e.FileName);
             });
 
+            modelBuilder.Entity<Permission>(entity =>
+            {
+                entity.HasIndex(e => e.Key).IsUnique();
+            });
+
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+            });
+
+            modelBuilder.Entity<EmployeePermission>(entity =>
+            {
+                entity.HasKey(ep => new { ep.EmployeeId, ep.PermissionId });
+            });
+
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.ProfilePicture)
                 .WithMany()
@@ -175,7 +191,6 @@ namespace Portal.Services.Models
                 .HasForeignKey(uf => uf.UploadedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // --- SupportTicket Configuration ---
             modelBuilder.Entity<SupportTicket>(entity =>
             {
                 entity.HasIndex(e => e.TicketNumber).IsUnique();
@@ -184,20 +199,17 @@ namespace Portal.Services.Models
                 entity.Property(e => e.Priority).HasConversion<string>();
                 entity.Property(e => e.Status).HasConversion<string>();
 
-                // Relationship with Employee (ReportedBy)
                 entity.HasOne(st => st.ReportedByEmployee)
-                    .WithMany() // Employee can have many tickets
+                    .WithMany()
                     .HasForeignKey(st => st.ReportedByEmployeeId)
-                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting employee if they have tickets
+                    .OnDelete(DeleteBehavior.Restrict); 
 
-                // Relationship with Employee (AssignedTo)
                 entity.HasOne(st => st.AssignedToEmployee)
                     .WithMany()
                     .HasForeignKey(st => st.AssignedToEmployeeId)
-                    .IsRequired(false) // Can be nullable
-                    .OnDelete(DeleteBehavior.SetNull); // If IT staff is deleted, set AssignedTo to null
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
 
-                // Relationship with IT_Asset
                 entity.HasOne(st => st.RelatedAsset)
                       .WithMany()
                       .HasForeignKey(st => st.AssetId)
@@ -205,16 +217,13 @@ namespace Portal.Services.Models
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // --- SupportTicketHistory Configuration ---
             modelBuilder.Entity<SupportTicketHistory>(entity =>
             {
-                // Relationship with Employee
                 entity.HasOne(sth => sth.Employee)
                     .WithMany()
                     .HasForeignKey(sth => sth.EmployeeId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Relationship with UploadedFile
                 entity.HasOne(sth => sth.FileAttachment)
                       .WithMany()
                       .HasForeignKey(sth => sth.FileAttachmentId)
@@ -222,14 +231,12 @@ namespace Portal.Services.Models
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // --- SupportTicketCategory Configuration ---
             modelBuilder.Entity<SupportTicketCategory>(entity =>
             {
                 entity.Property(e => e.CategoryType).HasConversion<string>();
                 entity.HasIndex(e => new { e.Name, e.CategoryType }).IsUnique();
             });
 
-            // --- IT_Asset Configuration ---
             modelBuilder.Entity<IT_Asset>(entity =>
             {
                 entity.HasIndex(e => e.AssetTag).IsUnique();
@@ -242,16 +249,13 @@ namespace Portal.Services.Models
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // --- IT_Item Configuration ---
             modelBuilder.Entity<IT_Item>(entity =>
             {
                 entity.Property(e => e.ItemType).HasConversion<string>();
             });
 
-            // --- IT_StandardSet Configuration ---
             modelBuilder.Entity<IT_StandardSet>(entity =>
             {
-                // Ensures one role can only be assigned to one standard set
                 entity.HasIndex(e => e.AssignedToRoleId).IsUnique();
             });
 
@@ -325,46 +329,32 @@ namespace Portal.Services.Models
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            // OnBeforeSaveChanges is now responsible for creating AuditEntry objects.
             var auditEntries = OnBeforeSaveChanges();
 
-            // Save the actual data changes to the database. This is where temporary keys get their real values.
             var result = await base.SaveChangesAsync(cancellationToken);
 
-            // OnAfterSaveChanges is now responsible for handling the generated keys and saving the logs.
             await OnAfterSaveChanges(auditEntries);
 
             return result;
         }
 
-        /// <summary>
-        /// This method is called by SaveChangesAsync before the changes are committed to the database.
-        /// Its main purpose is to detect all changes and create a list of AuditEntry objects.
-        /// </summary>
-        /// <returns>A list of AuditEntry objects representing the changes.</returns>
         private List<AuditEntry> OnBeforeSaveChanges()
         {
             ChangeTracker.DetectChanges();
             var entries = new List<AuditEntry>();
 
-            // Create a single, unique TransactionId for this entire batch of changes.
-            // This allows grouping all modifications that occur in a single SaveChanges call.
             var transactionId = Guid.NewGuid();
 
             foreach (var entry in ChangeTracker.Entries())
             {
-                // Skip entities that are not changed or not tracked.
                 if (entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
                     continue;
 
-                // Do not audit the AuditLog table itself to prevent an infinite loop.
                 if (entry.Entity is AuditLog)
                     continue;
 
-                // Create a new AuditEntry for each changed entity.
                 var auditEntry = new AuditEntry(entry, entry.Metadata.GetTableName() ?? "Unknown")
                 {
-                    // Assign the same TransactionId to all entries in this batch.
                     TransactionId = transactionId,
                     UserId = _currentUserService.UserId?.ToString(),
                     Username = _currentUserService.Username,
@@ -375,8 +365,6 @@ namespace Portal.Services.Models
 
                 foreach (var property in entry.Properties)
                 {
-                    // If the property has a temporary value (e.g., a new auto-generated ID),
-                    // store it separately to be processed after the main save operation.
                     if (property.IsTemporary)
                     {
                         auditEntry.TemporaryProperties.Add(property);
@@ -385,7 +373,6 @@ namespace Portal.Services.Models
 
                     string propertyName = property.Metadata.Name;
 
-                    // Store the primary key value(s).
                     if (property.Metadata.IsPrimaryKey())
                     {
                         auditEntry.KeyValues[propertyName] = property.CurrentValue!;
@@ -394,19 +381,16 @@ namespace Portal.Services.Models
 
                     switch (entry.State)
                     {
-                        // For newly added entities, record the new values.
                         case EntityState.Added:
                             auditEntry.AuditType = AuditType.Added;
                             auditEntry.NewValues[propertyName] = property.CurrentValue!;
                             break;
 
-                        // For deleted entities, record the old values.
                         case EntityState.Deleted:
                             auditEntry.AuditType = AuditType.Deleted;
                             auditEntry.OldValues[propertyName] = property.OriginalValue!;
                             break;
 
-                        // For modified entities, record old and new values for changed properties.
                         case EntityState.Modified:
                             if (property.IsModified)
                             {
@@ -423,11 +407,6 @@ namespace Portal.Services.Models
             return entries;
         }
 
-        /// <summary>
-        /// This method is called by SaveChangesAsync after the main data changes have been committed.
-        /// It updates temporary properties with their final database-generated values and saves the audit logs.
-        /// </summary>
-        /// <param name="auditEntries">The list of AuditEntry objects created by OnBeforeSaveChanges.</param>
         private async Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
             if (auditEntries == null || auditEntries.Count == 0)
@@ -435,7 +414,6 @@ namespace Portal.Services.Models
 
             foreach (var auditEntry in auditEntries)
             {
-                // Now that the main save is complete, retrieve the final values of temporary properties.
                 foreach (var prop in auditEntry.TemporaryProperties)
                 {
                     if (prop.Metadata.IsPrimaryKey())
@@ -448,12 +426,9 @@ namespace Portal.Services.Models
                     }
                 }
 
-                // Convert the completed AuditEntry to an AuditLog entity and add it to the context.
                 AuditLogs.Add(auditEntry.ToAudit());
             }
 
-            // Save the audit logs to the database in a separate transaction.
-            // This ensures that even if logging fails, the main data operation is not rolled back.
             await SaveChangesAsync(CancellationToken.None);
         }
 

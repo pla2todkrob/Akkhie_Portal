@@ -23,5 +23,8 @@ namespace Portal.Shared.Enums.Support
 
         [Display(Name = "ยกเลิกแล้ว")]
         Cancelled = 5,
+
+        [Display(Name = "ปฏิเสธ")]
+        Rejected = 6
     }
 }

@@ -180,6 +180,9 @@ namespace Portal.Controllers
                 new(ClaimTypes.Role, employee.RoleName ?? string.Empty),
                 new("EmployeeCode", employee.EmployeeCode ?? string.Empty),
                 new("IsSystemRole", employee.IsSystemRole.ToString()),
+                new("SectionId", employee.SectionId.ToString()),
+                new("FullName", employee.FullName),
+                new("LocalFullName", employee.LocalFullName),
                 new("access_token", accessToken)
             };
 

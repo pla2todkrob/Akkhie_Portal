@@ -6,9 +6,6 @@ namespace Portal.Services.Models
 {
     public class ITInventoryService(PortalDbContext context) : IITInventoryService
     {
-        /// <summary>
-        /// Retrieves stock items that have a quantity greater than zero and are marked as stockable.
-        /// </summary>
         public async Task<IEnumerable<StockItemViewModel>> GetAvailableStockItemsAsync()
         {
             return await context.IT_Stocks

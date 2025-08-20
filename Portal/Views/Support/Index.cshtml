@@ -1,4 +1,5 @@
 ﻿@using Portal.Shared.Constants
+@using Portal.Shared.Enums.Support
 @model IEnumerable<Portal.Shared.Models.ViewModel.Support.TicketListViewModel>
 
 @{
@@ -9,12 +10,30 @@
         new("ระบบ Support", "#"),
         new((string)ViewData["Title"], "")
     };
+
+    // จัดกลุ่ม Ticket ตามสถานะ
+    var ticketsByStatus = Model.GroupBy(t => t.Status)
+                               .ToDictionary(g => g.Key, g => g.ToList());
+
+    // กำหนดลำดับของ Tab ที่ต้องการแสดงผล
+    var statusOrder = new[]
+    {
+        TicketStatus.Open,
+        TicketStatus.InProgress,
+        TicketStatus.Resolved,
+        TicketStatus.Rejected,
+        TicketStatus.Closed,
+        TicketStatus.Cancelled
+    };
+
+    // ใช้สำหรับกำหนดให้ Tab แรกที่เจอเป็น Active
+    var isFirstTab = true;
 }
 
 <div class="container py-4">
     <partial name="_Breadcrumb" model="breadcrumbs" />
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="fw-bold text-primary mb-0">@ViewData["Title"]</h2>
             <p class="text-muted mb-0"><i class="bi bi-card-list me-2"></i>รายการ Ticket ทั้งหมดในระบบ</p>
@@ -22,61 +41,96 @@
     </div>
 
     <div class="card border-0 shadow-sm">
+        <div class="card-header">
+            <!-- Tab Navigation using card-header-tabs -->
+            <ul class="nav nav-tabs card-header-tabs" id="ticketStatusTabs" role="tablist">
+                @foreach (var status in statusOrder)
+                {
+                    // --- ตรวจสอบว่ามีข้อมูลในสถานะนี้หรือไม่ ถ้าไม่มีก็จะไม่แสดง Tab ---
+                    if (ticketsByStatus.ContainsKey(status))
+                    {
+                        var ticketsInStatus = ticketsByStatus[status];
+                        var statusName = status.GetDisplayName();
+                        var tabId = $"tab-{status}";
+                        var paneId = $"pane-{status}";
+                        var isActive = isFirstTab ? "active" : "";
+
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @isActive" id="@tabId" data-bs-toggle="tab" data-bs-target="#@paneId" type="button" role="tab">
+                                @statusName
+                                <span class="badge rounded-pill bg-primary ms-1">@ticketsInStatus.Count</span>
+                            </button>
+                        </li>
+
+                        isFirstTab = false; // ตั้งค่าให้ Tab ต่อไปไม่เป็น Active
+                    }
+                }
+            </ul>
+        </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table id="ticketTable" class="table table-hover table-striped" style="width:100%">
-                    <thead class="table-light">
-                        <tr>
-                            <th>@Html.DisplayNameFor(model => model.TicketNumber)</th>
-                            <th>@Html.DisplayNameFor(model => model.Title)</th>
-                            <th>@Html.DisplayNameFor(model => model.ReportedBy)</th>
-                            <th>@Html.DisplayNameFor(model => model.DepartmentName)</th>
-                            <th>@Html.DisplayNameFor(model => model.Status)</th>
-                            <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
-                            <th class="text-center">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr data-id="@item.Id">
-                                <td>@item.TicketNumber</td>
-                                <td>@item.Title</td>
-                                <td>@item.ReportedBy</td>
-                                <td>@item.DepartmentName</td>
-                                <td>
-                                    <span class="badge @GetStatusClass(item.Status) rounded-pill">
-                                        @item.Status.GetDisplayName()
-                                    </span>
-                                </td>
-                                <td data-sort="@item.CreatedAt.ToString("o")">@item.CreatedAt.ToString("g")</td>
-                                <td class="text-center">
-                                    <a href="@Url.Action("Details", "Support", new { id = item.Id })" class="btn btn-sm btn-outline-primary" title="ดูรายละเอียดและจัดการ">
-                                        <i class="bi bi-search"></i> จัดการ
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <!-- Tab Content -->
+            <div class="tab-content" id="ticketStatusTabsContent">
+                @{
+                    isFirstTab = true;
+                }
+ @* Reset flag for Tab Panes *@
+                @foreach (var status in statusOrder)
+                {
+                    if (ticketsByStatus.ContainsKey(status))
+                    {
+                        var ticketsInStatus = ticketsByStatus[status];
+                        var paneId = $"pane-{status}";
+                        var isActive = isFirstTab ? "show active" : "";
+
+                        <div class="tab-pane fade @isActive" id="@paneId" role="tabpanel">
+                            @if (ticketsInStatus.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped ticket-table" style="width:100%">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>@Html.DisplayNameFor(model => model.First().TicketNumber)</th>
+                                                <th>@Html.DisplayNameFor(model => model.First().Title)</th>
+                                                <th>@Html.DisplayNameFor(model => model.First().ReportedBy)</th>
+                                                <th>@Html.DisplayNameFor(model => model.First().DepartmentName)</th>
+                                                <th>@Html.DisplayNameFor(model => model.First().CreatedAt)</th>
+                                                <th class="text-center">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in ticketsInStatus)
+                                            {
+                                                <tr>
+                                                    <td>@item.TicketNumber</td>
+                                                    <td>@item.Title</td>
+                                                    <td>@item.ReportedBy</td>
+                                                    <td>@item.DepartmentName</td>
+                                                    <td data-sort="@item.CreatedAt.ToString("o")">@item.CreatedAt.ToString("g")</td>
+                                                    <td class="text-center">
+                                                        <a href="@Url.Action("Details", "Support", new { id = item.Id })" class="btn btn-sm btn-outline-primary" title="ดูรายละเอียดและจัดการ">
+                                                            <i class="bi bi-search"></i> จัดการ
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center p-5">
+                                    <p class="text-muted">ไม่มีรายการในสถานะนี้</p>
+                                </div>
+                            }
+                        </div>
+                        isFirstTab = false;
+                    }
+                }
             </div>
         </div>
     </div>
 </div>
-
-@functions {
-    string GetStatusClass(Portal.Shared.Enums.Support.TicketStatus status)
-    {
-        return status switch
-        {
-            Portal.Shared.Enums.Support.TicketStatus.Open => "bg-primary-subtle text-primary-emphasis",
-            Portal.Shared.Enums.Support.TicketStatus.InProgress => "bg-warning-subtle text-warning-emphasis",
-            Portal.Shared.Enums.Support.TicketStatus.Resolved => "bg-success-subtle text-success-emphasis",
-            Portal.Shared.Enums.Support.TicketStatus.Closed => "bg-secondary-subtle text-secondary-emphasis",
-            _ => "bg-light text-dark",
-        };
-    }
-}
 
 @section Scripts {
     <script src="~/js/support-ticket-index.js" asp-append-version="true"></script>

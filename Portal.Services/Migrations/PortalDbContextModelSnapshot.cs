@@ -355,7 +355,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.HasIndex("Username")
+                    b.HasIndex("Username", "CompanyId")
                         .IsUnique();
 
                     b.ToTable("Employees");
@@ -444,14 +444,28 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("Email");
 
-                    b.HasIndex("EmployeeCode")
-                        .IsUnique();
+                    b.HasIndex("EmployeeCode");
 
                     b.HasIndex("FirstName");
 
                     b.HasIndex("LastName");
 
                     b.ToTable("EmployeeDetails");
+                });
+
+            modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeePermission", b =>
+                {
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EmployeeId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("EmployeePermissions");
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Asset", b =>
@@ -583,6 +597,35 @@ namespace Portal.Services.Migrations
                     b.ToTable("IT_Stocks");
                 });
 
+            modelBuilder.Entity("Portal.Shared.Models.Entities.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Permissions");
+                });
+
             modelBuilder.Entity("Portal.Shared.Models.Entities.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -643,6 +686,21 @@ namespace Portal.Services.Migrations
                             Id = 7,
                             Name = "เจ้าหน้าที่ทั่วไป"
                         });
+                });
+
+            modelBuilder.Entity("Portal.Shared.Models.Entities.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Section", b =>
@@ -1160,6 +1218,25 @@ namespace Portal.Services.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeePermission", b =>
+                {
+                    b.HasOne("Portal.Shared.Models.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portal.Shared.Models.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Permission");
+                });
+
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Asset", b =>
                 {
                     b.HasOne("Portal.Shared.Models.Entities.Employee", "AssignedToEmployee")
@@ -1206,6 +1283,25 @@ namespace Portal.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Portal.Shared.Models.Entities.RolePermission", b =>
+                {
+                    b.HasOne("Portal.Shared.Models.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portal.Shared.Models.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Section", b =>

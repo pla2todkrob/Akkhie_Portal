@@ -1,5 +1,4 @@
-﻿// FileName: Portal.Services/Models/RoleService.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Portal.Services.Interfaces;
 using Portal.Shared.Models.Entities;
 using System.Collections.Generic;

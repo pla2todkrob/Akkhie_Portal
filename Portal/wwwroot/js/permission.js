@@ -1,65 +1,46 @@
-﻿$(function () {
-    'use strict';
-    const table = app.setupDataTable('#permissionTable', { columnDefs: [{ orderable: false, targets: 3 }] });
-
-    $('#createPermissionBtn').on('click', () => {
-        app.showGlobalModal({ url: '/Permission/_CreateOrEdit', title: 'สร้างสิทธิ์ใหม่' });
+﻿$(document).ready(function () {
+    // Initialize DataTables
+    const permissionTable = $('#permissionTable').DataTable({
+        responsive: true,
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/th.json"
+        },
+        "columnDefs": [{
+            "targets": 'no-sort',
+            "orderable": false,
+        }]
     });
 
-    $('#permissionTable').on('click', '.edit-btn', function () {
-        const id = $(this).closest('tr').data('id');
-        app.showGlobalModal({ url: `/Permission/_CreateOrEdit/${id}`, title: 'แก้ไขสิทธิ์' });
-    });
-
-    $('#globalModal').on('submit', '#permissionForm', function (e) {
-        e.preventDefault();
-        const form = $(this);
-        if (!form.valid()) return;
-
-        const button = form.find('button[type="submit"]');
-        app.showLoading(button);
-
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            success: function (response) {
-                if (response.success) {
-                    $('#globalModal').modal('hide');
-                    app.showSuccessToast(response.message || 'บันทึกข้อมูลสำเร็จ');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    app.showErrorToast(response.message || 'เกิดข้อผิดพลาด');
-                }
-            },
-            error: () => app.showErrorToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'),
-            complete: () => app.hideLoading(button)
-        });
-    });
-
+    // Handle Delete Button Click
     $('#permissionTable').on('click', '.delete-btn', function () {
-        const id = $(this).closest('tr').data('id');
+        const permissionId = $(this).data('id');
+        const permissionName = $(this).data('name');
         const token = $('input[name="__RequestVerificationToken"]').val();
 
-        app.showConfirmDialog({
-            title: 'ยืนยันการลบ',
-            text: 'คุณแน่ใจหรือไม่ว่าต้องการลบสิทธิ์นี้?'
+        app.showDeleteConfirmDialog({
+            title: 'ยืนยันการลบสิทธิ์',
+            html: `คุณต้องการลบสิทธิ์ "<b>${permissionName}</b>" ใช่หรือไม่?`,
+            confirmButtonText: 'ยืนยัน, ลบเลย!'
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '/Permission/Delete',
-                    type: 'POST',
-                    data: { id: id },
-                    headers: { 'RequestVerificationToken': token },
+                    url: `/Permission/Delete/${permissionId}`,
+                    type: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
                     success: function (response) {
                         if (response.success) {
-                            app.showSuccessToast(response.message || 'ลบข้อมูลสำเร็จ');
+                            app.showSuccessToast(response.message);
+                            // Use a timeout to allow the toast to be seen before reloading
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            app.showErrorToast(response.message);
+                            app.showErrorAlert(response.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
                         }
                     },
-                    error: () => app.showErrorToast('เกิดข้อผิดพลาดในการลบข้อมูล')
+                    error: function () {
+                        app.showErrorAlert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+                    }
                 });
             }
         });

@@ -1,0 +1,49 @@
+﻿@model Portal.Shared.Models.Entities.Permission
+
+@{
+    bool isCreate = Model.Id == 0;
+}
+
+<form id="permissionForm"
+      asp-action="@(isCreate ? "Create" : "Edit")"
+      asp-route-id="@Model.Id"
+      method="post"
+      class="needs-validation"
+      data-ajax="true"
+      data-success-url="@Url.Action("Index","Permission")"
+      data-confirm="true"
+      novalidate>
+
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-4"></div>
+
+    <fieldset>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="form-floating">
+                    <input asp-for="Name" class="form-control" placeholder=" " required />
+                    <label asp-for="Name"></label>
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating">
+                    <input asp-for="Key" class="form-control" placeholder=" " required />
+                    <label asp-for="Key"></label>
+                    <span asp-validation-for="Key" class="text-danger small"></span>
+                    <div class="form-text">
+                        ควรอยู่ในรูปแบบ 'Permissions.Module.Action' เช่น 'Permissions.Employee.Create'
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating">
+                    <textarea asp-for="Description" class="form-control" placeholder=" " style="height: 100px"></textarea>
+                    <label asp-for="Description"></label>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</form>

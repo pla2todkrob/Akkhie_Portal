@@ -1,0 +1,51 @@
+﻿@model Portal.Shared.Models.Entities.Permission
+
+@{
+    bool isCreate = Model.Id == 0;
+    ViewData["Title"] = isCreate ? "สร้างสิทธิ์ใหม่" : $"แก้ไขสิทธิ์: {Model.Name}";
+    Layout = "_Layout";
+    var breadcrumbs = new List<Tuple<string, string>>
+    {
+        new("หน้าแรก", Url.Action("Index","Home") ?? ""),
+        new("จัดการข้อมูล", Url.Action("Index","Management") ?? ""),
+        new("จัดการสิทธิ์", Url.Action("Index", "Permission") ?? ""),
+        new(isCreate ? "สร้างใหม่" : "แก้ไข", "")
+    };
+}
+
+<div class="container py-4">
+    <partial name="_Breadcrumb" model="breadcrumbs" />
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h2 class="mb-0 text-primary">@ViewData["Title"]</h2>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <partial name="_PermissionForm" model="Model" />
+                </div>
+                <div class="card-footer setStickyBottom py-3">
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>ยกเลิก
+                        </a>
+                        <button type="submit" form="permissionForm" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                            <i class="bi bi-check-circle me-2"></i>บันทึกข้อมูล
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/permission-form.js" asp-append-version="true"></script>
+}

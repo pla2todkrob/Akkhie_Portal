@@ -45,5 +45,30 @@ namespace Portal.Models
                 return ApiResponse<T>.ErrorResponse($"An unexpected error occurred while handling the API response: {ex.Message}");
             }
         }
+
+        protected static async Task<ApiResponse> HandleApiResponse(HttpResponseMessage response)
+        {
+            try
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(responseContent))
+                {
+                    return response.IsSuccessStatusCode
+                        ? ApiResponse.SuccessResponse("Operation completed successfully.")
+                        : ApiResponse.ErrorResponse($"HTTP Error: {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return apiResponse ?? ApiResponse.ErrorResponse("Failed to deserialize API response.");
+            }
+            catch (JsonException ex)
+            {
+                return ApiResponse.ErrorResponse($"Failed to parse API response: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.ErrorResponse($"An unexpected error occurred while handling the API response: {ex.Message}");
+            }
+        }
     }
 }

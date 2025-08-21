@@ -1,0 +1,35 @@
+﻿@model IEnumerable<Portal.Shared.Models.Entities.Permission>
+@{
+    ViewData["Title"] = "จัดการสิทธิ์";
+}
+
+<button id="createPermissionBtn" class="btn btn-primary mb-3">สร้างสิทธิ์ใหม่</button>
+
+<table id="permissionTable" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Key</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr data-id="@item.Id">
+                <td>@item.Name</td>
+                <td><code>@item.Key</code></td>
+                <td>@item.Description</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-btn">แก้ไข</button>
+                    <button class="btn btn-sm btn-danger delete-btn">ลบ</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="~/js/permission.js" asp-append-version="true"></script>
+}

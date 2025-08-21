@@ -62,10 +62,7 @@ namespace Portal.Services.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Permission permission)
         {
-            if (id != permission.Id)
-            {
-                return BadRequest();
-            }
+            if (id != permission.Id) return BadRequest();
             context.Entry(permission).State = EntityState.Modified;
             await context.SaveChangesAsync();
             return NoContent();
@@ -75,10 +72,7 @@ namespace Portal.Services.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var permission = await context.Permissions.FindAsync(id);
-            if (permission == null)
-            {
-                return NotFound();
-            }
+            if (permission == null) return NotFound();
             context.Permissions.Remove(permission);
             await context.SaveChangesAsync();
             return NoContent();

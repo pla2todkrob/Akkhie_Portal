@@ -27,9 +27,6 @@ namespace Portal.Services.Models
         public DbSet<Section> Sections { get; set; }
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
-        public DbSet<Permission> Permissions { get; set; }
-        public DbSet<RolePermission> RolePermissions { get; set; }
-        public DbSet<EmployeePermission> EmployeePermissions { get; set; }
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<SupportTicketCategory> SupportTicketCategories { get; set; }
         public DbSet<SupportTicketFiles> SupportTicketFiles { get; set; }
@@ -162,21 +159,6 @@ namespace Portal.Services.Models
                 entity.HasIndex(e => e.UploadDateTime);
                 entity.HasIndex(e => e.UploadedByUserId);
                 entity.HasIndex(e => e.FileName);
-            });
-
-            modelBuilder.Entity<Permission>(entity =>
-            {
-                entity.HasIndex(e => e.Key).IsUnique();
-            });
-
-            modelBuilder.Entity<RolePermission>(entity =>
-            {
-                entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
-            });
-
-            modelBuilder.Entity<EmployeePermission>(entity =>
-            {
-                entity.HasKey(ep => new { ep.EmployeeId, ep.PermissionId });
             });
 
             modelBuilder.Entity<Employee>()

@@ -79,7 +79,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Company", b =>
@@ -108,7 +108,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("ShortName")
                         .IsUnique();
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
 
                     b.HasData(
                         new
@@ -147,7 +147,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("CompanyId", "BranchCode")
                         .IsUnique();
 
-                    b.ToTable("CompanyBranches");
+                    b.ToTable("CompanyBranches", (string)null);
 
                     b.HasData(
                         new
@@ -182,7 +182,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("DivisionId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
 
                     b.HasData(
                         new
@@ -264,7 +264,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("Name", "CompanyId")
                         .IsUnique();
 
-                    b.ToTable("Divisions");
+                    b.ToTable("Divisions", (string)null);
 
                     b.HasData(
                         new
@@ -358,7 +358,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("Username", "CompanyId")
                         .IsUnique();
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeeCompanyAccess", b =>
@@ -398,7 +398,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("GrantedDate");
 
-                    b.ToTable("EmployeeCompanyAccesses");
+                    b.ToTable("EmployeeCompanyAccesses", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeeDetail", b =>
@@ -450,22 +450,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("LastName");
 
-                    b.ToTable("EmployeeDetails");
-                });
-
-            modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeePermission", b =>
-                {
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PermissionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("EmployeeId", "PermissionId");
-
-                    b.HasIndex("PermissionId");
-
-                    b.ToTable("EmployeePermissions");
+                    b.ToTable("EmployeeDetails", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Asset", b =>
@@ -507,7 +492,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("IT_Assets");
+                    b.ToTable("IT_Assets", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Item", b =>
@@ -540,7 +525,7 @@ namespace Portal.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("IT_Items");
+                    b.ToTable("IT_Items", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_StandardSet", b =>
@@ -569,7 +554,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("IT_StandardSets");
+                    b.ToTable("IT_StandardSets", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Stock", b =>
@@ -594,36 +579,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("IT_Stocks");
-                });
-
-            modelBuilder.Entity("Portal.Shared.Models.Entities.Permission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Key")
-                        .IsUnique();
-
-                    b.ToTable("Permissions");
+                    b.ToTable("IT_Stocks", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Role", b =>
@@ -648,7 +604,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
@@ -688,21 +644,6 @@ namespace Portal.Services.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Portal.Shared.Models.Entities.RolePermission", b =>
-                {
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PermissionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RoleId", "PermissionId");
-
-                    b.HasIndex("PermissionId");
-
-                    b.ToTable("RolePermissions");
-                });
-
             modelBuilder.Entity("Portal.Shared.Models.Entities.Section", b =>
                 {
                     b.Property<int>("Id")
@@ -726,7 +667,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("DepartmentId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Sections");
+                    b.ToTable("Sections", (string)null);
 
                     b.HasData(
                         new
@@ -935,7 +876,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("TicketNumber")
                         .IsUnique();
 
-                    b.ToTable("SupportTickets");
+                    b.ToTable("SupportTickets", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Support.SupportTicketCategory", b =>
@@ -967,7 +908,7 @@ namespace Portal.Services.Migrations
                     b.HasIndex("Name", "CategoryType")
                         .IsUnique();
 
-                    b.ToTable("SupportTicketCategories");
+                    b.ToTable("SupportTicketCategories", (string)null);
 
                     b.HasData(
                         new
@@ -1006,7 +947,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("UploadedFileId");
 
-                    b.ToTable("SupportTicketFiles");
+                    b.ToTable("SupportTicketFiles", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Support.SupportTicketHistory", b =>
@@ -1045,7 +986,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("SupportTicketHistories");
+                    b.ToTable("SupportTicketHistories", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.UploadedFile", b =>
@@ -1093,7 +1034,7 @@ namespace Portal.Services.Migrations
 
                     b.HasIndex("UploadedByUserId");
 
-                    b.ToTable("UploadedFiles");
+                    b.ToTable("UploadedFiles", (string)null);
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.AuditLog", b =>
@@ -1218,25 +1159,6 @@ namespace Portal.Services.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("Portal.Shared.Models.Entities.EmployeePermission", b =>
-                {
-                    b.HasOne("Portal.Shared.Models.Entities.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Portal.Shared.Models.Entities.Permission", "Permission")
-                        .WithMany()
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("Permission");
-                });
-
             modelBuilder.Entity("Portal.Shared.Models.Entities.IT_Inventory.IT_Asset", b =>
                 {
                     b.HasOne("Portal.Shared.Models.Entities.Employee", "AssignedToEmployee")
@@ -1283,25 +1205,6 @@ namespace Portal.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("Portal.Shared.Models.Entities.RolePermission", b =>
-                {
-                    b.HasOne("Portal.Shared.Models.Entities.Permission", "Permission")
-                        .WithMany()
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Portal.Shared.Models.Entities.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Permission");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Portal.Shared.Models.Entities.Section", b =>

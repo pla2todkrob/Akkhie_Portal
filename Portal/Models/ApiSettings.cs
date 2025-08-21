@@ -4,12 +4,6 @@
     {
         public static string SectionName => "ApiSettings";
         public string BaseUrl { get; set; } = string.Empty;
-        public string PermissionGetUserPermissions { get; set; } = string.Empty;
-        public string PermissionGetAll { get; set; } = string.Empty;
-        public string PermissionGetById { get; set; } = string.Empty;
-        public string PermissionCreate { get; set; } = string.Empty;
-        public string PermissionUpdate { get; set; } = string.Empty;
-        public string PermissionDelete { get; set; } = string.Empty;
         public string EmployeeLogin { get; set; } = string.Empty;
         public string EmployeeRegister { get; set; } = string.Empty;
         public string EmployeeSearch { get; set; } = string.Empty;

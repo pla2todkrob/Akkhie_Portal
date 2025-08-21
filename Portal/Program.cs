@@ -34,10 +34,7 @@ builder.Services.AddHttpClient<ISectionRequest, SectionRequest>().AddHttpMessage
 builder.Services.AddHttpClient<ISupportTicketRequest, SupportTicketRequest>().AddHttpMessageHandler<AuthenticationHeaderHandler>();
 builder.Services.AddHttpClient<IITInventoryRequest, ITInventoryRequest>().AddHttpMessageHandler<AuthenticationHeaderHandler>();
 builder.Services.AddHttpClient<ISupportCategoryRequest, SupportCategoryRequest>().AddHttpMessageHandler<AuthenticationHeaderHandler>();
-builder.Services.AddHttpClient<IPermissionRequest, PermissionRequest>().AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-builder.Services.AddScoped<IViewPermissionService, ViewPermissionService>();
-builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -49,11 +46,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanAccessManagement", policy =>
-        policy.Requirements.Add(new PermissionRequirement("Permissions.Management.Access")));
-});
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

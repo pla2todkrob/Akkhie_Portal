@@ -73,7 +73,6 @@ builder.Services.AddScoped<ISupportCategoryService, SupportCategoryService>();
 builder.Services.AddScoped<ILineMessagingService, LineMessagingService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

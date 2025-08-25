@@ -1,6 +1,6 @@
 ﻿// File: Portal.Services/Controllers/WasteRulesController.cs
 using Microsoft.AspNetCore.Mvc;
-using Portal.Services.Services.Waste;
+using Portal.Services.Models.Waste;
 
 namespace Portal.Services.Controllers
 {

@@ -1,6 +1,6 @@
 ﻿// File: Portal.Services/Configuration/WasteRulesServiceRegistration.cs
 using Microsoft.Extensions.DependencyInjection;
-using Portal.Services.Services.Waste;
+using Portal.Services.Models.Waste;
 
 namespace Portal.Services.Configuration
 {

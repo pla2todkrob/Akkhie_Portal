@@ -1,10 +1,10 @@
-﻿// File: Portal.Services/Services/Waste/WasteRuleEvaluatorService.cs
+﻿// File: Portal.Services/Models/Waste/WasteRuleEvaluatorService.cs
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Portal.Services.Models;
 using Portal.Shared.Models.Entities.Waste;
 
-namespace Portal.Services.Services.Waste
+namespace Portal.Services.Models.Waste
 {
     #region DTOs: Request/Response
 

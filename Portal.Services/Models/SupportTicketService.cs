@@ -135,7 +135,7 @@ namespace Portal.Services.Models
                 _context.SupportTickets.Add(newTicket);
                 await _context.SaveChangesAsync();
 
-                if (request.UploadedFiles != null && request.UploadedFiles.Any())
+                if (request.UploadedFiles != null && request.UploadedFiles.Count != 0)
                 {
                     var uploadedFileEntities = await _fileService.UploadFilesAsync(request.UploadedFiles);
                     foreach (var fileEntity in uploadedFileEntities)

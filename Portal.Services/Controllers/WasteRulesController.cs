@@ -9,16 +9,8 @@ namespace Portal.Services.Controllers
     /// </summary>
     [ApiController]
     [Route("api/waste")]
-    public class WasteRulesController : ControllerBase
+    public class WasteRulesController(WasteRuleEvaluatorService evaluator, ILogger<WasteRulesController> logger) : ControllerBase
     {
-        private readonly WasteRuleEvaluatorService _evaluator;
-        private readonly ILogger<WasteRulesController> _logger;
-
-        public WasteRulesController(WasteRuleEvaluatorService evaluator, ILogger<WasteRulesController> logger)
-        {
-            _evaluator = evaluator;
-            _logger = logger;
-        }
 
         /// <summary>
         /// ดึงสคีมาของ Waste Attributes ทั้งหมดที่ Active
@@ -28,7 +20,7 @@ namespace Portal.Services.Controllers
         [ProducesResponseType(typeof(List<WasteAttributeSchemaItem>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetSchema(CancellationToken ct)
         {
-            var schema = await _evaluator.GetInputSchemaAsync(ct);
+            var schema = await evaluator.GetInputSchemaAsync(ct);
             return Ok(schema);
         }
 
@@ -40,7 +32,7 @@ namespace Portal.Services.Controllers
         public async Task<IActionResult> EvaluateAll([FromBody] List<WasteAttributeInput> inputs, CancellationToken ct)
         {
             if (inputs == null) return BadRequest("payload is null");
-            var summary = await _evaluator.EvaluateAllFormulasAsync(inputs, ct);
+            var summary = await evaluator.EvaluateAllFormulasAsync(inputs, ct);
             return Ok(summary);
         }
 
@@ -53,7 +45,7 @@ namespace Portal.Services.Controllers
         public async Task<IActionResult> EvaluateOne([FromRoute] int formulaId, [FromBody] List<WasteAttributeInput> inputs, CancellationToken ct)
         {
             if (inputs == null) return BadRequest("payload is null");
-            var result = await _evaluator.EvaluateFormulaAsync(formulaId, inputs, ct);
+            var result = await evaluator.EvaluateFormulaAsync(formulaId, inputs, ct);
             if (result == null) return NotFound();
             return Ok(result);
         }

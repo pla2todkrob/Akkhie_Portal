@@ -31,7 +31,7 @@ namespace Portal.Services.Models
                 .Where(e => e.Username == request.Username)
                 .ToListAsync();
 
-            if (employees.Any())
+            if (employees.Count != 0)
             {
                 Employee? validEmployee = null;
 

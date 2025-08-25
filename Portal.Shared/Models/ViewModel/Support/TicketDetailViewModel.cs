@@ -18,8 +18,8 @@ namespace Portal.Shared.Models.ViewModel.Support
         public DateTime CreatedAt { get; set; }
         [DisplayFormat(DataFormatString = "{0:g}")]
         public DateTime? ResolvedAt { get; set; }
-        public List<HistoryItem> History { get; set; } = new();
-        public List<AttachmentItem> Attachments { get; set; } = new();
+        public List<HistoryItem> History { get; set; } = [];
+        public List<AttachmentItem> Attachments { get; set; } = [];
         public Guid ReportedById { get; set; }
         public bool IsOwner { get; set; }
         public int QueuePosition { get; set; }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Portal.Services.Configuration;
 using Portal.Services.Interfaces;
 using Portal.Services.Models;
 using Serilog;
@@ -38,6 +39,8 @@ builder.Services.AddCors(options =>
 
 ConfigureJwtSettings(builder);
 ConfigureActiveDirectorySettings(builder);
+
+builder.Services.AddWasteRulesFeature();
 
 builder.Services.AddDbContext<PortalDbContext>(options =>
 {

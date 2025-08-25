@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿// File: Portal.Services/Models/PortalDbContext.cs
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
@@ -8,6 +9,8 @@ using Portal.Shared.Enums;
 using Portal.Shared.Models.Entities;
 using Portal.Shared.Models.Entities.IT_Inventory;
 using Portal.Shared.Models.Entities.Support;
+// --- เพิ่มเติมสำหรับ Waste Rules ---
+using Portal.Shared.Models.Entities.Waste;
 
 namespace Portal.Services.Models
 {
@@ -36,6 +39,11 @@ namespace Portal.Services.Models
         public DbSet<IT_Asset> IT_Assets { get; set; }
         public DbSet<IT_Stock> IT_Stocks { get; set; }
         public DbSet<IT_StandardSet> IT_StandardSets { get; set; }
+
+        // --- เพิ่ม DbSet สำหรับ Waste Rules ---
+        public DbSet<WasteAttribute> WasteAttributes { get; set; }
+        public DbSet<WasteFormula> WasteFormulas { get; set; }
+        public DbSet<WasteFormulaCondition> WasteFormulaConditions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -184,7 +192,7 @@ namespace Portal.Services.Models
                 entity.HasOne(st => st.ReportedByEmployee)
                     .WithMany()
                     .HasForeignKey(st => st.ReportedByEmployeeId)
-                    .OnDelete(DeleteBehavior.Restrict); 
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(st => st.AssignedToEmployee)
                     .WithMany()
@@ -307,6 +315,131 @@ namespace Portal.Services.Models
                 new SupportTicketCategory() { Id = 2, CategoryType = Shared.Enums.Support.TicketCategoryType.Request, Name = "รายการใหม่", IsNotCategory = true }
                 );
 
+            // -----------------------------
+            // เพิ่มเติม: Entity Config สำหรับ Waste Rules
+            // -----------------------------
+
+            // WasteAttribute
+            modelBuilder.Entity<WasteAttribute>(e =>
+            {
+                e.ToTable("WasteAttributes");
+                e.HasKey(x => x.Id);
+
+                e.Property(x => x.Name).IsRequired().HasMaxLength(200);
+                e.Property(x => x.Code).HasMaxLength(100);
+                e.Property(x => x.Unit).HasMaxLength(50);
+                e.Property(x => x.AllowedValuesCsv).HasMaxLength(1000);
+
+                e.HasIndex(x => x.Name);
+                e.HasIndex(x => x.Code);
+                e.HasIndex(x => x.IsActive);
+
+                // Seed แนะนำ
+                e.HasData(
+                    new WasteAttribute { Id = 1001, Name = "สถานะทางกายภาพ", Code = "PhysicalState", Unit = null, DataType = AttributeDataType.Text, AllowedValuesCsv = "ของเหลว,ของแข็ง,กึ่งของแข็ง", IsActive = true },
+                    new WasteAttribute { Id = 1002, Name = "ความหนืด", Code = "Viscosity", Unit = "mPa·s", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1003, Name = "pH", Code = "pH", Unit = null, DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1004, Name = "Cl (%)", Code = "ClPercent", Unit = "%", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1005, Name = "S (%)", Code = "SPercent", Unit = "%", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1006, Name = "ค่าความร้อน (Hv)", Code = "CalorificValue", Unit = "kcal", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1007, Name = "TS (%)", Code = "TSPercent", Unit = "%", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1008, Name = "Flash Point", Code = "FlashPoint", Unit = "°C", DataType = AttributeDataType.Numeric, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1009, Name = "การเกิดฟอง", Code = "FoamGeneration", Unit = null, DataType = AttributeDataType.Boolean, AllowedValuesCsv = null, IsActive = true },
+                    new WasteAttribute { Id = 1010, Name = "ประเภทจัดเก็บ", Code = "StorageType", Unit = null, DataType = AttributeDataType.Text, AllowedValuesCsv = "รถแทงค์,ถัง200ลิตร,IBC", IsActive = true }
+                );
+            });
+
+            // WasteFormula
+            modelBuilder.Entity<WasteFormula>(e =>
+            {
+                e.ToTable("WasteFormulas");
+                e.HasKey(x => x.Id);
+
+                e.Property(x => x.Name).IsRequired().HasMaxLength(300);
+                e.Property(x => x.Description).HasMaxLength(1000);
+
+                // บันทึกเวลาเป็น UTC ชัดเจน
+                e.Property(x => x.CreatedAtUtc)
+                 .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+                e.HasIndex(x => x.IsActive);
+                e.HasIndex(x => new { x.Name, x.IsActive });
+
+                // Seed ตัวอย่างสูตร
+                e.HasData(
+                    new WasteFormula
+                    {
+                        Id = 2001,
+                        Name = "เกณฑ์การพิจารณาเข้า Dilute (กรด)",
+                        Description = "ตัวอย่างจากไฟล์ Excel",
+                        CreatedByEmployeeId = null,
+                        CreatedAtUtc = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+                        IsActive = true
+                    }
+                );
+            });
+
+            // WasteFormulaCondition
+            modelBuilder.Entity<WasteFormulaCondition>(e =>
+            {
+                e.ToTable("WasteFormulaConditions");
+                e.HasKey(x => x.Id);
+
+                e.Property(x => x.Value1).HasMaxLength(200);
+                e.Property(x => x.Value2).HasMaxLength(200);
+                e.Property(x => x.ValueListCsv).HasMaxLength(2000);
+                e.Property(x => x.Note).HasMaxLength(500);
+
+                e.HasOne(x => x.Formula)
+                    .WithMany(f => f.Conditions)
+                    .HasForeignKey(x => x.FormulaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.Attribute)
+                    .WithMany()
+                    .HasForeignKey(x => x.AttributeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasIndex(x => new { x.FormulaId, x.DisplayOrder });
+                e.HasIndex(x => x.IsActive);
+                e.HasIndex(x => new { x.FormulaId, x.AttributeId });
+
+                // Seed เงื่อนไขของสูตร Dilute (กรด)
+                e.HasData(
+                    // 1) สถานะ = ของเหลว
+                    new WasteFormulaCondition { Id = 30001, FormulaId = 2001, AttributeId = 1001, Operator = ComparisonOperator.Equal, Value1 = "ของเหลว", DisplayOrder = 1, IsActive = true },
+
+                    // 2) ความหนืด 0-500
+                    new WasteFormulaCondition { Id = 30002, FormulaId = 2001, AttributeId = 1002, Operator = ComparisonOperator.Between, Value1 = "0", Value2 = "500", DisplayOrder = 2, IsActive = true },
+
+                    // 3) pH 1-4 หรือ 12-14
+                    new WasteFormulaCondition { Id = 30003, FormulaId = 2001, AttributeId = 1003, Operator = ComparisonOperator.Between, Value1 = "1", Value2 = "4", DisplayOrder = 3, IsActive = true },
+                    new WasteFormulaCondition { Id = 30004, FormulaId = 2001, AttributeId = 1003, Operator = ComparisonOperator.Between, Value1 = "12", Value2 = "14", DisplayOrder = 4, IsActive = true },
+
+                    // 4) Cl > 2%
+                    new WasteFormulaCondition { Id = 30005, FormulaId = 2001, AttributeId = 1004, Operator = ComparisonOperator.GreaterThan, Value1 = "2", DisplayOrder = 5, IsActive = true },
+
+                    // 5) S > 1%
+                    new WasteFormulaCondition { Id = 30006, FormulaId = 2001, AttributeId = 1005, Operator = ComparisonOperator.GreaterThan, Value1 = "1", DisplayOrder = 6, IsActive = true },
+
+                    // 6) Hv = 0 kcal
+                    new WasteFormulaCondition { Id = 30007, FormulaId = 2001, AttributeId = 1006, Operator = ComparisonOperator.Equal, Value1 = "0", DisplayOrder = 7, IsActive = true },
+
+                    // 7) TS < 10%
+                    new WasteFormulaCondition { Id = 30008, FormulaId = 2001, AttributeId = 1007, Operator = ComparisonOperator.LessThan, Value1 = "10", DisplayOrder = 8, IsActive = true },
+
+                    // 8) Flash Point > 60°C
+                    new WasteFormulaCondition { Id = 30009, FormulaId = 2001, AttributeId = 1008, Operator = ComparisonOperator.GreaterThan, Value1 = "60", DisplayOrder = 9, IsActive = true },
+
+                    // 9) ไม่เกิดฟอง
+                    new WasteFormulaCondition { Id = 30010, FormulaId = 2001, AttributeId = 1009, Operator = ComparisonOperator.Equal, Value1 = "False", DisplayOrder = 10, IsActive = true },
+
+                    // 10) ประเภทจัดเก็บ (OR)
+                    new WasteFormulaCondition { Id = 30011, FormulaId = 2001, AttributeId = 1010, Operator = ComparisonOperator.Equal, Value1 = "รถแทงค์", DisplayOrder = 11, IsActive = true },
+                    new WasteFormulaCondition { Id = 30012, FormulaId = 2001, AttributeId = 1010, Operator = ComparisonOperator.Equal, Value1 = "ถัง200ลิตร", DisplayOrder = 12, IsActive = true },
+                    new WasteFormulaCondition { Id = 30013, FormulaId = 2001, AttributeId = 1010, Operator = ComparisonOperator.Equal, Value1 = "IBC", DisplayOrder = 13, IsActive = true }
+                );
+            });
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -338,10 +471,10 @@ namespace Portal.Services.Models
                 var auditEntry = new AuditEntry(entry, entry.Metadata.GetTableName() ?? "Unknown")
                 {
                     TransactionId = transactionId,
-                    UserId = _currentUserService.UserId?.ToString(),
-                    Username = _currentUserService.Username,
+                    UserId = _currentUserService?.UserId?.ToString(),
+                    Username = _currentUserService?.Username,
                     IpAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
-                    UserAgent = _httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString(),
+                    UserAgent = _currentUserService != null ? _httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString() : null,
                     TraceId = _httpContextAccessor.HttpContext?.TraceIdentifier
                 };
 
